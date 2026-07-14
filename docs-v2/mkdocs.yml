@@ -1,0 +1,85 @@
+site_name: EVOID
+site_description: Intent-Oriented Programming Runtime
+site_url: https://evolvebeyond.github.io/EVOID/
+repo_url: https://github.com/EvolveBeyond/EVOID
+repo_name: EvolveBeyond/EVOID
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - What is IOP?: getting-started/what-is-iop.md
+  - Learn:
+    - Intent: learn/intent.md
+    - Pipeline: learn/pipeline.md
+    - Processors: learn/processors.md
+    - Plugins: learn/plugins.md
+  - Syntax Styles:
+    - "@route": styles/route.md
+    - "@controller": styles/controller.md
+    - Native: styles/native.md
+  - Tutorial:
+    - Overview: tutorial/index.md
+    - First Steps: tutorial/first-steps.md
+    - Path Parameters: tutorial/path-params.md
+    - Request Body: tutorial/request-body.md
+  - API Reference: api.md
+  - Examples: examples.md
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/EvolveBeyond
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/evoid/
+
+copyright: Copyright &copy; 2026 EvolveBeyond

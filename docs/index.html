@@ -11,17 +11,16 @@
   <meta property="og:title" content="EVOID — Intent-Oriented Programming Runtime">
   <meta property="og:description" content="Reference Runtime for Intent-Oriented Programming (IOP)">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://evolvebeyond.github.io/EVOID/">
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
-  <!-- Docsify v5 Core Theme -->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
-  <!-- Vue Theme Add-on (popular v4 style) -->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/vue.min.css">
-  <!-- Custom Theme Properties -->
+  <!-- Theme -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
   <style>
     :root {
       --base-font-size: 15px;
       --theme-color: #6366f1;
+      --theme-color_rgb: 99, 102, 241;
       --sidebar-width: 280px;
       --sidebar-nav-link-color--active: #6366f1;
       --sidebar-nav-link-border-color--active: #6366f1;
@@ -35,9 +34,7 @@
       --code-background-color: #f8f9fa;
       --code-border-color: #e9ecef;
     }
-    /* Smooth scroll */
     html { scroll-behavior: smooth; }
-    /* Better code blocks */
     .markdown-section code {
       border-radius: 4px;
       padding: 2px 6px;
@@ -46,7 +43,6 @@
       padding: 16px;
       border-radius: 8px;
     }
-    /* Tip/Warning/Danger blocks */
     .markdown-section blockquote {
       border-left: 4px solid var(--theme-color);
       padding: 12px 16px;
@@ -55,18 +51,6 @@
       border-radius: 0 8px 8px 0;
     }
     .markdown-section blockquote p { margin: 0; }
-    /* Badge styling */
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .badge-success { background: #10b981; color: white; }
-    .badge-warning { background: #f59e0b; color: white; }
-    .badge-danger { background: #ef4444; color: white; }
-    .badge-info { background: #6366f1; color: white; }
   </style>
 </head>
 <body>
@@ -81,66 +65,45 @@
       subMaxLevel: 3,
       auto2top: true,
       maxLevel: 4,
-      // Search plugin
       search: {
         maxAge: 86400000,
         paths: 'auto',
-        placeholder: {
-          '/': 'Search docs...'
-        },
-        noData: {
-          '/': 'No results found'
-        },
+        placeholder: 'Search docs...',
+        noData: 'No results found',
         depth: 3
       },
-      // Copy code plugin
       copyCode: {
         buttonText: 'Copy',
         successText: 'Copied!'
       },
-      // Tabs plugin
-      tabs: {
-        persist: true,
-        sync: true
-      },
-      // Pagination
       pagination: {
         previousText: 'Previous',
         nextText: 'Next',
         crossChapter: true,
         crossChapterText: true
       },
-      // Back to top
       'back-to-top': {
         offset: 300,
         text: 'Back to top',
         show: true
       },
-      // Smooth scroll
       smoothScroll: true,
-      // External links
       externalLink: {
         target: '_blank',
         rel: 'noopener'
-      },
-      // Top navbar
-      topNavbar: true
+      }
     }
   </script>
-  <!-- Docsify v5 Core -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/docsify.min.js"></script>
+  <!-- Docsify -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <!-- Plugins -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-back-to-top"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-scroll-to-top/dist/docsify-scroll-to-top.min.js"></script>
-  <!-- Syntax Highlighting -->
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-toml.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-toml.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-json.min.js"></script>
 </body>
 </html>
