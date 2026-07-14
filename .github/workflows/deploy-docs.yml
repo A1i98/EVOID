@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'docs-v2/**'
+      - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
 
 permissions:
@@ -27,12 +27,12 @@ jobs:
 
       - name: Build documentation
         run: |
-          cd docs-v2
+          cd docs
           mkdocs build --strict
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs-v2/site
+          publish_dir: ./docs/site
           publish_branch: gh-pages
