@@ -1,10 +1,15 @@
-# EVOID <small>2.0.0-alpha</small>
+# EVOID <small>0.3.0</small>
 
 > Reference Runtime for Intent-Oriented Programming
 
-- Intent is permanent, infrastructure is temporary
-- Language-independent runtime specification
-- Plugin-based architecture
+**Intent is permanent. Infrastructure is temporary.**
 
-[GitHub](https://github.com/your-username/evoid)
+A new paradigm where your data model IS your infrastructure policy.
+
+- 🎯 Intent-Driven Architecture
+- ⚡ Async-Native Execution
+- 🔌 Plugin-Based System
+- 📊 Three Syntax Styles
+
+[GitHub](https://github.com/EvolveBeyond/EVOID)
 [Get Started](guide/installation.md)
