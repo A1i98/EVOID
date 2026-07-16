@@ -96,7 +96,7 @@ const searchIndex = docs.map(doc => ({
     }
 
     resultsEl.innerHTML = results.map(function(item) {
-      return '<a href="/docs/' + item.s + '/" class="search-result">' +
+      return '<a href="/EVOID/docs/' + item.s + '/" class="search-result">' +
         '<div class="search-result-title">' + highlightMatch(item.t, query) + '</div>' +
         '<div class="search-result-excerpt">' + highlightMatch(item.d, query) + '</div>' +
       '</a>';

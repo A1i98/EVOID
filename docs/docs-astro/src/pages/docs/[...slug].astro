@@ -22,20 +22,20 @@ const slug = doc.id;
 const section = slug.split('/')[0];
 const navLinks = section === 'tutorial'
   ? [
-      { label: 'Getting Started', href: '/docs/getting-started/installation/' },
-      { label: 'Learn', href: '/docs/learn/intent/' },
-      { label: 'Tutorial', href: '/docs/tutorial/first-steps/', active: true },
+      { label: 'Getting Started', href: '/EVOID/docs/getting-started/installation/' },
+      { label: 'Learn', href: '/EVOID/docs/learn/intent/' },
+      { label: 'Tutorial', href: '/EVOID/docs/tutorial/first-steps/', active: true },
     ]
   : section === 'learn'
   ? [
-      { label: 'Getting Started', href: '/docs/getting-started/installation/' },
-      { label: 'Learn', href: '/docs/learn/intent/', active: true },
-      { label: 'Tutorial', href: '/docs/tutorial/first-steps/' },
+      { label: 'Getting Started', href: '/EVOID/docs/getting-started/installation/' },
+      { label: 'Learn', href: '/EVOID/docs/learn/intent/', active: true },
+      { label: 'Tutorial', href: '/EVOID/docs/tutorial/first-steps/' },
     ]
   : [
-      { label: 'Getting Started', href: '/docs/getting-started/installation/', active: true },
-      { label: 'Learn', href: '/docs/learn/intent/' },
-      { label: 'Tutorial', href: '/docs/tutorial/first-steps/' },
+      { label: 'Getting Started', href: '/EVOID/docs/getting-started/installation/', active: true },
+      { label: 'Learn', href: '/EVOID/docs/learn/intent/' },
+      { label: 'Tutorial', href: '/EVOID/docs/tutorial/first-steps/' },
     ];
 ---
 
@@ -52,7 +52,7 @@ const navLinks = section === 'tutorial'
         ))}
       </div>
 
-      <a href="/" class="docs-nav-logo">
+      <a href="/EVOID/" class="docs-nav-logo">
         <span class="logo-text">evo</span>
       </a>
 

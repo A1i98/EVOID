@@ -6,7 +6,8 @@ import remarkAdmonitions from './src/plugins/remark-admonitions.mjs';
 import remarkTabs from './src/plugins/remark-tabs.mjs';
 
 export default defineConfig({
-  site: 'https://evolvebeyond.github.io/EVOID/',
+  site: 'https://evolvebeyond.github.io',
+  base: '/EVOID',
   markdown: {
     remarkPlugins: [remarkAdmonitions, remarkTabs],
     processor: unified(),
