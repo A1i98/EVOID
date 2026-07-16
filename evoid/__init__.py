@@ -64,6 +64,14 @@ from .core.parallel import (
     IntentQueue,
 )
 
+# Native (IOP mother syntax)
+from .native import (
+    Service as NativeService,
+    create_service,
+    on as native_on,
+    execute_service,
+)
+
 __all__ = [
     # Core
     "Intent",
@@ -112,4 +120,9 @@ __all__ = [
     "run_in_thread",
     "run_in_thread_async",
     "IntentQueue",
+    # Native
+    "NativeService",
+    "create_service",
+    "native_on",
+    "execute_service",
 ]
