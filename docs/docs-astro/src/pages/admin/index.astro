@@ -1,0 +1,701 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import '../../styles/bento.css';
+---
+
+<MainLayout title="EVOID Docs Admin">
+  <div class="admin-container">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <a href="/" class="admin-logo">EVOID</a>
+        <span class="admin-divider">/</span>
+        <span class="admin-title">Docs Editor</span>
+      </div>
+      <div class="admin-actions">
+        <span id="status" class="admin-status"></span>
+        <button id="btn-save" class="btn btn-glow" disabled>Save to GitHub</button>
+      </div>
+    </header>
+
+    <!-- Token Setup -->
+    <div id="token-panel" class="admin-panel">
+      <h2>GitHub Token</h2>
+      <p>A personal access token with <code>repo</code> scope is needed to read and write files.</p>
+      <div class="token-input-row">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" class="admin-input" />
+        <button id="btn-connect" class="btn btn-glow">Connect</button>
+      </div>
+      <p class="token-hint">Token is stored in your browser's localStorage. Never shared with anyone.</p>
+    </div>
+
+    <!-- Main Editor (hidden until connected) -->
+    <div id="editor-panel" class="admin-editor" style="display:none">
+      <!-- Sidebar: File Tree -->
+      <aside class="admin-sidebar" id="file-tree">
+        <div class="sidebar-header">
+          <input type="text" id="search-files" placeholder="Search files..." class="admin-input admin-input--sm" />
+        </div>
+        <div class="sidebar-files" id="file-list"></div>
+      </aside>
+
+      <!-- Editor Area -->
+      <main class="admin-main">
+        <div id="editor-empty" class="admin-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <p>Select a file from the sidebar to edit</p>
+        </div>
+
+        <div id="editor-workspace" style="display:none">
+          <div class="editor-toolbar">
+            <span id="file-path" class="editor-path"></span>
+            <div class="editor-tabs">
+              <button class="editor-tab active" data-tab="write">Write</button>
+              <button class="editor-tab" data-tab="preview">Preview</button>
+            </div>
+          </div>
+
+          <div id="tab-write" class="editor-tab-content">
+            <textarea id="editor-textarea" class="editor-textarea" spellcheck="false"></textarea>
+          </div>
+
+          <div id="tab-preview" class="editor-tab-content" style="display:none">
+            <div id="editor-preview" class="editor-preview"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <style>
+    .admin-container {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-logo {
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--purple);
+      text-decoration: none;
+    }
+
+    .admin-divider {
+      color: var(--text-muted);
+      opacity: 0.4;
+    }
+
+    .admin-title {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .admin-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-status {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .admin-status.success { color: #22c55e; }
+    .admin-status.error { color: #ef4444; }
+    .admin-status.loading { color: var(--purple); }
+
+    .admin-panel {
+      max-width: 500px;
+      margin: 80px auto;
+      padding: 32px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .admin-panel h2 {
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+
+    .admin-panel p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 16px;
+      line-height: 1.6;
+    }
+
+    .admin-panel code {
+      background: oklch(0.25 0.02 260);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .token-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .token-hint {
+      font-size: 11px !important;
+      opacity: 0.5;
+      margin-top: 12px !important;
+    }
+
+    .admin-input {
+      flex: 1;
+      padding: 10px 14px;
+      background: oklch(0.15 0.02 260);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .admin-input:focus {
+      border-color: var(--purple);
+    }
+
+    .admin-input--sm {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-glow {
+      background: var(--purple);
+      color: white;
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 0 20px oklch(from var(--purple) l c h / 0.4);
+    }
+
+    .btn-glow:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Editor Layout */
+    .admin-editor {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .admin-sidebar {
+      width: 280px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: oklch(0.14 0.015 260);
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-files {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+    }
+
+    .file-item:hover {
+      background: oklch(from var(--purple) l c h / 0.08);
+      color: var(--text);
+    }
+
+    .file-item.active {
+      background: oklch(from var(--purple) l c h / 0.15);
+      color: var(--purple);
+    }
+
+    .file-item svg {
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    .file-group {
+      padding: 8px 12px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    /* Editor Main */
+    .admin-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .admin-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: oklch(0.14 0.015 260);
+    }
+
+    .editor-path {
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .editor-tabs {
+      display: flex;
+      gap: 2px;
+      background: oklch(0.12 0.015 260);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .editor-tab {
+      padding: 5px 14px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .editor-tab.active {
+      background: var(--purple);
+      color: white;
+    }
+
+    .editor-tab-content {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .editor-textarea {
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      resize: none;
+      outline: none;
+      tab-size: 2;
+    }
+
+    .editor-preview {
+      padding: 20px 40px;
+      overflow-y: auto;
+      height: 100%;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .editor-preview h1 { font-size: 24px; margin: 24px 0 12px; }
+    .editor-preview h2 { font-size: 20px; margin: 20px 0 10px; }
+    .editor-preview h3 { font-size: 16px; margin: 16px 0 8px; }
+    .editor-preview p { margin: 8px 0; }
+    .editor-preview code {
+      background: oklch(0.2 0.02 260);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'JetBrainsMono Nerd Font', monospace;
+    }
+    .editor-preview pre {
+      background: oklch(0.12 0.02 260);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .editor-preview pre code {
+      background: none;
+      padding: 0;
+    }
+    .editor-preview ul, .editor-preview ol {
+      padding-left: 24px;
+      margin: 8px 0;
+    }
+    .editor-preview blockquote {
+      border-left: 3px solid var(--purple);
+      padding-left: 16px;
+      margin: 12px 0;
+      color: var(--text-muted);
+    }
+    .editor-preview a { color: var(--purple); }
+    .editor-preview img { max-width: 100%; border-radius: 8px; }
+
+    .unsaved-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f59e0b;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+  </style>
+
+  <script is:inline>
+    const REPO = 'EvolveBeyond/EVOID';
+    const DOCS_PATH = 'docs/docs-astro/src/content/docs';
+    const BRANCH = 'main';
+
+    let token = localStorage.getItem('evoid_docs_token') || '';
+    let currentFile = null;
+    let currentSha = null;
+    let files = [];
+    let modified = false;
+
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => document.querySelectorAll(s);
+
+    // --- Init ---
+    if (token) {
+      $('#token-input').value = token;
+      connect();
+    }
+
+    // --- Token ---
+    $('#btn-connect').addEventListener('click', connect);
+    $('#token-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') connect(); });
+
+    async function connect() {
+      const t = $('#token-input').value.trim();
+      if (!t) return;
+
+      setStatus('Connecting...', 'loading');
+      try {
+        const res = await ghFetch(`/repos/${REPO}/contents/${DOCS_PATH}`);
+        if (!res.ok) throw new Error('Invalid token or repo access');
+        token = t;
+        localStorage.setItem('evoid_docs_token', token);
+        $('#token-panel').style.display = 'none';
+        $('#editor-panel').style.display = 'flex';
+        $('#btn-save').disabled = false;
+        setStatus('Connected', 'success');
+        await loadFiles();
+      } catch (e) {
+        setStatus('Connection failed: ' + e.message, 'error');
+      }
+    }
+
+    // --- GitHub API ---
+    function ghFetch(path, opts = {}) {
+      return fetch(`https://api.github.com${path}`, {
+        ...opts,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          ...opts.headers,
+        },
+      });
+    }
+
+    // --- File Tree ---
+    async function loadFiles() {
+      setStatus('Loading files...', 'loading');
+      try {
+        files = [];
+        await walkDir(DOCS_PATH);
+        files.sort((a, b) => a.path.localeCompare(b.path));
+        renderFileTree();
+        setStatus(`${files.length} files loaded`, 'success');
+      } catch (e) {
+        setStatus('Failed to load files: ' + e.message, 'error');
+      }
+    }
+
+    async function walkDir(path) {
+      const res = await ghFetch(`/repos/${REPO}/contents/${path}?ref=${BRANCH}`);
+      if (!res.ok) return;
+      const items = await res.json();
+      for (const item of items) {
+        if (item.type === 'file' && item.name.endsWith('.md')) {
+          files.push({
+            name: item.name,
+            path: item.path,
+            sha: item.sha,
+            url: item.url,
+          });
+        } else if (item.type === 'dir') {
+          await walkDir(item.path);
+        }
+      }
+    }
+
+    function renderFileTree(filter = '') {
+      const list = $('#file-list');
+      list.innerHTML = '';
+
+      const filtered = filter
+        ? files.filter(f => f.path.toLowerCase().includes(filter.toLowerCase()))
+        : files;
+
+      // Group by directory
+      const groups = {};
+      for (const f of filtered) {
+        const parts = f.path.replace(DOCS_PATH + '/', '').split('/');
+        const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '(root)';
+        if (!groups[dir]) groups[dir] = [];
+        groups[dir].push(f);
+      }
+
+      for (const [dir, dirFiles] of Object.entries(groups)) {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'file-group';
+        groupEl.textContent = dir;
+        list.appendChild(groupEl);
+
+        for (const f of dirFiles) {
+          const el = document.createElement('div');
+          el.className = 'file-item';
+          el.dataset.path = f.path;
+          el.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span>${f.name}</span>
+          `;
+          el.addEventListener('click', () => openFile(f));
+          list.appendChild(el);
+        }
+      }
+    }
+
+    $('#search-files').addEventListener('input', (e) => {
+      renderFileTree(e.target.value);
+    });
+
+    // --- Editor ---
+    async function openFile(file) {
+      if (modified && !confirm('You have unsaved changes. Discard?')) return;
+
+      setStatus('Loading...', 'loading');
+      try {
+        const res = await ghFetch(`/repos/${REPO}/contents/${file.path}?ref=${BRANCH}`);
+        if (!res.ok) throw new Error('Failed to load file');
+        const data = await res.json();
+        const content = decodeBase64(data.content);
+
+        currentFile = file;
+        currentSha = data.sha;
+        modified = false;
+
+        $('#file-path').textContent = file.path.replace(DOCS_PATH + '/', '');
+        $('#editor-textarea').value = content;
+        $('#editor-empty').style.display = 'none';
+        $('#editor-workspace').style.display = 'flex';
+        $('#editor-workspace').style.flexDirection = 'column';
+        $('#editor-workspace').style.flex = '1';
+
+        // Update active state
+        $$('.file-item').forEach(el => el.classList.remove('active'));
+        $(`.file-item[data-path="${file.path}"]`)?.classList.add('active');
+
+        updatePreview();
+        switchTab('write');
+        setStatus('Loaded', 'success');
+      } catch (e) {
+        setStatus('Failed: ' + e.message, 'error');
+      }
+    }
+
+    function decodeBase64(str) {
+      return decodeURIComponent(
+        atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
+    }
+
+    // --- Tabs ---
+    $$('.editor-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
+    function switchTab(name) {
+      $$('.editor-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      $('#tab-write').style.display = name === 'write' ? 'block' : 'none';
+      $('#tab-preview').style.display = name === 'preview' ? 'block' : 'none';
+      if (name === 'preview') updatePreview();
+    }
+
+    // --- Preview (minimal markdown) ---
+    function updatePreview() {
+      const md = $('#editor-textarea').value;
+      $('#editor-preview').innerHTML = markdownToHtml(md);
+    }
+
+    function markdownToHtml(md) {
+      let html = md
+        // Code blocks
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="lang-$1">$2</code></pre>')
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Headers
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        // Bold and italic
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Links
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        // Images
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+        // Blockquotes
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        // Unordered lists
+        .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+        // Horizontal rules
+        .replace(/^---$/gm, '<hr />')
+        // Paragraphs (double newline)
+        .replace(/\n\n/g, '</p><p>')
+        // Single newlines to <br>
+        .replace(/\n/g, '<br>');
+
+      return '<p>' + html + '</p>';
+    }
+
+    // --- Track changes ---
+    $('#editor-textarea').addEventListener('input', () => {
+      if (!modified) {
+        modified = true;
+        const dot = document.createElement('span');
+        dot.className = 'unsaved-dot';
+        $('#file-path').appendChild(dot);
+      }
+    });
+
+    // --- Save ---
+    $('#btn-save').addEventListener('click', saveFile);
+
+    async function saveFile() {
+      if (!currentFile || !modified) return;
+
+      setStatus('Saving...', 'loading');
+      try {
+        const content = $('#editor-textarea').value;
+        const encoded = btoa(unescape(encodeURIComponent(content)));
+
+        const res = await ghFetch(`/repos/${REPO}/contents/${currentFile.path}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            message: `docs: update ${currentFile.name}`,
+            content: encoded,
+            sha: currentSha,
+            branch: BRANCH,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || 'Save failed');
+        }
+
+        const data = await res.json();
+        currentSha = data.content.sha;
+        modified = false;
+
+        // Remove unsaved dot
+        const dot = $('.unsaved-dot');
+        if (dot) dot.remove();
+
+        setStatus('Saved to GitHub', 'success');
+      } catch (e) {
+        setStatus('Save failed: ' + e.message, 'error');
+      }
+    }
+
+    // Keyboard shortcut: Ctrl+S
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveFile();
+      }
+    });
+
+    // --- Status ---
+    function setStatus(msg, type = '') {
+      const el = $('#status');
+      el.textContent = msg;
+      el.className = 'admin-status ' + type;
+    }
+  </script>
+</MainLayout>
