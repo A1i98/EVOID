@@ -22,6 +22,7 @@ from ..core.extend import (
     after_processor as _after_processor,
     replace_pipeline as _replace_pipeline,
 )
+from ..native import Service  # IOP mother syntax
 
 
 # Handler type
@@ -33,11 +34,6 @@ class App:
     """App — pure data (name)."""
 
     name: str
-
-
-def Service(name: str) -> App:
-    """Create a service."""
-    return App(name=name)
 
 
 def _create_intent(method: str, path: str, level: str = "standard") -> Intent:
