@@ -35,9 +35,7 @@ class App:
     name: str
 
 
-def Service(name: str) -> App:
-    """Create a service (like FastAPI())."""
-    return App(name=name)
+from ..native import Service  # IOP mother syntax
 
 
 def _create_intent(method: str, path: str, level: str = "standard") -> Intent:
