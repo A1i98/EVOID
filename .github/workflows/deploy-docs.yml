@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "deploy-docs"
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -36,10 +36,13 @@ jobs:
         run: npm run build
         working-directory: docs/docs-astro
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/docs-astro/dist
-          publish_branch: gh-pages
-          force_orphan: true
+      - name: Deploy to gh-pages
+        run: |
+          cd docs/docs-astro/dist
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          touch .nojekyll
+          git add -A
+          git commit -m "deploy: documentation site [skip ci]"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:gh-pages
