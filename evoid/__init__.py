@@ -6,7 +6,7 @@ IOP: Data carries its own intent.
      Services communicate through Intents, not HTTP.
 """
 
-__version__ = "2.0.0-alpha"
+__version__ = "0.3.3"
 
 # Core
 from .core import (

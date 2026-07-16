@@ -1,6 +1,6 @@
 [project]
 name = "evoid"
-version = "0.3.0"
+version = "0.3.3"
 description = "EVOID — Reference Runtime for Intent-Oriented Programming"
 authors = [
     { name = "EvolveBeyond", email = "pakrohk@gmail.com" }
