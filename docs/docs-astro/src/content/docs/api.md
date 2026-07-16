@@ -502,7 +502,7 @@ Same extend functions and `run()` as @route.
 ## Native Style
 
 ```python
-from evoid.web.iop_style import create_service, on, run
+from evoid.native import create_service, on, run
 
 create_service(name: str) -> Service
 on(service: Service, intent: Intent, handler: Handler) -> None

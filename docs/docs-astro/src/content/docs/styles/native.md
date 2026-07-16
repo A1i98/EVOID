@@ -35,7 +35,7 @@ add_intent(GET_USER, handle_get_user)
 Group related Intents into a Service:
 
 ```python
-from evoid.web.iop_style import create_service, on, run
+from evoid.native import create_service, on, run
 
 # Create service
 service = create_service("user-service")

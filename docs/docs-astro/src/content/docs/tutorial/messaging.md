@@ -75,7 +75,7 @@ subscribe("order_created", update_inventory)
 Group related handlers into a Service:
 
 ```python
-from evoid.web.iop_style import create_service, on, run
+from evoid.native import create_service, on, run
 from evoid import Intent, Level
 
 service = create_service("order-service")
