@@ -12,7 +12,7 @@ User has full control over Intent creation.
 import asyncio
 
 from evoid.core import Intent, Level, Context
-from evoid.web.iop_style import create_service, on, run
+from evoid.native import create_service, on, run
 from evoid.engines.logger import loguru as log
 from evoid.core import all_intents, all_processors
 
