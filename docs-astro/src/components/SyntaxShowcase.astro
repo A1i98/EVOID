@@ -1,0 +1,102 @@
+---
+---
+
+<div class="showcase-card" id="showcase-section">
+  <div class="showcase-label">Two intents. Zero boilerplate.</div>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dots">
+        <span class="dot dot--red"></span>
+        <span class="dot dot--yellow"></span>
+        <span class="dot dot--green"></span>
+      </div>
+      <span class="terminal-file">api.py</span>
+    </div>
+    <pre class="terminal-code"><code id="showcase-code"></code></pre>
+  </div>
+  <div class="showcase-result" id="showcase-result"></div>
+</div>
+
+<style>
+  .showcase-card {
+    width: 100%;
+    max-width: 32rem;
+  }
+  .showcase-label {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--purple);
+    margin-bottom: 1rem;
+  }
+
+  .terminal {
+    background: oklch(0.12 0.02 260);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px oklch(1 0 0 / 0.06),
+      0 8px 40px oklch(0 0 0 / 0.25),
+      inset 0 1px 0 oklch(1 0 0 / 0.05);
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: oklch(0.15 0.02 260);
+    border-bottom: 1px solid oklch(1 0 0 / 0.06);
+  }
+  .terminal-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot--red { background: #ff5f57; }
+  .dot--yellow { background: #febc2e; }
+  .dot--green { background: #28c840; }
+  .terminal-file {
+    margin-left: auto;
+    font-family: 'JetBrainsMono Nerd Font', monospace;
+    font-size: 0.7rem;
+    color: oklch(1 0 0 / 0.4);
+  }
+
+  .terminal-code {
+    padding: 1.2rem 1.4rem;
+    margin: 0;
+    font-family: 'JetBrainsMono Nerd Font', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: oklch(1 0 0 / 0.8);
+    min-height: 12rem;
+  }
+  .terminal-code :global(.kw) { color: oklch(0.75 0.18 15); }
+  .terminal-code :global(.fn) { color: oklch(0.75 0.18 300); }
+  .terminal-code :global(.st) { color: oklch(0.8 0.15 200); }
+  .terminal-code :global(.cm) { color: oklch(1 0 0 / 0.35); }
+  .terminal-code :global(.op) { color: oklch(1 0 0 / 0.7); }
+  .terminal-code :global(.cls) { color: oklch(0.8 0.2 165); }
+  .terminal-code :global(.typ) { color: oklch(0.8 0.15 250); }
+  .terminal-code :global(.cursor) {
+    display: inline-block;
+    width: 7px;
+    height: 1.1em;
+    background: var(--purple);
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+    border-radius: 1px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .showcase-result {
+    text-align: center;
+    margin-top: 0.75rem;
+    font-family: 'JetBrainsMono Nerd Font', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    min-height: 1.2rem;
+  }
+  .showcase-result :global(.ok) { color: var(--emerald); }
+  .showcase-result :global(.json) { color: var(--text); }
+</style>
+
+<script is:inline src="/showcase.js"></script>

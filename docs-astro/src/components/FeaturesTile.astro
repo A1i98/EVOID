@@ -1,0 +1,93 @@
+---
+const features = [
+  { title: 'Intent-Driven', desc: 'Your data model carries infrastructure intent. The runtime resolves it to the right processors, pipelines, and storage.', svg: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>' },
+  { title: 'Async-Native', desc: 'Built on Python 3.13+ with full async/await. Every processor and adapter runs without blocking.', svg: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/>' },
+  { title: 'Plugin-Based', desc: 'Schema, storage, cache — every engine is a swappable plugin. Change infrastructure in one config line.', svg: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>' },
+  { title: 'Parallel Execution', desc: 'Run multiple intents concurrently with built-in gather, priority queues, and thread pool offloading.', svg: '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>' },
+  { title: 'Microservices', desc: 'Project + Service structure with inter-service communication via a built-in message bus.', svg: '<circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>' },
+  { title: 'Multi-Adapter', desc: 'Same logic, different interfaces — ASGI, CLI, Telegram, Robyn, WebSocket.', svg: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' },
+];
+---
+
+<div class="features-card">
+  <div class="features-header">
+    <h2>Built for Modern Backends</h2>
+    <p>A runtime that adapts to your data, not the other way around.</p>
+  </div>
+  <div class="features-grid">
+    {features.map((f) => (
+      <div class="feature-item">
+        <div class="feature-icon" set:html={`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${f.svg}</svg>`} />
+        <div>
+          <h3>{f.title}</h3>
+          <p>{f.desc}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .features-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .features-header {
+    padding: 1.5rem 1.5rem 0;
+  }
+  .features-header h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .features-header p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: oklch(from var(--border) l c h / 0.2);
+    margin-top: 1rem;
+  }
+
+  .feature-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: oklch(from var(--bg) l c h / 0.3);
+    transition: background 0.2s ease;
+  }
+  .feature-item:hover { background: oklch(from var(--bg-tile) l c h / 0.5); }
+
+  .feature-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: oklch(0.45 0.22 300 / 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--purple);
+  }
+
+  .feature-item h3 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+  .feature-item p {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .features-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,105 @@
+---
+import { getCollection } from 'astro:content';
+
+const docs = await getCollection('docs');
+const searchIndex = docs.map(doc => ({
+  t: doc.data.title,
+  d: doc.data.description,
+  s: doc.id,
+}));
+---
+
+<div class="search-overlay" id="search-overlay">
+  <div class="search-modal">
+    <div class="search-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" class="search-input" placeholder="Search documentation..." autocomplete="off" />
+      <kbd class="search-kbd">ESC</kbd>
+    </div>
+    <div class="search-results" id="search-results">
+      <p class="search-empty">Type to search...</p>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ searchIndex }}>
+  window.__searchIndex = searchIndex;
+
+  function openSearch() {
+    var overlay = document.getElementById('search-overlay');
+    var input = document.getElementById('search-input');
+    overlay && overlay.classList.add('open');
+    input && input.focus();
+  }
+
+  function closeSearch() {
+    var overlay = document.getElementById('search-overlay');
+    overlay && overlay.classList.remove('open');
+    var input = document.getElementById('search-input');
+    if (input) input.value = '';
+    var results = document.getElementById('search-results');
+    if (results) results.innerHTML = '<p class="search-empty">Type to search...</p>';
+  }
+
+  function doSearch(query) {
+    var idx = window.__searchIndex || [];
+    if (!query) return idx;
+    var q = query.toLowerCase();
+    return idx.filter(function(item) {
+      return item.t.toLowerCase().indexOf(q) !== -1 ||
+             item.d.toLowerCase().indexOf(q) !== -1 ||
+             item.s.toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return text;
+    var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  // Wire navbar search button
+  document.getElementById('docs-search-btn').addEventListener('click', openSearch);
+
+  document.getElementById('search-overlay').addEventListener('click', function(e) {
+    if (e.target === e.currentTarget) closeSearch();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      var overlay = document.getElementById('search-overlay');
+      if (overlay && overlay.classList.contains('open')) {
+        closeSearch();
+      } else {
+        openSearch();
+      }
+    }
+    if (e.key === 'Escape') closeSearch();
+  });
+
+  document.getElementById('search-input').addEventListener('input', function(e) {
+    var query = e.target.value.trim();
+    var resultsEl = document.getElementById('search-results');
+    if (!resultsEl) return;
+
+    if (!query) {
+      resultsEl.innerHTML = '<p class="search-empty">Type to search...</p>';
+      return;
+    }
+
+    var results = doSearch(query);
+
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<p class="search-empty">No results found.</p>';
+      return;
+    }
+
+    resultsEl.innerHTML = results.map(function(item) {
+      return '<a href="/docs/' + item.s + '/" class="search-result">' +
+        '<div class="search-result-title">' + highlightMatch(item.t, query) + '</div>' +
+        '<div class="search-result-excerpt">' + highlightMatch(item.d, query) + '</div>' +
+      '</a>';
+    }).join('');
+  });
+</script>

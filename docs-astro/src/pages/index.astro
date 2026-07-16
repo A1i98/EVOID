@@ -1,0 +1,162 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import '../styles/bento.css';
+---
+
+<MainLayout title="EVOID — Intent-Oriented Programming Runtime">
+  <Navbar />
+
+  <div class="bento">
+    <!-- Row 1: Hero (vertical) + Features (bigger) -->
+    <div class="bento-row bento-row--main">
+      <div class="bento-cell bento-hero">
+        <div class="hero-badge">Intent-Oriented Programming Runtime</div>
+        <h1 class="hero-title"><span class="gradient-text">EVOID</span></h1>
+        <p class="hero-sub">Your data declares what it needs.<br/>The runtime handles how.</p>
+        <div class="hero-actions">
+          <a href="/docs/getting-started/installation/" class="btn btn-glow">Get Started</a>
+          <a href="https://github.com/EvolveBeyond/EVOID" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="bento-cell bento-cell--features">
+        <div class="features-header">
+          <h2>Built for Modern Backends</h2>
+          <p>A runtime that adapts to your data, not the other way around. Write handlers, declare intents, let EVOID handle infrastructure.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><h3>Intent-Driven</h3><p>Your data model carries infrastructure intent. The runtime resolves it automatically.</p></div></div>
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div><div><h3>Async-Native</h3><p>Built on Python 3.13+ with full async/await. Every processor runs without blocking.</p></div></div>
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div><h3>Plugin-Based</h3><p>Schema, storage, cache — every engine is a swappable plugin.</p></div></div>
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg></div><div><h3>Parallel Execution</h3><p>Run multiple intents concurrently with built-in gather and priority queues.</p></div></div>
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div><h3>Microservices</h3><p>Project + Service structure with inter-service message bus communication.</p></div></div>
+          <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><h3>Multi-Adapter</h3><p>Same logic, different interfaces — ASGI, CLI, Telegram, Robyn, WebSocket.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line divider -->
+    <div class="bento-divider"><span class="divider-dot"></span></div>
+
+    <!-- Row 2: Terminal + About + Actions -->
+    <div class="bento-row bento-row--code">
+      <div class="bento-cell bento-cell--demo">
+        <div class="showcase-label">Two intents. Zero boilerplate.</div>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dots">
+              <span class="dot dot--red"></span>
+              <span class="dot dot--yellow"></span>
+              <span class="dot dot--green"></span>
+            </div>
+            <span class="terminal-file">api.py</span>
+          </div>
+          <pre class="terminal-code"><code id="showcase-code"></code></pre>
+        </div>
+        <div class="showcase-result" id="showcase-result"></div>
+      </div>
+      <div class="bento-cell bento-cell--about">
+        <h2 class="about-heading">Why EVOID Exists</h2>
+        <p>Every API endpoint repeats the same infrastructure decisions. Which database? How to cache? Whether to encrypt? What audit trail?</p>
+        <p>EVOID lets your data model carry these decisions as intent. The runtime reads it and adapts — automatically. No more boilerplate, no more config files scattered everywhere.</p>
+        <p>Define your data. Write your handlers. EVOID handles the rest.</p>
+      </div>
+      <div class="bento-cell bento-cell--actions">
+        <a href="/docs/getting-started/what-is-iop/" class="action-card">
+          <span class="action-label">Learn</span>
+          <h3>What is IOP?</h3>
+          <p>Understand the paradigm behind Intent-Oriented Programming</p>
+          <span class="action-arrow">→</span>
+        </a>
+        <a href="https://github.com/EvolveBeyond/EVOID" class="action-card">
+          <span class="action-label">Contribute</span>
+          <h3>GitHub</h3>
+          <p>Open source. Star us or send a PR.</p>
+          <span class="action-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Line divider -->
+    <div class="bento-divider"><span class="divider-dot"></span></div>
+
+    <!-- Row 3: Nav Tiles -->
+    <div class="bento-row bento-row--tiles">
+      <a href="/docs/styles/route/" class="bento-cell bento-tile">
+        <span class="tile-glow" style="background:var(--purple)"></span>
+        <h3>@route</h3>
+        <p>Function-based decorators. FastAPI / Flask style. Familiar syntax for quick prototyping.</p>
+      </a>
+      <a href="/docs/styles/controller/" class="bento-cell bento-tile">
+        <span class="tile-glow" style="background:var(--emerald)"></span>
+        <h3>@controller</h3>
+        <p>Class-based routing. NestJS / Django REST. Organize large APIs cleanly.</p>
+      </a>
+      <a href="/docs/styles/native/" class="bento-cell bento-tile">
+        <span class="tile-glow" style="background:var(--purple-glow)"></span>
+        <h3>Native</h3>
+        <p>Full control with explicit Intent API. No sugar — just the IOP model.</p>
+      </a>
+      <a href="/docs/tutorial/first-steps/" class="bento-cell bento-tile">
+        <span class="tile-glow" style="background:var(--purple)"></span>
+        <h3>Tutorial</h3>
+        <p>Step-by-step guide from zero to production in 5 minutes.</p>
+      </a>
+    </div>
+
+    <!-- Line divider -->
+    <div class="bento-divider"><span class="divider-dot"></span></div>
+
+    <!-- Row 4: Quick Links -->
+    <div class="bento-row bento-row--links">
+      <a href="/docs/getting-started/installation/" class="bento-cell bento-link">Getting Started</a>
+      <a href="/docs/learn/intent/" class="bento-cell bento-link">Learn</a>
+      <a href="/docs/api/" class="bento-cell bento-link">API Reference</a>
+      <a href="/docs/examples/" class="bento-cell bento-link">Examples</a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">evoid</span>
+      <span class="footer-copy">&copy; 2026 EvolveBeyond</span>
+      <div class="footer-links">
+        <a href="https://github.com/EvolveBeyond/EVOID">GitHub</a>
+        <a href="https://pypi.org/project/evoid/">PyPI</a>
+      </div>
+    </div>
+  </footer>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    var code = document.getElementById('showcase-code');
+    var result = document.getElementById('showcase-result');
+    if (!code || !result) return;
+    var lines = [
+      { t: '<span class="kw">from</span> <span class="cls">evoid</span> <span class="kw">import</span> <span class="typ">Intent</span>, <span class="typ">Level</span>, <span class="fn">add_intent</span>', d: 40 },
+      { t: '', d: 200 },
+      { t: '<span class="typ">GET_USER</span> <span class="op">=</span> <span class="typ">Intent</span>(<span class="st">"get_user"</span>, <span class="typ">Level</span>.<span class="cls">STANDARD</span>)', d: 35 },
+      { t: '<span class="typ">SEND_EMAIL</span> <span class="op">=</span> <span class="typ">Intent</span>(<span class="st">"send_email"</span>, <span class="typ">Level</span>.<span class="cls">CRITICAL</span>)', d: 35 },
+      { t: '', d: 150 },
+      { t: '<span class="kw">async def</span> <span class="fn">handle_user</span>(<span class="typ">i</span>: <span class="typ">Intent</span>) <span class="op">-&gt;</span> <span class="typ">dict</span>:', d: 40 },
+      { t: '    <span class="kw">return</span> {<span class="st">"id"</span>: <span class="st">42</span>, <span class="st">"name"</span>: <span class="st">"Ali"</span>}', d: 30 },
+      { t: '', d: 150 },
+      { t: '<span class="fn">add_intent</span>(<span class="typ">GET_USER</span>, <span class="fn">handle_user</span>)', d: 35 },
+    ];
+    var i = 0, out = '';
+    function go() {
+      if (i >= lines.length) {
+        setTimeout(function() {
+          result.innerHTML = '<span class="ok">✓</span> <span class="json">GET:/users/42 → {"id": 42, "name": "Ali"}</span>';
+        }, 400);
+        return;
+      }
+      out += lines[i].t + '\n';
+      code.innerHTML = out + '<span class="cursor"></span>';
+      i++;
+      setTimeout(go, lines[i-1].d);
+    }
+    go();
+  });
+</script>

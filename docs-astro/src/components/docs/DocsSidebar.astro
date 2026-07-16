@@ -1,0 +1,75 @@
+---
+import { sidebar, isGroup } from '../../data/sidebar';
+
+interface Props {
+  currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+
+let stepCounter = 0;
+---
+
+<aside class="docs-sidebar" id="docs-sidebar">
+  <div class="sidebar-header">
+    <button class="sidebar-close" id="sidebar-close" aria-label="Close sidebar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    {sidebar.map((entry) => {
+      if (isGroup(entry)) {
+        const isActive = entry.items.some(item => item.slug === currentSlug);
+        const isTutorial = entry.label === 'Tutorial';
+        return (
+          <div class={`sidebar-card ${isActive ? 'active' : ''}`}>
+            <button class="sidebar-card-header" aria-expanded={isActive}>
+              <span>{entry.label}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <ul class="sidebar-card-items">
+              {entry.items.map((item, idx) => (
+                <li>
+                  <a
+                    href={`/docs/${item.slug}/`}
+                    class={`sidebar-link ${item.slug === currentSlug ? 'active' : ''}`}
+                  >
+                    {isTutorial && <span class="step-num">{String(idx + 1).padStart(2, '0')}</span>}
+                    <span>{item.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+      return (
+        <a
+          href={`/docs/${entry.slug}/`}
+          class={`sidebar-link standalone ${entry.slug === currentSlug ? 'active' : ''}`}
+        >
+          {entry.label}
+        </a>
+      );
+    })}
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<script>
+  document.querySelectorAll('.sidebar-card-header').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.sidebar-card');
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      card?.classList.toggle('collapsed');
+    });
+  });
+
+  document.querySelectorAll('.sidebar-card:not(.active)').forEach((card) => {
+    card.classList.add('collapsed');
+    card.querySelector('.sidebar-card-header')?.setAttribute('aria-expanded', 'false');
+  });
+</script>

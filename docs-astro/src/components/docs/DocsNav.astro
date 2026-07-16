@@ -1,0 +1,42 @@
+---
+import { getAllSlugs } from '../../data/sidebar';
+import { getCollection } from 'astro:content';
+
+interface Props {
+  currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+
+const allSlugs = getAllSlugs();
+const currentIndex = allSlugs.indexOf(currentSlug);
+
+const prevSlug = currentIndex > 0 ? allSlugs[currentIndex - 1] : null;
+const nextSlug = currentIndex < allSlugs.length - 1 ? allSlugs[currentIndex + 1] : null;
+
+const docs = await getCollection('docs');
+const titleMap = Object.fromEntries(docs.map(d => [d.id, d.data.title]));
+
+const prevTitle = prevSlug ? titleMap[prevSlug] : null;
+const nextTitle = nextSlug ? titleMap[nextSlug] : null;
+---
+
+{(prevSlug || nextSlug) && (
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      {prevSlug ? (
+        <a href={`/docs/${prevSlug}/`} class="docs-nav-link docs-nav-prev">
+          <span class="docs-nav-label">← Previous</span>
+          <span class="docs-nav-title">{prevTitle}</span>
+        </a>
+      ) : <div />}
+      <div class="docs-nav-divider"></div>
+      {nextSlug ? (
+        <a href={`/docs/${nextSlug}/`} class="docs-nav-link docs-nav-next">
+          <span class="docs-nav-label">Next →</span>
+          <span class="docs-nav-title">{nextTitle}</span>
+        </a>
+      ) : <div />}
+    </div>
+  </nav>
+)}
