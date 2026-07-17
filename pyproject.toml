@@ -26,13 +26,11 @@ classifiers = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-managed = true
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=7.0.0,<8.0.0",
     "pytest-asyncio>=0.21.0,<0.22.0",
-    "black>=23.0.0,<24.0.0",
-    "isort>=5.12.0,<6.0.0",
+    "ruff>=0.4.0",
 ]
 
 [tool.hatch.metadata]
@@ -61,9 +59,6 @@ sqlalchemy = ["sqlalchemy[asyncio]>=2.0.0,<3.0.0", "aiosqlite>=0.20.0,<0.21.0"]
 loguru = ["loguru>=0.7.0,<0.8.0"]
 # Full stack
 full = ["evoid[pydantic,asgi,redis,sqlalchemy,loguru]"]
-
-[tool.uv.scripts]
-dev = "evoid run"
 
 [tool.ruff]
 line-length = 120
