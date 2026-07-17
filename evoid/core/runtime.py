@@ -15,7 +15,7 @@ from .intent import Intent
 from .intent import resolve as resolve_intent
 from .pipeline import Result
 from .pipeline import execute as execute_pipeline
-from .processor import all_processors
+from .processor import _processors
 
 
 @dataclass
@@ -38,20 +38,16 @@ async def execute(intent: Intent, config: Config | None = None) -> Result:
     # 2. Apply routing rules
     pipeline = apply_routing(pipeline_config.processors, intent.name)
 
-    # 3. Get processor registry
-    registry = all_processors()
-
-    # 4. Create context
+    # 3. Create context
     context = Context(intent=intent)
 
-    # 5. Execute pipeline
-    inspect = config.inspect if config else False
+    # 4. Execute pipeline — pass registry ref directly, no copy
     return await execute_pipeline(
         pipeline=pipeline,
         context=context,
-        registry=registry,
+        registry=_processors,
         timeout=pipeline_config.timeout,
-        inspect=inspect,
+        inspect=config.inspect if config else False,
     )
 
 

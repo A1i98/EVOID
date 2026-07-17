@@ -30,7 +30,8 @@ from ..core.extend import (
 from ..core.extend import (
     replace_pipeline as _replace_pipeline,
 )
-from ..core.intent import Intent, Level
+from ..core.intent import Intent
+from ._shared import create_intent as _create_intent
 
 # Handler type
 Handler = Callable[..., Awaitable[Any]]
@@ -41,17 +42,6 @@ class App:
     """App — pure data (name)."""
 
     name: str
-
-
-def _create_intent(method: str, path: str, level: str = "standard") -> Intent:
-    """Auto-create Intent from method + path."""
-    intent_level = Level(level) if level in ("ephemeral", "standard", "critical") else Level.STANDARD
-
-    return Intent(
-        name=f"{method.upper()}:{path}",
-        level=intent_level,
-        metadata={"method": method, "path": path},
-    )
 
 
 def Controller(prefix: str = "", level: str = "standard") -> Callable:

@@ -13,6 +13,9 @@ from ..core.context import Context
 # Circuit breaker state: service_name -> (state, failure_count, last_failure)
 _states: dict[str, tuple[str, int, float]] = {}
 
+# Max entries to prevent unbounded memory growth
+_MAX_ENTRIES = 1_000
+
 # Default thresholds
 _FAILURE_THRESHOLD = 3
 _RECOVERY_TIMEOUT = 30.0  # seconds
@@ -57,7 +60,15 @@ def record_success(service: str) -> None:
 
 def record_failure(service: str) -> None:
     """Record a failure — increment count."""
-    state, failures, last_failure = _states.get(service, ("closed", 0, 0))
+    entry = _states.get(service)
+    if entry is None:
+        if len(_states) >= _MAX_ENTRIES:
+            oldest = next(iter(_states))
+            del _states[oldest]
+        _states[service] = ("closed", 1, time.time())
+        return
+
+    state, failures, last_failure = entry
     failures += 1
 
     if failures >= _FAILURE_THRESHOLD:

@@ -55,7 +55,7 @@ def get_timer_stats(name: str) -> dict[str, float]:
 def all_metrics() -> dict[str, Any]:
     """Return all metrics."""
     return {
-        "counters": _counters.copy(),
+        "counters": dict(_counters),
         "timers": {k: get_timer_stats(k) for k in _timers},
     }
 

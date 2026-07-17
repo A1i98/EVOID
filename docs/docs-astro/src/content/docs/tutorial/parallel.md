@@ -91,13 +91,40 @@ results = await queue.process()
     CPU-intensive tasks block the async event loop. Use `run_in_thread_async` to offload them:
 
 ```python
-
-```python
 from evoid.core.parallel import run_in_thread_async
 
 def cpu_intensive(data):
-    # This would block the event loop
     return sum(x * x for x in range(data))
 
 result = await run_in_thread_async(cpu_intensive, 1000000)
 ```
+
+## Native IOP Style
+
+In native IOP, parallel execution is explicit — you define Intents and gather them:
+
+```python
+from evoid import Intent, Level, add_intent, gather
+from evoid.native import create_service, on
+
+app = create_service("dashboard")
+
+FETCH_USERS = Intent(name="fetch_users", level=Level.STANDARD)
+FETCH_ORDERS = Intent(name="fetch_orders", level=Level.STANDARD)
+
+async def handle_fetch_users(intent: Intent) -> list:
+    return [{"id": 1}, {"id": 2}]
+
+async def handle_fetch_orders(intent: Intent) -> list:
+    return [{"order_id": 101}, {"order_id": 102}]
+
+on(app, FETCH_USERS, handle_fetch_users)
+on(app, FETCH_ORDERS, handle_fetch_orders)
+
+# In any handler or externally:
+results = await gather(FETCH_USERS, FETCH_ORDERS)
+users = results[0].value
+orders = results[1].value
+```
+
+The key difference: in @route, `gather` is called inside a handler. In native IOP, `gather` is called from any code that has access to the Intent references — handlers, processors, or external scripts.

@@ -144,6 +144,15 @@ if result.success:
     print(result.value)
 ```
 
+## Comparison
+
+| Feature | @route | @controller | Native |
+|---------|--------|-------------|--------|
+| Syntax sugar | Most | Medium | None |
+| Intent control | Implicit | Implicit | Explicit |
+| Pipeline control | Via extend | Via extend | Direct |
+| Best for | Small APIs | Large APIs | Complex systems |
+
 ## When to Use
 
 - Full control over Intent lifecycle

@@ -156,6 +156,69 @@ async def send_response(result):
     return Response(content=body, media_type="application/json")
 ```
 
+## Extra Data Types
+
+Handle UUID, datetime, Decimal in handlers:
+
+```python
+from uuid import UUID
+from datetime import datetime
+from decimal import Decimal
+from pydantic import BaseModel, Field
+
+class Payment(BaseModel):
+    amount: Decimal = Field(ge=Decimal("0.01"), max_digits=10, decimal_places=2)
+    currency: str = "USD"
+    created_at: datetime
+
+class User(BaseModel):
+    id: UUID
+    name: str
+    created_at: datetime
+```
+
+!!! tip "String conversion"
+    UUIDs are automatically converted from string format in URLs and JSON.
+
+## Native IOP Type Conversion
+
+In IOP, type conversion belongs in a **processor**:
+
+```python
+from uuid import UUID
+from datetime import datetime
+from decimal import Decimal
+from evoid.native import create_service, on
+from evoid import Intent, Level, Context
+
+app = create_service("api")
+
+async def convert_payment_types(ctx: Context) -> dict:
+    body = ctx.metadata.get("body", {})
+    ctx.metadata["body"] = {
+        "amount": Decimal(str(body.get("amount", "0.00"))),
+        "payment_id": UUID(body.get("payment_id", "")),
+        "created_at": datetime.fromisoformat(body.get("created_at", "")),
+    }
+    return {"converted": True}
+
+CREATE_PAYMENT = Intent(
+    name="POST:/payments",
+    level=Level.STANDARD,
+    metadata={
+        "method": "POST",
+        "path": "/payments",
+        "processors": ("convert_payment_types",),
+    },
+)
+
+async def handle_create_payment(intent: Intent) -> dict:
+    body = intent.metadata["body"]
+    return {"status": "processed", "amount": str(body["amount"])}
+
+on(app, CREATE_PAYMENT, handle_create_payment)
+```
+
 ## Summary
 
 | Library | Install | Speed | Validation |

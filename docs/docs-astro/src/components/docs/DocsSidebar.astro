@@ -73,4 +73,10 @@ let stepCounter = 0;
     card.classList.add('collapsed');
     card.querySelector('.sidebar-card-header')?.setAttribute('aria-expanded', 'false');
   });
+
+  // Scroll active link into view
+  const activeLink = document.querySelector('.sidebar-link.active');
+  if (activeLink) {
+    activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 </script>

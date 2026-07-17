@@ -58,8 +58,8 @@ def resolve(name: IntentName) -> Intent | None:
 
 
 def all_intents() -> dict[IntentName, Intent]:
-    """Return all registered intents."""
-    return _registry.copy()
+    """Return all registered intents (reference, not copy)."""
+    return _registry
 
 
 def clear_registry() -> None:

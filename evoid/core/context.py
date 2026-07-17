@@ -7,12 +7,22 @@ No methods, no behavior — just data.
 
 from __future__ import annotations
 
-import uuid
+import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import Any
 
 from .intent import Intent
+
+# Fast ID generator — atomic counter + thread id, no uuid4 overhead
+_counter = 0
+_counter_lock = threading.Lock()
+
+
+def _fast_id() -> str:
+    global _counter
+    with _counter_lock:
+        _counter += 1
+        return f"ctx-{_counter}-{threading.get_ident():x}"
 
 
 @dataclass
@@ -29,9 +39,8 @@ class Context:
     metadata: dict[str, Any] = field(default_factory=dict)
     errors: list[Exception] = field(default_factory=list)
 
-    # Auto-generated
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    # Auto-generated — fast counter, no uuid4
+    id: str = field(default_factory=_fast_id)
 
 
 def fork(ctx: Context) -> Context:
@@ -39,6 +48,6 @@ def fork(ctx: Context) -> Context:
     return Context(
         intent=ctx.intent,
         state=ctx.state.copy(),
-        deps=ctx.deps.copy(),
-        metadata={**ctx.metadata, "parent_id": ctx.id},
+        deps=ctx.deps,
+        metadata={"parent_id": ctx.id},
     )

@@ -101,6 +101,37 @@ from evoid.web.controller import run
 await run(app, host="0.0.0.0", port=8000)
 ```
 
+## Multiple Controllers
+
+```python
+@Controller("/users")
+class UserController:
+    @GET("/")
+    async def list(self) -> dict:
+        return {"users": []}
+
+@Controller("/orders")
+class OrderController:
+    @GET("/")
+    async def list(self) -> dict:
+        return {"orders": []}
+
+@Controller("/products")
+class ProductController:
+    @GET("/")
+    async def list(self) -> dict:
+        return {"products": []}
+```
+
+## When to Use @controller vs @route
+
+| Scenario | Use |
+|----------|-----|
+| Small API (< 10 routes) | `@route` |
+| Large API with many resources | `@controller` |
+| Team familiar with NestJS | `@controller` |
+| Quick prototyping | `@route` |
+
 ## When to Use
 
 - Large APIs with many related endpoints

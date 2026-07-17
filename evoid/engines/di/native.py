@@ -32,5 +32,5 @@ def clear() -> None:
 
 
 def all_deps() -> dict[str, Any]:
-    """Return all dependencies."""
-    return _container.copy()
+    """Return all dependencies (reference)."""
+    return _container

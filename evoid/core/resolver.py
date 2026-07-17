@@ -43,6 +43,12 @@ _DEFAULT_TIMEOUTS: dict[Level, float] = {
     Level.CRITICAL: 30.0,
 }
 
+# Cached default configs per level — avoids repeated dataclass creation
+_DEFAULT_CONFIGS: dict[Level, PipelineConfig] = {
+    level: PipelineConfig(processors=procs, timeout=_DEFAULT_TIMEOUTS[level])
+    for level, procs in _DEFAULT_PROCESSORS.items()
+}
+
 
 def resolve_pipeline(intent: Intent) -> PipelineConfig:
     """Map an Intent to a PipelineConfig.
@@ -52,12 +58,14 @@ def resolve_pipeline(intent: Intent) -> PipelineConfig:
     """
     level = intent.level
 
-    processors = intent.metadata.get(
-        "processors", _DEFAULT_PROCESSORS.get(level, ())
-    )
-    timeout = intent.metadata.get(
-        "timeout", _DEFAULT_TIMEOUTS.get(level, 10.0)
-    )
+    # Fast path — no custom metadata, use cached default
+    if not intent.metadata:
+        cached = _DEFAULT_CONFIGS.get(level)
+        if cached and intent.priority == 0:
+            return cached
+
+    processors = intent.metadata.get("processors", _DEFAULT_PROCESSORS.get(level, ()))
+    timeout = intent.metadata.get("timeout", _DEFAULT_TIMEOUTS.get(level, 10.0))
 
     return PipelineConfig(
         processors=tuple(processors),

@@ -53,66 +53,111 @@ async def execute(
     """
     start = time.monotonic()
     ran: list[str] = []
-    steps: list[ProcessorResult] = []
+    steps: list[ProcessorResult] = [] if inspect else None
     result = None
 
-    for name in pipeline:
-        processor = registry.get(name)
-        if processor is None:
-            continue
+    if inspect:
+        # Slow path — full inspection
+        for name in pipeline:
+            processor = registry.get(name)
+            if processor is None:
+                continue
 
-        step_start = time.monotonic()
-        input_state = context.state.copy() if inspect else {}
+            step_start = time.monotonic()
+            input_state = context.state.copy()
 
-        try:
-            result = await asyncio.wait_for(
-                processor(context),
-                timeout=timeout,
-            )
-            ran.append(name)
+            try:
+                result = await asyncio.wait_for(
+                    processor(context),
+                    timeout=timeout,
+                )
+                ran.append(name)
+                steps.append(ProcessorResult(
+                    name=name,
+                    duration=time.monotonic() - step_start,
+                    input_state=input_state,
+                    output_state=context.state.copy(),
+                    success=True,
+                ))
+            except TimeoutError:
+                steps.append(ProcessorResult(
+                    name=name,
+                    duration=time.monotonic() - step_start,
+                    input_state=input_state,
+                    success=False,
+                    error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
+                ))
+                return Result(
+                    success=False,
+                    error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
+                    processors=tuple(ran),
+                    duration=time.monotonic() - start,
+                    steps=tuple(steps),
+                )
+            except Exception as e:
+                steps.append(ProcessorResult(
+                    name=name,
+                    duration=time.monotonic() - step_start,
+                    input_state=input_state,
+                    success=False,
+                    error=e,
+                ))
+                return Result(
+                    success=False,
+                    error=e,
+                    processors=tuple(ran),
+                    duration=time.monotonic() - start,
+                    steps=tuple(steps),
+                )
+    elif timeout is not None:
+        # Medium path — timeout but no inspection
+        for name in pipeline:
+            processor = registry.get(name)
+            if processor is None:
+                continue
 
-            steps.append(ProcessorResult(
-                name=name,
-                duration=time.monotonic() - step_start,
-                input_state=input_state,
-                output_state=context.state.copy() if inspect else {},
-                success=True,
-            ))
-        except TimeoutError:
-            steps.append(ProcessorResult(
-                name=name,
-                duration=time.monotonic() - step_start,
-                input_state=input_state,
-                success=False,
-                error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
-            ))
-            return Result(
-                success=False,
-                error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
-                processors=tuple(ran),
-                duration=time.monotonic() - start,
-                steps=tuple(steps),
-            )
-        except Exception as e:
-            steps.append(ProcessorResult(
-                name=name,
-                duration=time.monotonic() - step_start,
-                input_state=input_state,
-                success=False,
-                error=e,
-            ))
-            return Result(
-                success=False,
-                error=e,
-                processors=tuple(ran),
-                duration=time.monotonic() - start,
-                steps=tuple(steps),
-            )
+            try:
+                result = await asyncio.wait_for(
+                    processor(context),
+                    timeout=timeout,
+                )
+                ran.append(name)
+            except TimeoutError:
+                return Result(
+                    success=False,
+                    error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
+                    processors=tuple(ran),
+                    duration=time.monotonic() - start,
+                )
+            except Exception as e:
+                return Result(
+                    success=False,
+                    error=e,
+                    processors=tuple(ran),
+                    duration=time.monotonic() - start,
+                )
+    else:
+        # Fast path — no inspection, no timeout
+        for name in pipeline:
+            processor = registry.get(name)
+            if processor is None:
+                continue
+
+            try:
+                result = await processor(context)
+                ran.append(name)
+            except Exception as e:
+                return Result(
+                    success=False,
+                    error=e,
+                    processors=tuple(ran),
+                    duration=time.monotonic() - start,
+                )
 
     return Result(
         success=True,
         value=result,
         processors=tuple(ran),
         duration=time.monotonic() - start,
-        steps=tuple(steps),
+        steps=tuple(steps) if steps else (),
     )

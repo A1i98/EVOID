@@ -17,6 +17,9 @@ from .intent import Intent
 # Message types
 Handler = Callable[[Intent], Awaitable[Any]]
 
+# Max history size — prevents unbounded memory growth
+_MAX_HISTORY = 1000
+
 
 @dataclass(frozen=True)
 class Message:
@@ -32,7 +35,7 @@ class Message:
 # Global subscriptions: topic -> list of handlers
 _subscriptions: dict[str, list[Handler]] = {}
 
-# Global message history for debugging
+# Global message history for debugging — capped
 _history: list[Message] = []
 
 
@@ -65,19 +68,18 @@ async def publish(intent: Intent, source: str = "", target: str = "") -> list[An
     No HTTP. No serialization. Direct function calls.
     """
     message = Message(intent=intent, source=source, target=target)
-    _history.append(message)
-
-    results = []
+    if len(_history) < _MAX_HISTORY:
+        _history.append(message)
 
     # Find matching handlers
     handlers = _find_handlers(intent)
 
-    # Execute all handlers concurrently
-    if handlers:
-        tasks = [handler(intent) for handler in handlers]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+    if not handlers:
+        return []
 
-    return results
+    # Execute all handlers concurrently
+    tasks = [handler(intent) for handler in handlers]
+    return list(await asyncio.gather(*tasks, return_exceptions=True))
 
 
 def _find_handlers(intent: Intent) -> list[Handler]:
@@ -85,23 +87,26 @@ def _find_handlers(intent: Intent) -> list[Handler]:
     handlers: list[Handler] = []
 
     # Exact intent name match
-    if intent.name in _subscriptions:
-        handlers.extend(_subscriptions[intent.name])
+    subs = _subscriptions.get(intent.name)
+    if subs:
+        handlers.extend(subs)
 
     # Level match
-    if intent.level.value in _subscriptions:
-        handlers.extend(_subscriptions[intent.level.value])
+    subs = _subscriptions.get(intent.level.value)
+    if subs:
+        handlers.extend(subs)
 
     # Wildcard match
-    if "*" in _subscriptions:
-        handlers.extend(_subscriptions["*"])
+    subs = _subscriptions.get("*")
+    if subs:
+        handlers.extend(subs)
 
     return handlers
 
 
 def get_history() -> list[Message]:
     """Get message history."""
-    return _history.copy()
+    return list(_history)
 
 
 def clear_history() -> None:

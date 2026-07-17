@@ -52,14 +52,14 @@ def apply_routing(
     intent_name: str,
 ) -> tuple[str, ...]:
     """Apply routing rules to a pipeline. Returns modified pipeline."""
-    rules = get_rules(intent_name)
+    rules = _rules.get(intent_name)
     if not rules:
         return pipeline
 
     result = list(pipeline)
     for rule in rules:
         if rule.through in result:
-            continue  # already in pipeline
+            continue
 
         if rule.before and rule.before in result:
             idx = result.index(rule.before)

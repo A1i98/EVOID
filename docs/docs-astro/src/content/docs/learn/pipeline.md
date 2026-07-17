@@ -65,6 +65,31 @@ replace_pipeline("GET:/users/{id}", ["cache", "fetch_user", "log"])
 
 ## Pipeline Extensions
 
+!!! danger "DRY violation"
+    You have 20 endpoints. Every one needs rate limiting and logging. Copy-pasting the same code into each handler is error-prone and violates DRY.
+
+The solution: inject processors before or after specific routes:
+
+```python
+from evoid.web.route import Service, get, before, after
+
+app = Service("api")
+
+@get("/users/{id}")
+async def get_user(id: int) -> dict:
+    return {"id": id}
+
+# Add rate limiting BEFORE all processors
+before("GET:/users/{id}", "rate_limit")
+
+# Add logging AFTER all processors
+after("GET:/users/{id}", "log_response")
+```
+
+Now every `GET:/users/{id}` request runs: `rate_limit` → `validate` → `authorize` → `get_user` → `log_response`.
+
+### Extension Functions
+
 Inject processors without replacing the whole pipeline:
 
 ```python
@@ -150,7 +175,6 @@ async def my_processor(ctx: Context) -> dict:
 | `metadata` | `dict` | Extra metadata (request params, body, etc.) |
 | `errors` | `list[Exception]` | Accumulated errors |
 | `id` | `str` | Unique context ID (auto-generated) |
-| `created_at` | `datetime` | Creation timestamp |
 
 ### Forking Contexts
 

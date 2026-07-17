@@ -1,25 +1,66 @@
 # EVOID
 
-**Intent-Oriented Programming Runtime**
+**Reference Runtime for Intent-Oriented Programming**
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0--alpha-orange.svg)](https://github.com/EvolveBeyond/EVOID)
+[![Version](https://img.shields.io/badge/version-0.3.3-orange.svg)](https://github.com/EvolveBeyond/EVOID)
 
-EVOID is the reference runtime for Intent-Oriented Programming (IOP). Your data declares what it needs. The runtime handles how.
+---
+
+## What Is IOP?
+
+Every time you write an endpoint, you decide which database, how to cache, whether to encrypt, what priority. IOP removes that burden. Your data declares what it needs. The runtime handles how.
 
 ```python
 from evoid.web.route import Service, get, post
 
 app = Service("my-api")
 
-@get("/users/{user_id}")
+@app.get("/users/{user_id}")
 async def get_user(user_id: int) -> dict:
     return {"id": user_id, "name": "Alice"}
 
-@post("/payments", level="critical")
+@app.post("/payments", level="critical")
 async def process_payment(amount: float) -> dict:
     return {"status": "paid", "amount": amount}
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│                  User Code                       │
+│  @get / @post / @controller / native on()       │
+└──────────────────────┬──────────────────────────┘
+                       │ creates Intent
+                       ▼
+┌─────────────────────────────────────────────────┐
+│               Intent Registry                    │
+│  Intent(dataclass) → frozen, immutable           │
+└──────────────────────┬──────────────────────────┘
+                       │ resolve
+                       ▼
+┌─────────────────────────────────────────────────┐
+│            Pipeline Resolver                     │
+│  Level → default processors + timeout            │
+│  Extend system overrides (before/after/replace)  │
+└──────────────────────┬──────────────────────────┘
+                       │ tuple[ProcessorName]
+                       ▼
+┌─────────────────────────────────────────────────┐
+│            Pipeline Executor                     │
+│  Fast path / Timeout path / Inspect path         │
+│  Each processor: Context → Result                │
+└──────────────────────┬──────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│                  Result                          │
+│  success, value, error, duration, steps          │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
@@ -40,7 +81,7 @@ Requires Python 3.13+.
 
 ---
 
-## Create and Run
+## Quick Start
 
 ```bash
 evo init my-api
@@ -51,40 +92,31 @@ evo service run api
 
 Server starts at `http://0.0.0.0:8000`.
 
----
-
-## What Is IOP?
-
-Every time you write an endpoint, you decide which database, how to cache, whether to encrypt, what priority. IOP removes that burden.
+### Minimal Example
 
 ```python
-# Traditional: you tell the system HOW
-def save_user(user):
-    encrypted = encrypt(user.email)
-    cache.set(f"user:{user.id}", encrypted, ttl=300)
-    db.insert("users", encrypted)
-    audit_log("user_created", user)
+from evoid.web.route import Service, get, post
 
-# IOP: you tell the system WHAT
-class User(BaseModel):
-    name: standard(str)      # Normal processing
-    email: critical(str)     # Auto-encrypt, audit, replicate
-    session: ephemeral(str)  # Memory only, auto-expire
+app = Service("my-api")
+
+@get("/")
+async def home() -> dict:
+    return {"message": "Hello from EVOID!"}
+
+@get("/users/{user_id}")
+async def get_user(user_id: int) -> dict:
+    return {"id": user_id, "name": f"User {user_id}"}
+
+@post("/users")
+async def create_user(name: str, email: str) -> dict:
+    return {"status": "created", "name": name}
 ```
-
-Three intent levels control infrastructure behavior:
-
-| Level | Use Case | Pipeline |
-|-------|----------|----------|
-| `ephemeral` | Cache, sessions, temp data | `validate` |
-| `standard` | User profiles, posts, comments | `validate`, `authorize` |
-| `critical` | Payments, medical records, legal | `validate`, `authorize`, `audit`, `protect` |
 
 ---
 
 ## Three Syntax Styles
 
-All styles are IOP underneath.
+All styles are IOP underneath. Pick the one that fits your team.
 
 ### @route (Function-based)
 
@@ -135,6 +167,16 @@ add_intent(MY_INTENT, handler)
 
 ---
 
+## Intent Levels
+
+| Level | Pipeline | Timeout | Use Case |
+|-------|----------|---------|----------|
+| `ephemeral` | `validate` | 5s | Cache, sessions, temp data |
+| `standard` | `validate`, `authorize` | 10s | User profiles, posts, comments |
+| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, medical, legal |
+
+---
+
 ## Features
 
 | Feature | Description |
@@ -146,7 +188,6 @@ add_intent(MY_INTENT, handler)
 | Microservices | Project + Service structure |
 | Multi-Adapter | ASGI, CLI, Telegram, Robyn, WebSocket |
 | Pipeline Extensions | Inject processors before/after routes |
-| Intent-Aware Caching | Three tiers: ephemeral, standard, critical |
 | Message Bus | Inter-service communication via Intents |
 
 ---
@@ -184,34 +225,23 @@ my-api/
 
 ## Documentation
 
-Two sources, depending on your goal:
+**User docs:** [https://evolvebeyond.github.io/EVOID/](https://evolvebeyond.github.io/EVOID/)
 
-**Using EVOID?** Read the user documentation:
-
-[https://evolvebeyond.github.io/EVOID/](https://evolvebeyond.github.io/EVOID/)
-
-Tutorials, API reference, syntax guides, and examples.
-
-**Contributing to EVOID?** Read the architecture documentation:
-
-[https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
-
-Deep technical walkthrough of the codebase, design decisions, and internals.
+**Architecture docs:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
 
 ---
 
 ## Contributing
 
-EVOID is open source and accepts contributions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1. Read the [architecture docs](https://deepwiki.com/EvolveBeyond/EVOID) to understand the codebase
-2. Fork the repository
-3. Create a feature branch (`git checkout -b feature/my-change`)
-4. Commit your changes
-5. Push and open a Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-change`)
+3. Commit your changes
+4. Push and open a Pull Request
 
 ---
 
 ## License
 
-Apache 2.0
+Apache 2.0 — see [LICENSE](LICENSE)

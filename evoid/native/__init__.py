@@ -56,7 +56,8 @@ def on(service: Service, intent: Intent, handler: Handler) -> None:
 
 async def execute_service(service: Service, intent_name: str, **kwargs: Any) -> Any:
     """Execute an intent by name."""
-    return await _execute(intent_name, **kwargs)
+    from ..core.runtime import execute_by_name
+    return await execute_by_name(intent_name, **kwargs)
 
 
 async def run(service: Service, host: str = "0.0.0.0", port: int = 8000) -> None:

@@ -12,6 +12,9 @@ from ..core.context import Context
 # Rate limit state: key -> (count, window_start)
 _rate_limits: dict[str, tuple[int, float]] = {}
 
+# Max entries to prevent unbounded memory growth
+_MAX_ENTRIES = 10_000
+
 # Default limits: max requests per window (seconds)
 _DEFAULT_LIMITS = {
     "ephemeral": (100, 60),   # 100 requests per minute
@@ -38,16 +41,21 @@ async def process(ctx: Context) -> dict:
 
     # Check current count
     now = time.time()
-    if key in _rate_limits:
-        count, window_start = _rate_limits[key]
+    entry = _rate_limits.get(key)
+
+    if entry is not None:
+        count, window_start = entry
         if now - window_start < window:
             if count >= max_requests:
                 return {"allowed": False, "reason": "rate_limit_exceeded"}
             _rate_limits[key] = (count + 1, window_start)
         else:
-            # New window
             _rate_limits[key] = (1, now)
     else:
+        # Evict oldest if at capacity
+        if len(_rate_limits) >= _MAX_ENTRIES:
+            oldest_key = next(iter(_rate_limits))
+            del _rate_limits[oldest_key]
         _rate_limits[key] = (1, now)
 
     return {"allowed": True}

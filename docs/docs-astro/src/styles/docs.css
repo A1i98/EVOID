@@ -59,7 +59,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 10px;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 .sidebar-card.active {
   border-color: var(--purple);
@@ -91,12 +91,24 @@
 
 .sidebar-card-items {
   list-style: none;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
-  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 50vh;
   padding: 0 0.35rem 0.35rem;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple) transparent;
+  transition: opacity 0.2s ease, padding 0.2s ease;
 }
-.sidebar-card.collapsed .sidebar-card-items { max-height: 0; padding-top: 0; }
+.sidebar-card-items::-webkit-scrollbar { width: 3px; }
+.sidebar-card-items::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 2px; }
+.sidebar-card.collapsed .sidebar-card-items {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow-y: hidden;
+  opacity: 0;
+}
 
 .sidebar-link {
   display: flex;

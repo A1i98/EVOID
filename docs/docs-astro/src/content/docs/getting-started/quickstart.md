@@ -12,12 +12,31 @@ Build a working EVOID API in 5 minutes.
 - Python 3.13 or higher
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
-## Step 1: Create a Project
+## Step 1: Install & Create
 
-```bash
-uv add evoid
-evo init my-api
-cd my-api
+=== "uv (Recommended)"
+
+    ```bash
+    uv add evoid
+    evo init my-api
+    cd my-api
+    ```
+
+=== "pip"
+
+    ```bash
+    pip install evoid
+    evo init my-api
+    cd my-api
+    ```
+
+This creates:
+
+```
+my-api/
+  evoid.toml
+  shared/
+  services/
 ```
 
 ## Step 2: Add a Service

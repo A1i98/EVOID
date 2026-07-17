@@ -64,8 +64,13 @@ def create_app(
         if method in ("POST", "PUT", "PATCH"):
             body = await request.body()
 
-        # Get headers
-        headers = dict(request.headers)
+        # Get only needed headers
+        headers = {
+            "authorization": request.headers.get("authorization", ""),
+            "x-intent-level": request.headers.get("x-intent-level", ""),
+            "x-forwarded-for": request.headers.get("x-forwarded-for", ""),
+            "content-type": request.headers.get("content-type", ""),
+        }
 
         # Convert to Intent
         intent = _intent_from_request(method, path, body, headers)

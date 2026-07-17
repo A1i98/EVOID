@@ -39,7 +39,7 @@ from .controller import (
     App as ControllerApp,
 )
 from .controller import (
-    Service as ControllerService,
+    App as ControllerService,
 )
 from .controller import (
     run as run_controller,
@@ -48,7 +48,7 @@ from .route import (
     App as RouteApp,
 )
 from .route import (
-    Service as RouteService,
+    App as RouteService,
 )
 from .route import (
     after,

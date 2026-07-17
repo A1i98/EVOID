@@ -40,6 +40,30 @@ MY_INTENT = Intent(
 | `standard` | `validate`, `authorize` | 10s | User profiles, posts, comments |
 | `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, medical, legal |
 
+!!! warning "Choosing the right level"
+    Pick the level that matches your data's criticality. Overusing `critical` adds unnecessary overhead.
+
+### Ephemeral
+
+- Fast path, minimal processing
+- Memory-only caching, aggressive TTL
+- No audit, no encryption
+- Use for: cache checks, temporary data, session lookups
+
+### Standard
+
+- Balanced processing
+- Authorization check
+- Memory + disk caching
+- Use for: user profiles, posts, comments, general CRUD
+
+### Critical
+
+- Full protection pipeline
+- Authorization + audit + protection
+- Strong consistency, encryption, replication
+- Use for: payments, medical records, legal documents, authentication
+
 ## Creating Intents
 
 ### Explicit (Native Style)
