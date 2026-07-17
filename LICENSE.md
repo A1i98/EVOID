@@ -1,10 +1,10 @@
 # License
 
-Evox is fully open source and released under the Apache License 2.0. This license permits all forms of use, including commercial use and use in closed-source products, without any legal obligations. It also provides an express grant of patent rights from contributors to users.
+EVOID is fully open source and released under the Apache License 2.0. This license permits all forms of use, including commercial use and use in closed-source products, without any legal obligations. It also provides an express grant of patent rights from contributors to users.
 
 ## Supporting Our Work
 
-The long-term development, maintenance, and security of the Evox project depend on community support. While the Apache License 2.0 imposes no financial obligations, we kindly encourage organizations and individuals who derive significant commercial value from Evox to consider contributing to its sustainability.
+The long-term development, maintenance, and security of the EVOID project depend on community support. While the Apache License 2.0 imposes no financial obligations, we kindly encourage organizations and individuals who derive significant commercial value from EVOID to consider contributing to its sustainability.
 
 ### Voluntary Financial Contributions
 
@@ -14,34 +14,29 @@ Voluntary financial contributions help us to:
 - Fix bugs and address security vulnerabilities promptly
 - Ensure the project remains healthy and accessible for everyone
 
-If your company uses Evox and benefits from it, please consider supporting us through:
+If your company uses EVOID and benefits from it, please consider supporting us through:
 
 - [GitHub Sponsors](https://github.com/sponsors) (coming soon)
 - [Open Collective](https://opencollective.com) (coming soon)
 
 This is a voluntary, non-binding request, not a licensing condition. We are grateful for any form of support, whether it's a financial contribution, a code contribution, or simply spreading the word.
 
-### Support Related Projects
+### Core Dependencies
 
-Since Evox is built on top of excellent open-source foundations, you can also support:
+EVOID relies on these projects:
 
-#### Core Dependencies
+- **aiosqlite** - Asynchronous interface to SQLite
+- **tomli_w** - TOML writing library
 
-Evox heavily relies on these essential projects:
+### Optional Dependencies
 
-- **FastAPI** - High performance, easy to learn, fast to code, ready for production API framework
-- **Typer** - Library for building CLI applications
-- **Pydantic** - Data validation and settings management using Python type annotations
-- **Uvicorn** - Lightning-fast ASGI server implementation
-- **HTTPX** - Fully featured HTTP client for Python 3
+EVOID supports pluggable engines for various libraries:
 
-#### Additional Dependencies
-
-Other important projects that make Evox possible:
-
-- **Jinja2** - Modern and designer-friendly templating language for Python
-- **Tomli/TOML** - Library for parsing TOML configuration files
-- **Aiosqlite** - Asynchronous interface to SQLite
-- **Webbrowser** - Standard library module for web browser integration
+- **Pydantic** - Data validation (optional schema engine)
+- **msgspec** - Fast serialization (optional serializer engine)
+- **Starlette** - ASGI framework (optional web adapter)
+- **Uvicorn** - ASGI server (optional web adapter)
+- **Robyn** - Web framework (optional web adapter)
+- **Loguru** - Logging (optional logger engine)
 
 Supporting these projects helps ensure the entire ecosystem remains healthy and continues to evolve.
