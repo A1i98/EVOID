@@ -6,6 +6,7 @@ interface Props {
 }
 
 const { currentSlug } = Astro.props;
+const base = import.meta.env.BASE_URL;
 
 let stepCounter = 0;
 ---
@@ -32,7 +33,7 @@ let stepCounter = 0;
               {entry.items.map((item, idx) => (
                 <li>
                   <a
-                    href={`/docs/${item.slug}/`}
+                    href={`${base}docs/${item.slug}/`}
                     class={`sidebar-link ${item.slug === currentSlug ? 'active' : ''}`}
                   >
                     {isTutorial && <span class="step-num">{String(idx + 1).padStart(2, '0')}</span>}
@@ -46,7 +47,7 @@ let stepCounter = 0;
       }
       return (
         <a
-          href={`/docs/${entry.slug}/`}
+          href={`${base}docs/${entry.slug}/`}
           class={`sidebar-link standalone ${entry.slug === currentSlug ? 'active' : ''}`}
         >
           {entry.label}

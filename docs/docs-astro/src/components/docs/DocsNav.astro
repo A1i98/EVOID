@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { currentSlug } = Astro.props;
+const base = import.meta.env.BASE_URL;
 
 const allSlugs = getAllSlugs();
 const currentIndex = allSlugs.indexOf(currentSlug);
@@ -25,14 +26,14 @@ const nextTitle = nextSlug ? titleMap[nextSlug] : null;
   <nav class="docs-nav">
     <div class="docs-nav-inner">
       {prevSlug ? (
-        <a href={`/docs/${prevSlug}/`} class="docs-nav-link docs-nav-prev">
+        <a href={`${base}docs/${prevSlug}/`} class="docs-nav-link docs-nav-prev">
           <span class="docs-nav-label">← Previous</span>
           <span class="docs-nav-title">{prevTitle}</span>
         </a>
       ) : <div />}
       <div class="docs-nav-divider"></div>
       {nextSlug ? (
-        <a href={`/docs/${nextSlug}/`} class="docs-nav-link docs-nav-next">
+        <a href={`${base}docs/${nextSlug}/`} class="docs-nav-link docs-nav-next">
           <span class="docs-nav-label">Next →</span>
           <span class="docs-nav-title">{nextTitle}</span>
         </a>
