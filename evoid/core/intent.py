@@ -50,6 +50,9 @@ _registry: dict[IntentName, Intent] = {}
 def register(intent: Intent) -> None:
     """Register an intent definition."""
     _registry[intent.name] = intent
+    # Emit event (zero cost when no hooks)
+    from .events import emit_sync
+    emit_sync("intent_registered", {"name": intent.name, "level": intent.level.value})
 
 
 def resolve(name: IntentName) -> Intent | None:

@@ -6,13 +6,16 @@ IOP: Data carries its own intent.
      Services communicate through Intents, not HTTP.
 """
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"
 
 # Core
 from .core import (
     Config,
     Context,
+    Event,
+    EventContext,
     Intent,
+    IntentSchema,
     Level,
     # Message Bus
     Message,
@@ -24,12 +27,21 @@ from .core import (
     all_intents,
     all_processors,
     clear_registry,
+    emit,
+    emit_sync,
     execute,
     execute_by_name,
     execute_pipeline,
+    export_json_schema,
+    export_json_schemas,
+    export_schema_for,
+    export_schemas,
     fork,
     get_history,
     get_processor,
+    hook_count,
+    off_event,
+    on_event,
     publish,
     register,
     register_processor,
@@ -129,4 +141,18 @@ __all__ = [
     "create_service",
     "native_on",
     "execute_service",
+    # Events
+    "Event",
+    "EventContext",
+    "on_event",
+    "off_event",
+    "emit",
+    "emit_sync",
+    "hook_count",
+    # Schema Export
+    "IntentSchema",
+    "export_schemas",
+    "export_schema_for",
+    "export_json_schemas",
+    "export_json_schema",
 ]

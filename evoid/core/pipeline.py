@@ -15,6 +15,17 @@ from typing import Any
 from .context import Context
 from .processor import Processor
 
+# Lazy import to avoid circular dependency
+_events = None
+
+
+def _get_events():
+    global _events
+    if _events is None:
+        from . import events as _ev
+        _events = _ev
+    return _events
+
 
 @dataclass(frozen=True)
 class ProcessorResult:
@@ -55,6 +66,11 @@ async def execute(
     ran: list[str] = []
     steps: list[ProcessorResult] = [] if inspect else None
     result = None
+
+    # Emit pre_execute event (zero cost when no hooks)
+    ev = _get_events()
+    if ev._has_hooks("pre_execute"):
+        await ev.emit("pre_execute", context, {"pipeline": pipeline})
 
     if inspect:
         # Slow path — full inspection
@@ -153,6 +169,15 @@ async def execute(
                     processors=tuple(ran),
                     duration=time.monotonic() - start,
                 )
+
+    # Emit post_execute event (zero cost when no hooks)
+    if ev._has_hooks("post_execute"):
+        await ev.emit("post_execute", context, {
+            "pipeline": pipeline,
+            "success": True,
+            "processors": tuple(ran),
+            "duration": time.monotonic() - start,
+        })
 
     return Result(
         success=True,

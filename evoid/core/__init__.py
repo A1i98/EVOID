@@ -16,6 +16,12 @@ from .resolver import PipelineConfig, resolve_pipeline
 from .runtime import Config, execute, execute_by_name
 from .service import Service
 
+# Events
+from .events import Event, EventContext, on as on_event, off as off_event, emit, emit_sync, hook_count
+
+# Schema Export
+from .schema import IntentSchema, FieldSchema, export_schemas, export_schema_for, export_json_schemas, export_json_schema
+
 __all__ = [
     # Intent
     "Intent",
@@ -50,4 +56,19 @@ __all__ = [
     "get_history",
     # Service
     "Service",
+    # Events
+    "Event",
+    "EventContext",
+    "on_event",
+    "off_event",
+    "emit",
+    "emit_sync",
+    "hook_count",
+    # Schema Export
+    "IntentSchema",
+    "FieldSchema",
+    "export_schemas",
+    "export_schema_for",
+    "export_json_schemas",
+    "export_json_schema",
 ]
