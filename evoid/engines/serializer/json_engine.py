@@ -1,29 +1,41 @@
-"""JSON Serializer Engine — Uses stdlib json.
+"""JSON Serializer — stdlib json (default, no dependencies).
 
-IOP: Pure functions. No class state.
+IOP: Fallback serializer. Works everywhere.
 """
 
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, date, time
+from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 
-def encode(data: Any) -> bytes:
-    """Encode data to JSON bytes."""
-    return json.dumps(data, default=_default_serializer).encode("utf-8")
+class JsonSerializer:
+    """Standard library JSON serializer."""
+
+    def encode(self, data: Any) -> bytes:
+        """Encode data to JSON bytes."""
+        return json.dumps(data, default=_default, ensure_ascii=False).encode("utf-8")
+
+    def decode(self, data: bytes, schema: type | None = None) -> Any:
+        """Decode JSON bytes to data."""
+        return json.loads(data.decode("utf-8"))
 
 
-def decode(data: bytes, schema: type | None = None) -> Any:
-    """Decode JSON bytes to data."""
-    return json.loads(data.decode("utf-8"))
-
-
-def _default_serializer(obj: Any) -> Any:
-    """Handle non-serializable types."""
-    if isinstance(obj, datetime):
+def _default(obj: Any) -> Any:
+    """Handle types json.dumps can't serialize."""
+    if isinstance(obj, (datetime, date, time)):
         return obj.isoformat()
+    if isinstance(obj, UUID):
+        return str(obj)
+    if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, bytes):
+        return obj.decode("utf-8", errors="replace")
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump()
     if hasattr(obj, "__dict__"):
         return obj.__dict__
     return str(obj)
