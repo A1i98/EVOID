@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from .context import Context
@@ -17,22 +17,26 @@ from .processor import Processor
 
 
 @dataclass(frozen=True)
-class Result:
-    """Pipeline execution result — pure data.
+class ProcessorResult:
+    """What one processor did — pure data."""
+    name: str
+    duration: float
+    input_state: dict[str, Any] = field(default_factory=dict)
+    output_state: dict[str, Any] = field(default_factory=dict)
+    success: bool = True
+    error: Exception | None = None
 
-    Attributes:
-        success: Did it complete?
-        value: The result (None if failed)
-        error: The exception (None if succeeded)
-        processors: Which processors ran
-        duration: How long it took
-    """
+
+@dataclass(frozen=True)
+class Result:
+    """Pipeline execution result — pure data."""
 
     success: bool
     value: Any = None
     error: Exception | None = None
     processors: tuple[str, ...] = ()
     duration: float = 0.0
+    steps: tuple[ProcessorResult, ...] = ()
 
 
 async def execute(
@@ -40,14 +44,16 @@ async def execute(
     context: Context,
     registry: dict[str, Processor],
     timeout: float | None = None,
+    inspect: bool = False,
 ) -> Result:
     """Execute a pipeline of processors.
 
-    Pure function: takes data, returns data.
-    No class, no state, no side effects (except processor execution).
+    Args:
+        inspect: If True, capture per-processor state snapshots.
     """
     start = time.monotonic()
     ran: list[str] = []
+    steps: list[ProcessorResult] = []
     result = None
 
     for name in pipeline:
@@ -55,25 +61,52 @@ async def execute(
         if processor is None:
             continue
 
+        step_start = time.monotonic()
+        input_state = context.state.copy() if inspect else {}
+
         try:
             result = await asyncio.wait_for(
                 processor(context),
                 timeout=timeout,
             )
             ran.append(name)
+
+            steps.append(ProcessorResult(
+                name=name,
+                duration=time.monotonic() - step_start,
+                input_state=input_state,
+                output_state=context.state.copy() if inspect else {},
+                success=True,
+            ))
         except asyncio.TimeoutError:
+            steps.append(ProcessorResult(
+                name=name,
+                duration=time.monotonic() - step_start,
+                input_state=input_state,
+                success=False,
+                error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
+            ))
             return Result(
                 success=False,
                 error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
                 processors=tuple(ran),
                 duration=time.monotonic() - start,
+                steps=tuple(steps),
             )
         except Exception as e:
+            steps.append(ProcessorResult(
+                name=name,
+                duration=time.monotonic() - step_start,
+                input_state=input_state,
+                success=False,
+                error=e,
+            ))
             return Result(
                 success=False,
                 error=e,
                 processors=tuple(ran),
                 duration=time.monotonic() - start,
+                steps=tuple(steps),
             )
 
     return Result(
@@ -81,4 +114,5 @@ async def execute(
         value=result,
         processors=tuple(ran),
         duration=time.monotonic() - start,
+        steps=tuple(steps),
     )

@@ -20,37 +20,37 @@ from .resolver import PipelineConfig, resolve_pipeline
 @dataclass
 class Config:
     """Runtime configuration — pure data."""
-
     name: str = "evoid-service"
     adapter: str = "asgi"
     engines: dict[str, str] = field(default_factory=dict)
+    inspect: bool = False  # capture per-processor state
 
 
 async def execute(intent: Intent, config: Config | None = None) -> Result:
-    """Execute an intent through the pipeline.
-
-    This is THE core function. Everything else is composition.
-
-    Pipeline resolution order:
-    1. Check for user overrides (extend.py)
-    2. Fall back to default resolution
-    """
-    # 1. Resolve intent → pipeline config (with overrides)
+    """Execute an intent through the pipeline."""
     from .extend import get_pipeline_config
+    from .routing import apply_routing
+
+    # 1. Resolve pipeline config (with overrides)
     pipeline_config = get_pipeline_config(intent)
 
-    # 2. Get processor registry
+    # 2. Apply routing rules
+    pipeline = apply_routing(pipeline_config.processors, intent.name)
+
+    # 3. Get processor registry
     registry = all_processors()
 
-    # 3. Create context
+    # 4. Create context
     context = Context(intent=intent)
 
-    # 4. Execute pipeline
+    # 5. Execute pipeline
+    inspect = config.inspect if config else False
     return await execute_pipeline(
-        pipeline=pipeline_config.processors,
+        pipeline=pipeline,
         context=context,
         registry=registry,
         timeout=pipeline_config.timeout,
+        inspect=inspect,
     )
 
 
