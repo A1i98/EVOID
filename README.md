@@ -6,18 +6,15 @@
   <img src="https://img.shields.io/badge/status-Beta-purple?style=for-the-badge" alt="Status">
 </p>
 
-<h1 align="center">
-  <br>
-  <br>
-  <img src="https://raw.githubusercontent.com/EvolveBeyond/EVOID/main/assets/evoid-banner.png" alt="EVOID" width="400">
-  <br>
-  <br>
-  E V O I D
-  <br>
-  <br>
-</h1>
+<h1 align="center">EVOID</h1>
 
-<h4 align="center">Reference Runtime for Intent-Oriented Programming</h4>
+<p align="center">
+  <strong>Reference Runtime for Intent-Oriented Programming</strong>
+</p>
+
+<p align="center">
+  <em>Data declares what, runtime decides how.</em>
+</p>
 
 <p align="center">
   <a href="#what-is-iop">What is IOP?</a> •
@@ -300,6 +297,8 @@ my-api/
 ## Documentation
 
 **User docs:** [https://evolvebeyond.github.io/EVOID/](https://evolvebeyond.github.io/EVOID/)
+
+**Wiki:** [https://github.com/EvolveBeyond/EVOID/wiki](https://github.com/EvolveBeyond/EVOID/wiki)
 
 **Architecture:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
 
