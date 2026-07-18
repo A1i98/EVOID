@@ -1,6 +1,6 @@
 ---
 title: 'Architecture'
-description: 'How EVOID works under the hood — Intent, Pipeline, Processor, Context.'
+description: 'How EVOID works under the hood — Intent, Pipeline, Processor, Context, Events, Schema.'
 ---
 
 # Architecture
@@ -88,7 +88,7 @@ class Context:
     deps: dict              # Injected dependencies
     metadata: dict          # Request metadata
     errors: list            # Accumulated errors
-    id: str                 # Unique ID
+    id: str                 # Unique ID (atomic counter)
 ```
 
 Context is the **only shared state** between processors. Processors communicate through `ctx.state`.
@@ -106,6 +106,19 @@ before("GET:/users/{id}", "rate_limit")
 after("GET:/users/{id}", "audit_log")
 ```
 
+### Plugin Lifecycle Hooks
+
+Observe runtime events:
+
+```python
+from evoid import on_event, Event
+
+def log_execution(ctx):
+    print(f"Executed: {ctx.intent_name}")
+
+on_event(Event.POST_EXECUTE, log_execution)
+```
+
 ### Message Bus
 
 Services communicate through Intents, not HTTP:
@@ -117,16 +130,26 @@ subscribe("order_created", handle_order)
 await publish(order_intent)
 ```
 
-### Pluggable Engines
+### Schema Export
 
-Every engine is replaceable:
+Export Intent schemas for AI agents:
 
 ```python
-from evoid.engines.serializer import set_serializer
-from evoid.engines.schema import set_validator
+from evoid import export_schemas
 
-set_serializer(MySerializer())
-set_validator(MyValidator())
+schemas = export_schemas()
+# {"get_user": IntentSchema(name="get_user", ...)}
+```
+
+### MCP Server
+
+Expose Intents as tools for AI agents:
+
+```python
+from evoid.adapters.mcp import create_mcp_server
+
+server = create_mcp_server("my-api")
+# AI agents can discover and invoke Intents
 ```
 
 ## Design Principles
@@ -136,9 +159,60 @@ set_validator(MyValidator())
 3. **No stateful objects** — Registries are dicts, not singleton classes
 4. **Extensibility without inheritance** — Use `before/after/replace` to modify pipelines
 5. **Zero overhead IOP** — Fast path skips inspection and timeout when not needed
+6. **Zero core dependencies** — Everything optional, infrastructure is replaceable via plugins
+
+## Plugin Standard
+
+Plugins follow IOP principles:
+
+```
+Plugin Package (evoid-redis)
+    |
+    | evoid_plugin.json (manifest)
+    |
+    v
+register_plugin() (entry point)
+    |
+    v
+EVOID Registry (dict)
+```
+
+- Package name: `evoid-*` or `evoid-plugin-*`
+- Manifest: `evoid_plugin.json`
+- Entry point: `module:function`
+- Installation: `evo install redis` or `uv add evoid-redis`
+
+## Configuration
+
+Two formats supported:
+
+### TOML (evoid.toml)
+
+```toml
+[service]
+name = "my-api"
+
+[engines]
+storage = "redis"
+```
+
+### Python (evoid_config.py)
+
+```python
+from evoid.config import config
+
+app = config(
+    service={"name": "my-api"},
+    engines={"storage": "redis"},
+)
+```
 
 ## Related
 
 - [Intent](../learn/intent.md) — Deep dive into Intents
 - [Pipeline](../learn/pipeline.md) — How execution works
 - [Processors](../learn/processors.md) — Functions that handle intents
+- [Schema Export](../learn/schema-export.md) — Export Intent schemas
+- [Plugin Hooks](../learn/plugin-hooks.md) — Lifecycle events
+- [Plugin Standard](../learn/plugin-standard.md) — Plugin packaging
+- [Python Config](../learn/python-config.md) — Python-native config

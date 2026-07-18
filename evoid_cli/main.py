@@ -183,6 +183,69 @@ def cmd_exec(intent_name: str) -> None:
     asyncio.run(_exec())
 
 
+def cmd_install(packages: list[str]) -> None:
+    """Install optional dependencies."""
+    import subprocess
+    import shutil
+
+    if not packages:
+        print("Usage: evo install <package> [package...]")
+        print()
+        print("Available packages:")
+        print("  sqlite        SQLite storage (aiosqlite)")
+        print("  redis         Redis cache")
+        print("  sqlalchemy    SQLAlchemy storage")
+        print("  pydantic      Pydantic schema engine")
+        print("  loguru        Loguru logger")
+        print("  asgi          ASGI adapter (starlette + uvicorn)")
+        print("  toml          TOML config support")
+        print("  testing       Testing WebUI")
+        print("  full          All optional dependencies")
+        return
+
+    # Map package names to extras
+    extras_map = {
+        "sqlite": "sqlite",
+        "redis": "redis",
+        "sqlalchemy": "sqlalchemy",
+        "pydantic": "pydantic",
+        "loguru": "loguru",
+        "asgi": "asgi",
+        "robyn": "robyn",
+        "telegram": "telegram",
+        "toml": "toml",
+        "testing": "testing",
+        "full": "full",
+    }
+
+    extras = []
+    for pkg in packages:
+        extra = extras_map.get(pkg)
+        if extra:
+            extras.append(extra)
+        else:
+            print(f"Unknown package: {pkg}")
+            print(f"Available: {', '.join(extras_map.keys())}")
+            sys.exit(1)
+
+    spec = f"evoid[{','.join(extras)}]"
+
+    print(f"Installing: {spec}")
+
+    if shutil.which("uv"):
+        cmd = [sys.executable, "-m", "uv", "add", spec]
+    else:
+        cmd = [sys.executable, "-m", "pip", "install", spec]
+
+    result = subprocess.run(cmd, capture_output=False)
+
+    if result.returncode == 0:
+        print(f"\nInstalled: {spec}")
+    else:
+        print(f"\nInstallation failed")
+        sys.exit(1)
+
+
 def main() -> None:
     """CLI entry point."""
     args = sys.argv[1:]
@@ -205,6 +268,10 @@ def main() -> None:
         print("  evo list-intents             List intents")
         print("  evo exec <intent>            Execute intent")
         print("  evo version                  Show version")
+        print()
+        print("Install:")
+        print("  evo install <pkg>            Install optional dependency")
+        print("  evo install full             Install all optional deps")
         return
 
     cmd = args[0]
@@ -262,6 +329,8 @@ def main() -> None:
         cmd_list_processors()
     elif cmd == "exec" and len(args) > 1:
         cmd_exec(args[1])
+    elif cmd == "install":
+        cmd_install(args[1:])
     else:
         print(f"Unknown command: {cmd}")
         sys.exit(1)

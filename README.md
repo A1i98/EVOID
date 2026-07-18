@@ -2,9 +2,10 @@
 
 **Reference Runtime for Intent-Oriented Programming**
 
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.3-orange.svg)](https://github.com/EvolveBeyond/EVOID)
+[![Version](https://img.shields.io/badge/version-0.4.1-orange.svg)](https://github.com/EvolveBeyond/EVOID)
+[![Zero Dependencies](https://img.shields.io/badge/core%20deps-zero-brightgreen.svg)](https://github.com/EvolveBeyond/EVOID)
 
 ---
 
@@ -77,7 +78,13 @@ Or with pip:
 pip install evoid
 ```
 
-Requires Python 3.13+.
+Requires Python 3.12+. Zero core dependencies — add only what you need:
+
+```bash
+evo install sqlite     # SQLite storage
+evo install redis      # Redis cache
+evo install full       # Everything
+```
 
 ---
 

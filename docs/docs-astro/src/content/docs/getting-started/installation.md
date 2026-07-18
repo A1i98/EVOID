@@ -1,13 +1,13 @@
 ---
 title: 'Installation'
-description: '- Python 3.13+ - uv (recommended) or pip'
+description: 'Install EVOID with zero core dependencies. Add only what you need.'
 ---
 
 # Installation
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.12+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 !!! tip "Why uv?"
@@ -27,41 +27,61 @@ description: '- Python 3.13+ - uv (recommended) or pip'
     pip install evoid
     ```
 
+!!! info "Zero core dependencies"
+    EVOID has NO required dependencies. Install only what you need.
+
 ## Optional Dependencies
 
-EVOID ships with a minimal core. Install extras for specific features:
+Install extras for specific features:
 
 ```bash
-# ASGI server (uvicorn + starlette)
+# ASGI server (starlette + uvicorn)
 uv add "evoid[asgi]"
 
 # Pydantic schema engine
 uv add "evoid[pydantic]"
 
+# SQLite storage
+uv add "evoid[sqlite]"
+
 # Redis caching
 uv add "evoid[redis]"
 
-# SQLAlchemy storage
+# SQLAlchemy storage (plugin)
 uv add "evoid[sqlalchemy]"
 
 # Loguru logging
 uv add "evoid[loguru]"
 
+# TOML config support
+uv add "evoid[toml]"
+
+# Testing WebUI
+uv add "evoid[testing]"
+
 # Everything
 uv add "evoid[full]"
+```
+
+### Using evo install
+
+```bash
+evo install sqlite        # Install SQLite storage
+evo install redis         # Install Redis cache
+evo install full          # Install all optional deps
 ```
 
 | Extra | Packages | Use When |
 |-------|----------|----------|
 | `asgi` | starlette, uvicorn | Running HTTP APIs |
 | `pydantic` | pydantic | Schema validation with Pydantic models |
+| `sqlite` | aiosqlite | SQLite database storage |
 | `redis` | redis | Distributed caching |
 | `sqlalchemy` | sqlalchemy, aiosqlite | SQL database storage |
 | `loguru` | loguru | Beautiful structured logging |
+| `toml` | tomli, tomli_w | TOML config support |
+| `testing` | starlette | Test dashboard WebUI |
 | `full` | All above | Everything enabled |
-
-!!! note "Python version"
-    EVOID requires Python 3.13 or higher. Check your version with `python --version`. If you need multiple Python versions, use `uv python install 3.13`.
 
 ## Verify Installation
 
@@ -72,7 +92,7 @@ evo version
 Expected output:
 
 ```
-evo 0.3.3
+evo 0.4.1
 ```
 
 ## Create Your First Project

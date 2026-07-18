@@ -1,14 +1,59 @@
 ---
 title: 'Configuration'
-description: 'evoid.toml reference — every field explained with real-world examples.'
+description: 'Configure EVOID with TOML or Python. Every field explained.'
 ---
 
 # Configuration
 
-`evoid.toml` is the single source of truth for your project. Change infrastructure by changing config — business logic stays untouched.
+EVOID supports two config formats:
+
+1. **TOML** (`evoid.toml`) — traditional, human-readable
+2. **Python** (`evoid_config.py`) — native, type-safe, IOP-native
+
+Both produce the same config. Change infrastructure by changing config — business logic stays untouched.
 
 !!! tip "Config over code"
-    Switch from SQLite to PostgreSQL? Change one line in `evoid.toml`, run `evo sync`. Zero code changes.
+    Switch from SQLite to PostgreSQL? Change one line in config, run `evo install sqlite`. Zero code changes.
+
+## Python Config (Recommended)
+
+```python
+# evoid_config.py
+from evoid.config import config
+
+app = config(
+    service={"name": "my-api", "version": "1.0.0"},
+    runtime={"adapter": "asgi", "port": 8000},
+    engines={"storage": "redis", "cache": "memory"},
+)
+```
+
+## TOML Config
+
+```toml
+# evoid.toml
+[service]
+name = "my-api"
+version = "1.0.0"
+
+[runtime]
+adapter = "asgi"
+port = 8000
+
+[engines]
+storage = "redis"
+cache = "memory"
+```
+
+## Auto-Detection
+
+EVOID auto-detects the config format:
+
+```python
+from evoid.config import load_config
+
+config = load_config()  # Tries evoid.toml, then evoid_config.py
+```
 
 ## Project Structure
 
