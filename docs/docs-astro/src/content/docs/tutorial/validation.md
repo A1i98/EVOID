@@ -1,171 +1,144 @@
 ---
 title: 'Validation'
-description: 'Use any validation library with EVOID — Pydantic, msgspec, or your own.'
+description: 'Validate requests with Pydantic, schema engines, and custom processors.'
 ---
 
 # Validation
 
-EVOID provides the interface. You bring your own library.
+Validate requests with Pydantic, schema engines, and custom processors.
 
-## The Principle
+## Pydantic Validation
 
-Validation is a processor concern. EVOID defines the protocol, you choose the library.
+The simplest approach — Pydantic validates automatically:
 
 ```python
-class SchemaEngine(Protocol):
-    def validate(self, data: Any, schema: type) -> Any: ...
-    def serialize(self, obj: Any) -> dict[str, Any]: ...
-    def deserialize(self, data: dict[str, Any], schema: type) -> Any: ...
+from pydantic import BaseModel, Field, field_validator
+
+class CreateOrder(BaseModel):
+    sandwich: str = Field(min_length=1)
+    quantity: int = Field(ge=1, le=100)
+    customer_name: str = Field(min_length=2, max_length=100)
+
+    @field_validator("sandwich")
+    @classmethod
+    def validate_sandwich(cls, v):
+        allowed = ["BLT", "Club", "Veggie", "Reuben", "Philly"]
+        if v not in allowed:
+            raise ValueError(f"Must be one of: {', '.join(allowed)}")
+        return v
+
+@post("/orders")
+async def create_order(order: CreateOrder) -> dict:
+    return {"status": "created", "order": order.model_dump()}
 ```
 
-Three methods. That's the entire contract.
-
-## Default: stdlib dataclasses
-
-No dependencies needed:
-
-```python
-from evoid.engines.schema import get_validator
-from dataclasses import dataclass
-
-@dataclass
-class User:
-    name: str
-    age: int
-
-validator = get_validator()
-user = validator.validate({"name": "Alice", "age": 30}, User)
-# user is a User dataclass instance
+```bash
+curl -X POST http://localhost:8000/orders \
+  -H "Content-Type: application/json" \
+  -d '{"sandwich": "INVALID", "quantity": 0}'
+# {"detail": "Must be one of: BLT, Club, Veggie, Reuben, Philly"}
 ```
 
-## With Pydantic
+## Custom Validation Processors
+
+For validation that depends on external data, use processors:
 
 ```python
-from pydantic import BaseModel, Field
+from evoid import register_processor
+from evoid.core import Context
 
-class CreateUser(BaseModel):
-    name: str = Field(min_length=1)
-    email: str
-    age: int = Field(ge=0, le=150)
-
-validator = get_validator()
-
-# Validate + deserialize
-user = validator.validate({"name": "Alice", "email": "a@b.com", "age": 30}, CreateUser)
-
-# Serialize back to dict
-data = validator.serialize(user)
-```
-
-## With msgspec
-
-```python
-import msgspec
-
-class User(msgspec.Struct):
-    name: str
-    age: int
-
-validator = get_validator()
-
-# Fastest validation in Python
-user = validator.validate({"name": "Alice", "age": 30}, User)
-data = validator.serialize(user)
-```
-
-## Custom Validator
-
-Implement the protocol with your preferred library:
-
-```python
-from evoid.engines.schema import set_validator
-
-class MyValidator:
-    def validate(self, data, schema):
-        # Your validation logic
-        ...
-
-    def serialize(self, obj):
-        # Your serialization logic
-        ...
-
-    def deserialize(self, data, schema):
-        # Your deserialization logic
-        ...
-
-set_validator(MyValidator())
-```
-
-## Auto-Detection Priority
-
-1. **msgspec** — fastest (if installed)
-2. **pydantic** — with full validation (if installed)
-3. **stdlib dataclasses** — always available (fallback)
-
-## As a Processor
-
-Validation is a processor in the pipeline:
-
-```python
-from evoid.engines.schema import get_validator
-from evoid import Context
-
-validator = get_validator()
-
-async def validate_body(ctx: Context) -> dict:
+async def validate_inventory(intent: Intent, ctx: Context) -> dict:
+    """Check if sandwich is in stock."""
     body = ctx.metadata.get("body", {})
-    ctx.metadata["body"] = validator.validate(body, CreateUser)
+    sandwich = body.get("sandwich")
+    qty = body.get("quantity", 1)
+
+    # Check inventory (simplified)
+    in_stock = sandwich in ["BLT", "Club", "Veggie"]
+    if not in_stock:
+        raise ValueError(f"'{sandwich}' is not available")
+
+    ctx.state["validated"] = True
     return {"validated": True}
 
-# Attach to intent
-CREATE_USER = Intent(
-    name="POST:/users",
-    level=Level.STANDARD,
-    metadata={
-        "processors": ("validate_body",),
-    },
+register_processor("validate_inventory", validate_inventory)
+```
+
+Wire it to the order endpoint:
+
+```python
+from evoid.core.extend import before
+
+before("POST:/orders", "validate_inventory")
+```
+
+## Validation as a Pipeline Step
+
+Add validation to the Intent's pipeline:
+
+```python
+from evoid import Intent, Level
+from evoid.core.extend import add_intent_with_pipeline
+
+CREATE_ORDER = Intent(name="create_order", level=Level.STANDARD)
+
+async def handle_create_order(intent: Intent) -> dict:
+    body = intent.metadata.get("body", {})
+    return {"status": "created", "order": body}
+
+add_intent_with_pipeline(
+    CREATE_ORDER,
+    processors=["validate_inventory", "create_order"],
+    handler=handle_create_order,
 )
 ```
 
-## Native IOP Style
+## Schema Engine
+
+EVOID can auto-generate JSON Schema from your Intents:
 
 ```python
-from evoid.native import create_service, on
-from evoid import Intent, Level, Context
-from evoid.engines.schema import get_validator
+from evoid import export_json_schemas
 
-app = create_service("api")
-validator = get_validator()
-
-async def validate_user(ctx: Context) -> dict:
-    body = ctx.metadata.get("body", {})
-    ctx.metadata["body"] = validator.validate(body, CreateUser)
-    return {"validated": True}
-
-CREATE_USER = Intent(
-    name="POST:/users",
-    level=Level.STANDARD,
-    metadata={
-        "method": "POST",
-        "path": "/users",
-        "processors": ("validate_user",),
-    },
-)
-
-async def handle_create_user(intent: Intent) -> dict:
-    user = intent.metadata["body"]
-    return {"status": "created", "name": user.name}
-
-on(app, CREATE_USER, handle_create_user)
+schemas = export_json_schemas()
+# {"create_order": {"type": "object", "properties": {...}, ...}}
 ```
 
-## Summary
+Use this for API documentation, OpenAPI specs, or AI agent discovery.
 
-| Library | Install | Speed | Features |
-|---------|---------|-------|----------|
-| stdlib dataclasses | built-in | baseline | basic |
-| pydantic | `pip install pydantic` | good | full validation, serialization |
-| msgspec | `pip install msgspec` | fastest | struct validation |
+## Response Validation
 
-!!! tip "IOP principle"
-    EVOID doesn't care which library you use. Just implement the protocol and register it. The pipeline runs the same way regardless.
+Validate responses too — catch bugs before they reach clients:
+
+```python
+from pydantic import BaseModel
+
+class OrderResponse(BaseModel):
+    id: int
+    status: str
+    total: float
+
+async def validate_response(intent: Intent, ctx: Context) -> dict:
+    """Validate the handler's output."""
+    result = ctx.state.get("handler_result", {})
+    OrderResponse(**result)  # Raises if invalid
+    return {"response_valid": True}
+
+register_processor("validate_response", validate_response)
+
+after("POST:/orders", "validate_response")
+```
+
+## What You Learned
+
+| Concept | What It Is |
+|---------|-----------|
+| Pydantic validation | Automatic from type hints and Field constraints |
+| Custom validators | `@field_validator` for complex rules |
+| Validation processors | Pipeline steps that check external data |
+| Schema export | JSON Schema from Intents for docs/AI |
+| Response validation | Validate output, not just input |
+
+## Next: Error Handling
+
+Let's handle errors properly — [Error Handling](error-handling.md).

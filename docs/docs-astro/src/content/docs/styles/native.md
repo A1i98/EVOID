@@ -7,7 +7,7 @@ description: 'Direct Intent system. No sugar. Full control over the IOP model.'
 
 Direct Intent system. No sugar. Full control over the IOP model.
 
-This is the purest form of EVOID. You create Intents explicitly, register handlers, and compose pipelines.
+This is Level 3 of [IOP Levels](../learn/iop-levels.md) — frozen dataclasses, explicit Intent creation, full pipeline control. Use when you need maximum control over the IOP model.
 
 ## Basic Usage
 

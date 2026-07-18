@@ -100,14 +100,26 @@ curl -X POST http://localhost:8000/users?name=Ali&email=ali@example.com
 !!! info "What just happened?"
     Behind the scenes, EVOID:
 
-Behind the scenes, EVOID:
+    1. **Created Intents** — Each decorator (`@get`, `@post`) created an Intent automatically. `@get("/users/{user_id}")` became `Intent(name="GET:/users/{user_id}", level=Level.STANDARD)`
+    2. **Registered Processors** — Your functions were wrapped as processors and registered by intent name
+    3. **Set Up ASGI** — An ASGI server was started to handle HTTP requests
+    4. **Configured Routing** — URLs were mapped to Intents. When a request arrives, EVOID resolves the intent, builds a pipeline, and executes it
 
-1. **Created Intents** — Each decorator (`@get`, `@post`) created an Intent automatically. `@get("/users/{user_id}")` became `Intent(name="GET:/users/{user_id}", level=Level.STANDARD)`
-2. **Registered Processors** — Your functions were wrapped as processors and registered by intent name
-3. **Set Up ASGI** — An ASGI server was started to handle HTTP requests
-4. **Configured Routing** — URLs were mapped to Intents. When a request arrives, EVOID resolves the intent, builds a pipeline, and executes it
+    Three decorators handled all of that. That's IOP — you declare what you want, EVOID handles how.
 
-Three decorators handled all of that. That's IOP — you declare what you want, EVOID handles how.
+    ```python
+    # What @get("/users/{user_id}") actually creates:
+    GET_USER = Intent(
+        name="GET:/users/{user_id}",
+        level=Level.STANDARD,
+        metadata={"method": "GET", "path": "/users/{user_id}"},
+    )
+
+    # Your handler is wrapped as a processor:
+    async def processor(ctx: Context) -> dict:
+        params = ctx.metadata.get("params", {})
+        return await get_user(**params)  # Your original function
+    ```
 
 !!! tip "Protection levels"
     Each level maps to a different pipeline — `ephemeral` gets fast validation only, `critical` gets full audit and protection.
