@@ -1,18 +1,37 @@
-# EVOID
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.12+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/version-0.4.1-orange?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/core%20deps-zero-brightgreen?style=for-the-badge" alt="Zero Dependencies">
+  <img src="https://img.shields.io/badge/status-Beta-purple?style=for-the-badge" alt="Status">
+</p>
 
-**Reference Runtime for Intent-Oriented Programming**
+<h1 align="center">
+  <br>
+  <br>
+  <img src="https://raw.githubusercontent.com/EvolveBeyond/EVOID/main/assets/evoid-banner.png" alt="EVOID" width="400">
+  <br>
+  <br>
+  E V O I D
+  <br>
+  <br>
+</h1>
 
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.1-orange.svg)](https://github.com/EvolveBeyond/EVOID)
-[![Zero Dependencies](https://img.shields.io/badge/core%20deps-zero-brightgreen.svg)](https://github.com/EvolveBeyond/EVOID)
-[![Tests](https://img.shields.io/badge/tests-33%20passing-brightgreen.svg)](https://github.com/EvolveBeyond/EVOID)
+<h4 align="center">Reference Runtime for Intent-Oriented Programming</h4>
+
+<p align="center">
+  <a href="#what-is-iop">What is IOP?</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#features">Features</a> •
+  <a href="#documentation">Docs</a> •
+  <a href="https://pypi.org/project/evoid/">PyPI</a>
+</p>
 
 ---
 
 ## What is IOP?
 
-Every time you write an endpoint, you decide which database, how to cache, whether to encrypt, what priority. **IOP removes that burden.** Your data declares what it needs. The runtime handles how.
+**Intent-Oriented Programming** — your data declares what it needs, the runtime handles how.
 
 ```python
 from evoid.web.route import Service, get, post
@@ -28,10 +47,10 @@ async def process_payment(amount: float) -> dict:
     return {"status": "paid", "amount": amount}
 ```
 
-Three intent levels control infrastructure behavior:
+Three intent levels control infrastructure:
 
 | Level | Pipeline | Use Case |
-|-------|----------|----------|
+|:------|:---------|:---------|
 | `ephemeral` | `validate` | Cache, sessions, temp data |
 | `standard` | `validate`, `authorize` | User profiles, posts |
 | `critical` | `validate`, `authorize`, `audit`, `protect` | Payments, medical, legal |
@@ -44,17 +63,14 @@ Three intent levels control infrastructure behavior:
 uv add evoid
 ```
 
-**Zero core dependencies.** Add only what you need:
+**Zero core dependencies** — add only what you need:
 
 ```bash
 evo install sqlite      # SQLite storage
 evo install redis       # Redis cache
 evo install pydantic    # Pydantic schema
-evo install asgi        # ASGI adapter
 evo install full        # Everything
 ```
-
-Requires Python 3.12+.
 
 ---
 
@@ -72,25 +88,21 @@ evo service run api
 
 ## Three Syntax Styles
 
-All styles are IOP underneath. Pick the one that fits your team.
+All IOP underneath. Pick your style:
 
-### @route (Function-based)
+### @route
 
 ```python
-from evoid.web.route import Service, get, post
+from evoid.web.route import Service, get
 
 app = Service("my-api")
 
 @get("/users/{user_id}")
 async def get_user(user_id: int) -> dict:
-    return {"id": user_id}
-
-@post("/users")
-async def create_user(name: str, email: str) -> dict:
-    return {"status": "created"}
+    return {"id": user_id, "name": "Alice"}
 ```
 
-### @controller (Class-based)
+### @controller
 
 ```python
 from evoid.web.controller import Service, Controller, GET, POST
@@ -102,30 +114,91 @@ class UserController:
     @GET("/{user_id}")
     async def get_user(self, user_id: int) -> dict:
         return {"id": user_id}
-
-    @POST("/")
-    async def create_user(self, name: str, email: str) -> dict:
-        return {"status": "created"}
 ```
 
-### Native (Full Control)
+### Native
 
 ```python
 from evoid import Intent, Level, add_intent
 
-MY_INTENT = Intent(name="get_user", level=Level.STANDARD)
+GET_USER = Intent(name="get_user", level=Level.STANDARD)
 
 async def handler(intent: Intent) -> dict:
     return {"id": 1, "name": "Alice"}
 
-add_intent(MY_INTENT, handler)
+add_intent(GET_USER, handler)
 ```
 
 ---
 
-## AI Agent Integration
+## Features
 
-EVOID exposes Intents as MCP tools for AI agents:
+<table>
+<tr>
+<td>
+
+**Zero Dependencies**
+Core has no required packages
+
+</td>
+<td>
+
+**AI Agent Integration**
+Schema export + MCP server
+
+</td>
+<td>
+
+**Plugin System**
+PyPI + git install
+
+</td>
+</tr>
+<tr>
+<td>
+
+**Python-Native Config**
+Type-safe, composable
+
+</td>
+<td>
+
+**Pipeline Hooks**
+6 lifecycle events
+
+</td>
+<td>
+
+**Testing System**
+pytest + WebUI dashboard
+
+</td>
+</tr>
+<tr>
+<td>
+
+**Async-Native**
+Full async/await support
+
+</td>
+<td>
+
+**Parallel Execution**
+Concurrent intents
+
+</td>
+<td>
+
+**Multi-Adapter**
+ASGI, CLI, Telegram, WebSocket
+
+</td>
+</tr>
+</table>
+
+---
+
+## AI Agent Integration
 
 ```python
 from evoid import export_schemas
@@ -142,25 +215,11 @@ server = create_mcp_server("my-api")
 
 ## Plugin System
 
-### Install Plugins
-
 ```bash
 evo plug install evoid-redis           # From PyPI
 evo plug install git+https://...       # From git
 evo plug search cache                  # Search PyPI
 evo plug list                          # List installed
-```
-
-### Write Plugins
-
-```python
-# evoid_plugin.json
-{
-    "name": "evoid-redis",
-    "version": "1.0.0",
-    "type": "engine",
-    "entry_point": "evoid_redis:register_plugin"
-}
 ```
 
 ---
@@ -170,7 +229,6 @@ evo plug list                          # List installed
 ### Python (Recommended)
 
 ```python
-# evoid_config.py
 from evoid.config import config
 
 app = config(
@@ -185,10 +243,6 @@ app = config(
 ```toml
 [service]
 name = "my-api"
-
-[runtime]
-adapter = "asgi"
-port = 8000
 
 [engines]
 storage = "redis"
@@ -207,8 +261,8 @@ def test_get_user():
 ```
 
 ```bash
-pytest tests/ -v                # Run tests
-pytest tests/ --evoid-webui     # With dashboard
+pytest tests/ -v
+pytest tests/ --evoid-webui    # With dashboard
 ```
 
 ---
@@ -216,21 +270,17 @@ pytest tests/ --evoid-webui     # With dashboard
 ## CLI Reference
 
 | Command | Alias | Description |
-|---------|-------|-------------|
+|:--------|:------|:------------|
 | `evo init <name>` | `i` | Create project |
 | `evo service new <name>` | `s new` | Add service |
-| `evo service list` | `s list` / `ls` | List services |
 | `evo service run <name>` | `s run` | Run service |
-| `evo run` | `r` | Run all services |
+| `evo run` | `r` | Run all |
 | `evo serve` | `sv` | Quick serve |
 | `evo exec <intent>` | `e` | Execute intent |
-| `evo list-intents` | `li` | List intents |
-| `evo list-processors` | `lp` | List processors |
-| `evo install <pkg>` | `ins` | Install optional dep |
+| `evo install <pkg>` | `ins` | Install dep |
 | `evo plug install <name>` | `pl i` | Install plugin |
 | `evo plug search <query>` | `pl s` | Search plugins |
-| `evo plug list` | `pl l` | List installed |
-| `evo version` | `v` | Show version |
+| `evo version` | `v` | Version |
 
 ---
 
@@ -238,8 +288,8 @@ pytest tests/ --evoid-webui     # With dashboard
 
 ```
 my-api/
-  evoid_config.py       # Python config (or evoid.toml)
-  shared/               # Shared code between services
+  evoid_config.py       # Python config
+  shared/               # Shared code
   services/
     api/
       main.py           # Service code
@@ -247,43 +297,32 @@ my-api/
 
 ---
 
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| Intent-Driven | Data declares what, runtime decides how |
-| Zero Dependencies | Core has no required packages |
-| Python-Native Config | Type-safe, composable configuration |
-| Plugin Standard | Publish plugins to PyPI with manifest |
-| AI Agent Integration | Schema export + MCP server |
-| Plugin Lifecycle Hooks | 6 events with security model |
-| Async-Native | Full async/await support |
-| Parallel Execution | Run multiple intents concurrently |
-| Multi-Adapter | ASGI, CLI, Telegram, Robyn, WebSocket |
-| Message Bus | Inter-service communication via Intents |
-| Testing System | pytest plugin with WebUI dashboard |
-
----
-
 ## Documentation
 
 **User docs:** [https://evolvebeyond.github.io/EVOID/](https://evolvebeyond.github.io/EVOID/)
 
-**Architecture docs:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
+**Architecture:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-change`)
-3. Commit your changes
-4. Push and open a Pull Request
+1. Fork → Branch → Commit → PR
+2. Tests: `pytest tests/ -v`
+3. Lint: `ruff check evoid/`
 
 ---
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE)
+[Apache 2.0](LICENSE)
+
+---
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EvolveBeyond/EVOID/main/assets/evoid-footer.png" alt="EVOID" width="200">
+  <br>
+  <sub>Built with IOP principles. Intent is the platform.</sub>
+</p>
