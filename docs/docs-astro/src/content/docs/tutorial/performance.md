@@ -91,6 +91,77 @@ from evoid.processors import rate_limiter, circuit_breaker
 | Use `concurrency` for batch ops | Parallel processing |
 | Use `Config(inspect=True)` in dev | Debug pipeline performance |
 
+## Production Monitoring
+
+Track pipeline performance in production:
+
+```python
+import time
+from evoid import Intent, Level, register_processor
+from evoid.core import Context
+
+async def monitor_pipeline(intent: Intent, ctx: Context) -> dict:
+    """Track execution metrics."""
+    start = time.monotonic()
+    ctx.state["monitor_start"] = start
+    return {"monitoring": True}
+
+async def report_metrics(intent: Intent, ctx: Context) -> dict:
+    """Report execution metrics after pipeline completes."""
+    start = ctx.state.get("monitor_start", 0)
+    duration = time.monotonic() - start
+
+    # Send to your metrics system (Prometheus, Datadog, etc.)
+    print(f"[METRICS] {intent.name}: {duration:.4f}s")
+
+    # Track by level
+    level = intent.level.value
+    print(f"[METRICS] level={level} duration={duration:.4f}")
+
+    return {"duration": duration}
+
+register_processor("monitor_pipeline", monitor_pipeline)
+register_processor("report_metrics", report_metrics)
+```
+
+Apply globally:
+
+```python
+from evoid.core.extend import before_all
+
+before_all("monitor_pipeline", level=Level.STANDARD)
+before_all("monitor_pipeline", level=Level.CRITICAL)
+```
+
+## Profiling Slow Processors
+
+Find which processor is the bottleneck:
+
+```python
+from evoid import execute, Intent, Level
+from evoid.core.runtime import Config
+
+async def profile_order():
+    config = Config(inspect=True)
+    result = await execute(ORDER, config=config, sandwich="BLT", qty=1)
+
+    # Sort by duration
+    steps = sorted(result.steps, key=lambda s: s.duration, reverse=True)
+
+    print("Slowest processors:")
+    for step in steps[:5]:
+        print(f"  {step.name}: {step.duration:.4f}s")
+```
+
+## When to Optimize
+
+| Symptom | Fix |
+|---------|-----|
+| Single request slow | Check pipeline inspection for slow processor |
+| High latency under load | Add `concurrency` limit to parallel execution |
+| Memory growing | Check rate_limiter/circuit_breaker bounds |
+| Timeouts too frequent | Increase `timeout` or optimize processor |
+
 ## What You Learned
 
 | Concept | What It Is |

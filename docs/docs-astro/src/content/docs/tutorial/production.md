@@ -78,6 +78,76 @@ async def monitor(intent: Intent) -> dict:
 | Message Bus | Cross-service communication |
 | Parallel execution | Batch processing |
 
+## Health Checks
+
+Add a health endpoint for load balancers and monitoring:
+
+```python
+from evoid.web.route import Service, get
+
+app = Service("sandy-api")
+
+@get("/health", level="ephemeral")
+async def health() -> dict:
+    return {"status": "healthy", "version": "1.0.0"}
+
+@get("/ready", level="ephemeral")
+async def readiness() -> dict:
+    # Check database connection
+    try:
+        await db.execute("SELECT 1")
+        return {"status": "ready", "database": "ok"}
+    except Exception as e:
+        return {"status": "not_ready", "database": str(e)}, 503
+```
+
+## Environment Config
+
+Different configs for dev, staging, production:
+
+```python
+# config/development.py
+from evoid.core.runtime import Config
+
+config = Config(
+    name="sandy-dev",
+    adapter="asgi",
+    engines={"storage": "memory", "cache": "memory"},
+)
+
+# config/production.py
+config = Config(
+    name="sandy-prod",
+    adapter="asgi",
+    engines={"storage": "sqlite", "cache": "redis"},
+)
+```
+
+## Graceful Shutdown
+
+Handle shutdown signals cleanly:
+
+```python
+import signal
+import asyncio
+
+shutdown_event = asyncio.Event()
+
+def handle_shutdown(sig, frame):
+    print("Shutting down...")
+    shutdown_event.set()
+
+signal.signal(signal.SIGTERM, handle_shutdown)
+signal.signal(signal.SIGINT, handle_shutdown)
+
+# Wait for shutdown signal
+await shutdown_event.wait()
+
+# Cleanup: close DB connections, flush caches, etc.
+await db.close()
+cache.flush()
+```
+
 ## What You Learned
 
 | Concept | What It Is |

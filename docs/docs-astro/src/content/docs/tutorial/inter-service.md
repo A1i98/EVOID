@@ -101,6 +101,55 @@ for msg in history:
     print(f"{msg.source} → {msg.intent.name}: {msg.metadata}")
 ```
 
+## Error Handling
+
+When a subscriber fails, the error propagates to the publisher:
+
+```python
+async def handle_stock_update(intent: Intent) -> dict:
+    sandwich = intent.metadata.get("sandwich")
+    # If this raises, publish() gets the error
+    result = await update_inventory(sandwich)
+    return {"updated": True}
+
+# Publisher checks for errors
+try:
+    await publish(intent, source="orders")
+except Exception as e:
+    # Subscriber failed — handle retry or dead letter
+    print(f"Stock update failed: {e}")
+```
+
+### Catching Subscriber Errors
+
+Use `asyncio.gather` to handle multiple subscribers independently:
+
+```python
+import asyncio
+
+async def safe_publish(intent: Intent, source: str) -> list[dict]:
+    """Publish and collect all subscriber results, even if some fail."""
+    results = await publish(intent, source=source)
+    # Results list may contain exceptions for failed subscribers
+    return [r for r in results if not isinstance(r, Exception)]
+```
+
+## Debugging with Message History
+
+The message bus keeps a history of all published Intents:
+
+```python
+from evoid.core.message_bus import get_history, clear_history
+
+# See all messages
+history = get_history()
+for msg in history:
+    print(f"{msg.source} → {msg.intent.name}")
+
+# Clear history in tests
+clear_history()
+```
+
 ## What You Learned
 
 | Concept | What It Is |
