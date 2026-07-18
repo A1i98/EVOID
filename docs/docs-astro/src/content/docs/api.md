@@ -67,6 +67,25 @@ Frozen dataclass. Pure data. The runtime reads it, never mutates it.
 | `timeout` | `float \| None` | `None` | Max execution time in seconds |
 | `priority` | `int` | `0` | Execution priority (higher = first) |
 
+**Examples:**
+
+```python
+# Simple intent
+GET_USER = Intent(name="get_user", level=Level.STANDARD)
+
+# With metadata
+CREATE_ORDER = Intent(
+    name="create_order",
+    level=Level.CRITICAL,
+    metadata={"method": "POST", "path": "/orders"},
+    timeout=15.0,
+)
+
+# Execute with extra metadata
+result = await execute(CREATE_ORDER, amount=99.99, currency="USD")
+# Access in processor: ctx.intent.metadata["amount"] → 99.99
+```
+
 ---
 
 ## Level
@@ -122,6 +141,43 @@ fork(ctx: Context) -> Context
 
 Create a child context with the same intent and deps, copied state, and `parent_id` in metadata.
 
+**Examples:**
+
+```python
+# Read from state
+async def processor_a(ctx: Context) -> dict:
+    ctx.state["user"] = await db.get_user(42)
+    return {"fetched": True}
+
+# Read what processor_a wrote
+async def processor_b(ctx: Context) -> dict:
+    user = ctx.state["user"]  # ← set by processor_a
+    return {"name": user.name}
+
+# Access dependencies
+async def with_deps(ctx: Context) -> dict:
+    db = ctx.deps.get("storage")
+    cache = ctx.deps.get("cache")
+    if db:
+        await db.write("logs", {...})
+    return {"done": True}
+
+# Accumulate non-fatal errors
+async def soft_validate(ctx: Context) -> dict:
+    try:
+        validate(ctx.state["data"])
+    except ValidationError as e:
+        ctx.errors.append(e)  # Pipeline continues
+    return {"validated": True}
+
+# Fork for parallel processing
+async def split(ctx: Context) -> dict:
+    child = fork(ctx)
+    child.state["branch"] = "analytics"
+    # child has same intent + deps, new state copy
+    return {"forked": True}
+```
+
 ---
 
 ## Result
@@ -145,6 +201,27 @@ Returned by every pipeline execution.
 | `error` | `Exception \| None` | The exception if a processor failed |
 | `processors` | `tuple[str, ...]` | Names of processors that ran |
 | `duration` | `float` | Total execution time in seconds |
+
+**Examples:**
+
+```python
+result = await execute(intent)
+
+# Check success
+if result.success:
+    print(f"Value: {result.value}")
+    print(f"Took {result.duration:.3f}s across {len(result.processors)} processors")
+
+# Handle failure
+if not result.success:
+    print(f"Error: {result.error}")
+    print(f"Failed after: {result.processors}")
+    # processors shows what ran before the failure
+
+# Inspect timing
+for step in result.steps:  # Only available with Config(inspect=True)
+    print(f"  {step.name}: {step.duration:.4f}s")
+```
 
 ---
 
@@ -246,6 +323,31 @@ class Config:
     engines: dict[str, str] = field(default_factory=dict)
 ```
 
+**Examples:**
+
+```python
+from evoid import execute, execute_by_name, Intent, Level
+from evoid.core.runtime import Config
+
+# Execute an intent
+intent = Intent(name="get_user", level=Level.STANDARD)
+result = await execute(intent, user_id=42)
+# ctx.intent.metadata["user_id"] → 42
+
+# Execute by name (must be registered first)
+result = await execute_by_name("get_user", user_id=42)
+
+# With inspection (dev mode)
+config = Config(inspect=True)
+result = await execute(intent, config=config)
+for step in result.steps:
+    print(f"{step.name}: {step.duration:.4f}s")
+
+# With timeout override
+config = Config(name="my-service", timeout=30.0)
+result = await execute(intent, config=config)
+```
+
 ---
 
 ## Extend Functions
@@ -267,6 +369,28 @@ add_intent_with_pipeline(
 ```
 
 Register an intent with a custom processor chain.
+
+**Examples:**
+
+```python
+from evoid import Intent, Level
+from evoid.core.extend import add_intent, add_intent_with_pipeline
+
+# Simple: register intent + handler
+PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
+
+async def handle_payment(intent: Intent) -> dict:
+    return {"status": "paid"}
+
+add_intent(PAYMENT, handle_payment)
+
+# Custom pipeline: specific processor chain
+add_intent_with_pipeline(
+    PAYMENT,
+    processors=["validate", "check_fraud", "charge", "audit"],
+    handler=handle_payment,
+)
+```
 
 ### Modify Pipelines
 
@@ -305,6 +429,33 @@ remove_processor(intent_name: str, processor_name: str) -> None
 ```
 
 Remove a processor from the pipeline.
+
+**Examples:**
+
+```python
+from evoid.core.extend import (
+    before, after, before_processor, after_processor,
+    replace_pipeline, remove_processor,
+)
+
+# Add rate limiting before all processors
+before("GET:/users/{id}", "rate_limit")
+
+# Add logging after all processors
+after("GET:/users/{id}", "log_response")
+
+# Insert auth check before validation
+before_processor("POST:/orders", "validate", "check_auth")
+
+# Add audit after authorization
+after_processor("POST:/orders", "authorize", "audit_log")
+
+# Replace entire pipeline for health checks
+replace_pipeline("GET:/health", ["handle_health"])
+
+# Remove a processor
+remove_processor("POST:/orders", "audit_log")
+```
 
 ### Introspection
 
@@ -366,6 +517,36 @@ get_history() -> list[Message]
 
 Return a copy of all published messages (for debugging).
 
+**Examples:**
+
+```python
+from evoid.core.message_bus import publish, subscribe, get_history, clear_history
+from evoid import Intent, Level
+
+# Subscribe to events
+async def on_order(intent: Intent) -> dict:
+    print(f"Order received: {intent.metadata}")
+    return {"processed": True}
+
+subscribe("order_placed", on_order)
+subscribe("critical", on_order)  # All critical intents
+subscribe("*", on_order)  # All intents
+
+# Publish an event
+result = await publish(
+    Intent(name="order_placed", level=Level.STANDARD, metadata={"item": "BLT"}),
+    source="orders",
+)
+
+# Debug: see all messages
+history = get_history()
+for msg in history:
+    print(f"{msg.source} → {msg.intent.name}")
+
+# Clear history in tests
+clear_history()
+```
+
 ---
 
 ## Parallel Execution
@@ -409,6 +590,37 @@ async run_in_thread_async(func, *args, **kwargs) -> Any
 ```
 
 Run a synchronous function in a thread pool (async).
+
+**Examples:**
+
+```python
+from evoid import Intent, Level
+from evoid.core.parallel import gather, gather_with_priority, run_in_thread_async
+
+# Process 4 orders in parallel
+orders = [
+    Intent(name="process_order", level=Level.STANDARD, metadata={"location": "downtown"}),
+    Intent(name="process_order", level=Level.STANDARD, metadata={"location": "mall"}),
+    Intent(name="process_order", level=Level.STANDARD, metadata={"location": "airport"}),
+    Intent(name="process_order", level=Level.STANDARD, metadata={"location": "uni"}),
+]
+
+results = await gather(orders, concurrency=3)  # Max 3 at a time
+for r in results:
+    print(f"{'OK' if r.success else 'FAIL'}: {r.value}")
+
+# Priority order: critical first
+urgent = Intent(name="vip_order", level=Level.CRITICAL, priority=10)
+normal = Intent(name="regular_order", level=Level.STANDARD, priority=5)
+results = await gather_with_priority(urgent, normal)
+
+# CPU-bound work in thread pool
+import json
+def heavy_parse(data):
+    return json.loads(data)
+
+result = await run_in_thread_async(heavy_parse, large_json_string)
+```
 
 ### IntentQueue
 
