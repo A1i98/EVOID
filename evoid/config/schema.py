@@ -3,16 +3,17 @@
 Two ways to configure EVOID:
 
 1. TOML (evoid.toml) — traditional, human-readable
-2. Python (evoid_config.py) — native, type-safe, composable
+2. Python (evoid_config.py) — native, type-safe, intent-based
 
-Both produce the same EvoidConfig dataclass.
+The Python config file IS the service definition.
+It defines Intents, handlers, and infrastructure — all in one place.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .loader import EvoidConfig, ServiceConfig, RuntimeConfig, EnginesConfig, PipelineConfig
 

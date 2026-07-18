@@ -28,6 +28,8 @@ from ..core.pipeline import Result
 class TestCase:
     """A single test case — pure data."""
 
+    __test__ = False  # Prevent pytest from collecting this class
+
     name: str
     intent: Intent
     expect: Any = None
