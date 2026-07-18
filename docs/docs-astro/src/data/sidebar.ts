@@ -108,6 +108,7 @@ export const sidebar: SidebarEntry[] = [
   },
   { label: 'API Reference', slug: 'api' },
   { label: 'Examples', slug: 'examples' },
+  { label: 'Changelog', slug: 'changelog' },
 ];
 
 /** Flatten all sidebar entries into an ordered list of slugs for prev/next */
