@@ -184,14 +184,14 @@ def cmd_exec(intent_name: str) -> None:
 
 
 def cmd_install(packages: list[str]) -> None:
-    """Install optional dependencies."""
+    """Install optional dependencies or plugins."""
     import subprocess
     import shutil
 
     if not packages:
         print("Usage: evo install <package> [package...]")
         print()
-        print("Available packages:")
+        print("Built-in extras:")
         print("  sqlite        SQLite storage (aiosqlite)")
         print("  redis         Redis cache")
         print("  sqlalchemy    SQLAlchemy storage")
@@ -201,8 +201,17 @@ def cmd_install(packages: list[str]) -> None:
         print("  toml          TOML config support")
         print("  testing       Testing WebUI")
         print("  full          All optional dependencies")
+        print()
+        print("Plugins (from evoid-plugins):")
+        print("  di            Dependency injection engine")
+        print("  auth          Authentication & authorization")
+        print("  tasks         Background tasks + logging")
+        print("  smart-storage Multi-DB routing")
+        print("  scylla        ScyllaDB/Cassandra storage")
+        print("  dashboard     Monitoring dashboard")
         return
 
+    # Built-in extras
     extras_map = {
         "sqlite": "sqlite", "redis": "redis", "sqlalchemy": "sqlalchemy",
         "pydantic": "pydantic", "loguru": "loguru", "asgi": "asgi",
@@ -210,23 +219,54 @@ def cmd_install(packages: list[str]) -> None:
         "testing": "testing", "full": "full",
     }
 
+    # External plugins (evoid-plugins repo)
+    plugins_map = {
+        "di": "evoid-di",
+        "auth": "evoid-auth",
+        "tasks": "evoid-tasks",
+        "smart-storage": "evoid-smart-storage",
+        "scylla": "evoid-scylla",
+        "dashboard": "evoid-dashboard",
+    }
+
     extras = []
+    plugins = []
+
     for pkg in packages:
-        extra = extras_map.get(pkg)
-        if extra:
-            extras.append(extra)
+        if pkg in extras_map:
+            extras.append(extras_map[pkg])
+        elif pkg in plugins_map:
+            plugins.append(plugins_map[pkg])
         else:
             print(f"Unknown package: {pkg}")
-            print(f"Available: {', '.join(extras_map.keys())}")
+            print(f"Extras: {', '.join(extras_map.keys())}")
+            print(f"Plugins: {', '.join(plugins_map.keys())}")
             sys.exit(1)
 
-    spec = f"evoid[{','.join(extras)}]"
-    print(f"Installing: {spec}")
+    # Install extras
+    if extras:
+        spec = f"evoid[{','.join(extras)}]"
+        print(f"Installing: {spec}")
+        if shutil.which("uv"):
+            cmd = [sys.executable, "-m", "uv", "add", spec]
+        else:
+            cmd = [sys.executable, "-m", "pip", "install", spec]
+        result = subprocess.run(cmd, capture_output=False)
+        if result.returncode != 0:
+            print(f"Failed to install extras")
+            sys.exit(1)
 
-    if shutil.which("uv"):
-        cmd = [sys.executable, "-m", "uv", "add", spec]
-    else:
-        cmd = [sys.executable, "-m", "pip", "install", spec]
+    # Install plugins
+    for plugin in plugins:
+        print(f"Installing plugin: {plugin}")
+        if shutil.which("uv"):
+            cmd = [sys.executable, "-m", "uv", "add", plugin]
+        else:
+            cmd = [sys.executable, "-m", "pip", "install", plugin]
+        result = subprocess.run(cmd, capture_output=False)
+        if result.returncode != 0:
+            print(f"Failed to install plugin: {plugin}")
+            sys.exit(1)
 
     result = subprocess.run(cmd, capture_output=False)
     if result.returncode == 0:
@@ -273,15 +313,38 @@ def _plug_install(args: list[str]) -> None:
 
     if not args:
         print("Usage: evo plug install <name|url>")
+        print()
+        print("Short names:")
+        print("  di            evoid-di")
+        print("  auth          evoid-auth")
+        print("  tasks         evoid-tasks")
+        print("  smart-storage evoid-smart-storage")
+        print("  scylla        evoid-scylla")
+        print("  dashboard     evoid-dashboard")
         return
 
+    # Short name to full package mapping
+    short_names = {
+        "di": "evoid-di",
+        "auth": "evoid-auth",
+        "tasks": "evoid-tasks",
+        "smart-storage": "evoid-smart-storage",
+        "scylla": "evoid-scylla",
+        "dashboard": "evoid-dashboard",
+        "sqlite": "evoid-sqlite",
+        "redis": "evoid-redis",
+        "postgresql": "evoid-postgresql",
+    }
+
     name = args[0]
-    print(f"Installing plugin: {name}")
+    full_name = short_names.get(name, name)
+
+    print(f"Installing plugin: {full_name}")
 
     if shutil.which("uv"):
-        cmd = [sys.executable, "-m", "uv", "add", name]
+        cmd = [sys.executable, "-m", "uv", "add", full_name]
     else:
-        cmd = [sys.executable, "-m", "pip", "install", name]
+        cmd = [sys.executable, "-m", "pip", "install", full_name]
 
     result = subprocess.run(cmd, capture_output=False)
     if result.returncode == 0:
