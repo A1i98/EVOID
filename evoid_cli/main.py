@@ -203,19 +203,11 @@ def cmd_install(packages: list[str]) -> None:
         print("  full          All optional dependencies")
         return
 
-    # Map package names to extras
     extras_map = {
-        "sqlite": "sqlite",
-        "redis": "redis",
-        "sqlalchemy": "sqlalchemy",
-        "pydantic": "pydantic",
-        "loguru": "loguru",
-        "asgi": "asgi",
-        "robyn": "robyn",
-        "telegram": "telegram",
-        "toml": "toml",
-        "testing": "testing",
-        "full": "full",
+        "sqlite": "sqlite", "redis": "redis", "sqlalchemy": "sqlalchemy",
+        "pydantic": "pydantic", "loguru": "loguru", "asgi": "asgi",
+        "robyn": "robyn", "telegram": "telegram", "toml": "toml",
+        "testing": "testing", "full": "full",
     }
 
     extras = []
@@ -229,7 +221,6 @@ def cmd_install(packages: list[str]) -> None:
             sys.exit(1)
 
     spec = f"evoid[{','.join(extras)}]"
-
     print(f"Installing: {spec}")
 
     if shutil.which("uv"):
@@ -238,49 +229,176 @@ def cmd_install(packages: list[str]) -> None:
         cmd = [sys.executable, "-m", "pip", "install", spec]
 
     result = subprocess.run(cmd, capture_output=False)
-
     if result.returncode == 0:
         print(f"\nInstalled: {spec}")
     else:
-        print(f"\nInstallation failed")
+        print("\nInstallation failed")
         sys.exit(1)
+
+
+def cmd_plug(args: list[str]) -> None:
+    """Install EVOID plugins from PyPI or git."""
+    import subprocess
+    import shutil
+
+    if not args:
+        print("Usage: evo plug install <name|url>")
+        print("       evo plug search <query>")
+        print("       evo plug list")
+        print()
+        print("Examples:")
+        print("  evo plug install evoid-redis       # From PyPI")
+        print("  evo plug install git+https://...    # From git")
+        print("  evo plug search cache               # Search PyPI")
+        print("  evo plug list                       # List installed")
+        return
+
+    subcmd = args[0]
+
+    if subcmd == "install":
+        _plug_install(args[1:])
+    elif subcmd == "search":
+        _plug_search(args[1:])
+    elif subcmd == "list":
+        _plug_list()
+    else:
+        print(f"Unknown plug command: {subcmd}")
+        sys.exit(1)
+
+
+def _plug_install(args: list[str]) -> None:
+    """Install a plugin."""
+    import subprocess
+    import shutil
+
+    if not args:
+        print("Usage: evo plug install <name|url>")
+        return
+
+    name = args[0]
+    print(f"Installing plugin: {name}")
+
+    if shutil.which("uv"):
+        cmd = [sys.executable, "-m", "uv", "add", name]
+    else:
+        cmd = [sys.executable, "-m", "pip", "install", name]
+
+    result = subprocess.run(cmd, capture_output=False)
+    if result.returncode == 0:
+        print(f"\nInstalled: {name}")
+    else:
+        print(f"\nFailed to install: {name}")
+        sys.exit(1)
+
+
+def _plug_search(args: list[str]) -> None:
+    """Search for plugins on PyPI."""
+    if not args:
+        print("Usage: evo plug search <query>")
+        return
+
+    query = args[0]
+    print(f"Searching PyPI for: {query}")
+
+    try:
+        from evoid.engines.plugin.discovery import search_plugins
+        plugins = search_plugins(query)
+
+        if not plugins:
+            print(f"No plugins found for '{query}'")
+            return
+
+        print(f"\nFound {len(plugins)} plugins:")
+        for p in plugins:
+            print(f"  {p['name']:<30} {p.get('version', 'unknown')}")
+    except Exception as e:
+        print(f"Search failed: {e}")
+
+
+def _plug_list() -> None:
+    """List installed plugins."""
+    try:
+        from evoid.engines.plugin.discovery import discover_installed
+        plugins = discover_installed()
+
+        if not plugins:
+            print("No EVOID plugins installed.")
+            print("Install with: evo plug install <name>")
+            return
+
+        print(f"Installed plugins ({len(plugins)}):")
+        for p in plugins:
+            print(f"  {p.name:<30} {p.version:<10} {p.type}")
+    except Exception as e:
+        print(f"Failed to list plugins: {e}")
 
 
 def main() -> None:
     """CLI entry point."""
     args = sys.argv[1:]
 
+    # Short aliases
+    aliases = {
+        "i": "init", "s": "service", "ls": "service list",
+        "r": "run", "sv": "serve", "v": "version",
+        "li": "list-intents", "lp": "list-processors",
+        "e": "exec", "ins": "install", "pl": "plug",
+    }
+
     if not args or args[0] in ("-h", "--help"):
         print("evo — EVOID Runtime CLI")
         print()
-        print("Project:")
-        print("  evo init <name>              Create new project")
+        print("Project:               Aliases")
+        print("  evo init <name>      i")
         print()
         print("Service:")
-        print("  evo service new <name>       Add service to project")
-        print("  evo service list             List services")
-        print("  evo service run <name>       Run a service")
+        print("  evo service new <name>       s new")
+        print("  evo service list             s list / ls")
+        print("  evo service run <name>       s run")
         print()
         print("Global:")
         print("  evo sync                     Sync dependencies")
-        print("  evo run                      Run all services")
-        print("  evo serve [host] [port]      Quick serve")
-        print("  evo list-intents             List intents")
-        print("  evo exec <intent>            Execute intent")
-        print("  evo version                  Show version")
+        print("  evo run                      r — Run all services")
+        print("  evo serve [host] [port]      sv — Quick serve")
+        print("  evo list-intents             li — List intents")
+        print("  evo list-processors          lp — List processors")
+        print("  evo exec <intent>            e — Execute intent")
+        print("  evo version                  v — Show version")
         print()
-        print("Install:")
-        print("  evo install <pkg>            Install optional dependency")
+        print("Install & Plugins:")
+        print("  evo install <pkg>            ins — Install optional dep")
         print("  evo install full             Install all optional deps")
+        print("  evo plug install <name>      pl i — Install plugin")
+        print("  evo plug search <query>      pl s — Search plugins")
+        print("  evo plug list                pl l — List installed")
         return
 
     cmd = args[0]
 
-    if cmd == "version":
+    # Resolve alias
+    if cmd in aliases:
+        cmd = aliases[cmd]
+
+    # Handle compound aliases (e.g., "s new" -> "service new")
+    if cmd == "service" and len(args) > 1:
+        subcmd = args[1]
+        if subcmd in ("n", "new"):
+            args = [args[0], "new"] + args[2:]
+        elif subcmd in ("l", "list", "ls"):
+            args = [args[0], "list"]
+        elif subcmd in ("r", "run"):
+            args = [args[0], "run"] + args[2:]
+
+    # Handle "s" alias for service
+    if cmd == "s" and len(args) > 1:
+        args = ["service"] + args[1:]
+        cmd = "service"
+
+    if cmd == "version" or cmd == "v":
         cmd_version()
 
     # Project commands
-    elif cmd == "init":
+    elif cmd == "init" or cmd == "i":
         if len(args) < 2:
             print("Usage: evo init <project-name>")
             sys.exit(1)
@@ -300,16 +418,13 @@ def main() -> None:
                 sys.exit(1)
             port = int(args[3]) if len(args) > 3 else 8000
             cmd_service_new(args[2], port)
-
         elif subcmd == "list":
             cmd_service_list()
-
         elif subcmd == "run":
             if len(args) < 3:
                 print("Usage: evo service run <name>")
                 sys.exit(1)
             cmd_service_run(args[2])
-
         else:
             print(f"Unknown service command: {subcmd}")
             sys.exit(1)
@@ -317,20 +432,25 @@ def main() -> None:
     # Global commands
     elif cmd == "sync":
         cmd_sync()
-    elif cmd == "run":
+    elif cmd == "run" or cmd == "r":
         cmd_run()
-    elif cmd == "serve":
+    elif cmd == "serve" or cmd == "sv":
         host = args[1] if len(args) > 1 else "0.0.0.0"
         port = int(args[2]) if len(args) > 2 else 8000
         cmd_serve(host, port)
-    elif cmd == "list-intents":
+    elif cmd == "list-intents" or cmd == "li":
         cmd_list_intents()
-    elif cmd == "list-processors":
+    elif cmd == "list-processors" or cmd == "lp":
         cmd_list_processors()
-    elif cmd == "exec" and len(args) > 1:
+    elif cmd == "exec" or cmd == "e":
+        if len(args) < 2:
+            print("Usage: evo exec <intent>")
+            sys.exit(1)
         cmd_exec(args[1])
-    elif cmd == "install":
+    elif cmd == "install" or cmd == "ins":
         cmd_install(args[1:])
+    elif cmd == "plug" or cmd == "pl":
+        cmd_plug(args[1:])
     else:
         print(f"Unknown command: {cmd}")
         sys.exit(1)

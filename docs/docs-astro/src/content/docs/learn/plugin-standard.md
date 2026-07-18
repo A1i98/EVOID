@@ -107,7 +107,23 @@ plugins = discover_installed()
 
 ## Installation
 
-### Via uv (recommended)
+### Via evo plug (recommended)
+
+```bash
+# From PyPI
+evo plug install evoid-redis
+
+# From git
+evo plug install git+https://github.com/user/evoid-redis.git
+
+# Search for plugins
+evo plug search cache
+
+# List installed
+evo plug list
+```
+
+### Via uv
 
 ```bash
 uv add evoid-redis

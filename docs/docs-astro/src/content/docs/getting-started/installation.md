@@ -71,6 +71,15 @@ evo install redis         # Install Redis cache
 evo install full          # Install all optional deps
 ```
 
+### Installing Plugins
+
+```bash
+evo plug install evoid-redis           # From PyPI
+evo plug install git+https://...       # From git link
+evo plug search cache                  # Search PyPI
+evo plug list                          # List installed
+```
+
 | Extra | Packages | Use When |
 |-------|----------|----------|
 | `asgi` | starlette, uvicorn | Running HTTP APIs |
