@@ -28,6 +28,7 @@ export const sidebar: SidebarEntry[] = [
       { label: 'EVOID vs Others', slug: 'getting-started/comparison' },
       { label: 'Deployment', slug: 'getting-started/deployment' },
       { label: 'FAQ', slug: 'getting-started/faq' },
+      { label: 'Troubleshooting', slug: 'getting-started/troubleshooting' },
     ],
   },
   {

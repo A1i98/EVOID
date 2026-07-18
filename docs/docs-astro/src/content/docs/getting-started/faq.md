@@ -32,7 +32,7 @@ EVOID is overkill for:
 
 ### Is EVOID production-ready?
 
-EVOID is in alpha (v0.3.x). The core is stable, but APIs may change. Use in production with caution and pin your version.
+EVOID is in beta (v0.4.x). The core is stable, zero dependencies, all tests passing. APIs may change before v1.0. Pin your version in production.
 
 ## Technical
 
@@ -159,4 +159,5 @@ This reads `evoid.toml` and installs required packages.
 
 - [Quick Start](quickstart.md) — Get started in 5 minutes
 - [What is IOP?](what-is-iop.md) — Understanding the paradigm
+- [Troubleshooting](troubleshooting.md) — Common errors and fixes
 - [Configuration](../learn/configuration.md) — TOML config reference
