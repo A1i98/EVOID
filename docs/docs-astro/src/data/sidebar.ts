@@ -39,8 +39,10 @@ export const sidebar: SidebarEntry[] = [
       { label: 'Schema Export', slug: 'learn/schema-export' },
       { label: 'Plugin Hooks', slug: 'learn/plugin-hooks' },
       { label: 'Plugins', slug: 'learn/plugins' },
+      { label: 'Plugin Standard', slug: 'learn/plugin-standard' },
       { label: 'Testing', slug: 'learn/testing' },
       { label: 'Configuration', slug: 'learn/configuration' },
+      { label: 'Python-Native Config', slug: 'learn/python-config' },
     ],
   },
   {
