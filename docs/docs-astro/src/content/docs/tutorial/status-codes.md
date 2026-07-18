@@ -17,6 +17,23 @@ async def get_item(item_id: int) -> dict:
     return {"id": item_id, "name": "BLT"}  # 200 OK
 ```
 
+## What Happens Under the Hood
+
+Status codes are metadata on the Intent, not on your function:
+
+```python
+# @post("/orders", status=201) creates:
+CREATE_ORDER = Intent(
+    name="POST:/orders",
+    level=Level.STANDARD,
+    metadata={"method": "POST", "path": "/orders", "status": 201},
+)
+
+# The adapter reads metadata["status"] and sets the HTTP response code
+```
+
+Your handler just returns data. The adapter decides the HTTP status based on the Intent's metadata.
+
 ## Setting Status Codes
 
 Use the `status` parameter on decorators:

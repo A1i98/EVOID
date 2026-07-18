@@ -20,7 +20,21 @@ async def get_item(item_id: int) -> dict:
     return item
 ```
 
-The pipeline short-circuits — remaining processors don't run.
+## What Happens Under the Hood
+
+When you raise an exception in a handler:
+
+```
+Request arrives → Intent resolved → Pipeline starts
+  ↓
+validate → authorize → get_item (raises ValueError)
+  ↓
+Pipeline stops → Result(success=False, error=ValueError("Item not found"))
+  ↓
+Adapter converts Result.error to HTTP 500 + {"detail": "Item not found"}
+```
+
+The pipeline doesn't catch exceptions — it captures them in `Result.error` and stops. The adapter decides how to present the error to the client.
 
 ## Returning Error Dicts
 

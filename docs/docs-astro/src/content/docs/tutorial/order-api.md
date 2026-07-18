@@ -46,6 +46,37 @@ async def create_order(order: CreateOrder) -> dict:
     return {"status": "created", "order": new_order}
 ```
 
+## What Happens Under the Hood
+
+When you write `@post("/orders")` with a Pydantic model:
+
+```python
+@post("/orders")
+async def create_order(order: CreateOrder) -> dict:
+    ...
+```
+
+EVOID does this:
+
+```python
+# 1. Creates Intent
+CREATE_ORDER = Intent(
+    name="POST:/orders",
+    level=Level.STANDARD,
+    metadata={"method": "POST", "path": "/orders"},
+)
+
+# 2. Wraps your function — extracts body, validates with Pydantic
+async def processor(ctx: Context) -> dict:
+    body = ctx.metadata.get("body", {})
+    order = CreateOrder(**body)  # Pydantic validates here
+    return await create_order(order)
+
+register_processor("POST:/orders", processor)
+```
+
+Your function receives a validated `CreateOrder` instance. EVOID handles extraction and validation.
+
 ## Query Parameter Models
 
 For complex query strings, use a Pydantic model:

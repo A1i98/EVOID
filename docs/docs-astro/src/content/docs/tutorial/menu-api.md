@@ -65,6 +65,34 @@ async def delete_item(item_id: int) -> dict:
     return {"status": "deleted"}
 ```
 
+## What Happens Under the Hood
+
+Each `@get`, `@post`, `@put`, `@delete` decorator does three things:
+
+```python
+# @get("/menu/{item_id}") secretly creates:
+GET_ITEM = Intent(
+    name="GET:/menu/{item_id}",
+    level=Level.STANDARD,
+    metadata={"method": "GET", "path": "/menu/{item_id}"},
+)
+register(GET_ITEM)
+
+# Your handler is wrapped as a processor:
+async def processor(ctx: Context) -> dict:
+    params = ctx.metadata.get("params", {})
+    return await get_item(**params)  # item_id extracted from URL
+
+register_processor("GET:/menu/{item_id}", processor)
+```
+
+When `GET /menu/42` arrives:
+1. EVOID matches the URL to Intent `GET:/menu/{item_id}`
+2. Extracts `item_id=42` from the path
+3. Calls your function with `get_item(item_id=42)`
+
+You write plain functions. EVOID handles Intent creation, parameter extraction, and pipeline execution.
+
 ## Path Parameters
 
 Extract dynamic values from the URL:

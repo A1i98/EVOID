@@ -17,6 +17,25 @@ async def list_menu() -> dict:
     return {"menu": MENU}  # Automatically serialized to JSON
 ```
 
+## What Happens Under the Hood
+
+Serialization happens at two levels:
+
+1. **Pipeline level**: Your handler returns a Python dict
+2. **Adapter level**: The ASGI adapter converts dict → JSON response
+
+```python
+# Your handler returns:
+return {"menu": [{"name": "BLT", "price": 8.99}]}
+
+# The adapter does:
+import json
+response_body = json.dumps({"menu": [{"name": "BLT", "price": 8.99}]})
+# Sets Content-Type: application/json
+```
+
+The runtime doesn't serialize — it passes your dict to the adapter. The adapter decides the format (JSON,_msgpack, etc.).
+
 ## Pydantic Models
 
 Use Pydantic for structured serialization:
