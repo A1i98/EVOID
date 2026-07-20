@@ -24,6 +24,7 @@ export const sidebar: SidebarEntry[] = [
       { label: 'Quick Start', slug: 'getting-started/quickstart' },
       { label: 'Architecture', slug: 'getting-started/architecture' },
       { label: 'What is IOP?', slug: 'getting-started/what-is-iop' },
+      { label: 'IOP Philosophy', slug: 'getting-started/iop-philosophy' },
       { label: 'Why EVOID?', slug: 'getting-started/why-evoid' },
       { label: 'EVOID vs Others', slug: 'getting-started/comparison' },
       { label: 'Deployment', slug: 'getting-started/deployment' },
@@ -47,6 +48,7 @@ export const sidebar: SidebarEntry[] = [
       { label: 'Testing', slug: 'learn/testing' },
       { label: 'Configuration', slug: 'learn/configuration' },
       { label: 'Python-Native Config', slug: 'learn/python-config' },
+      { label: 'Security', slug: 'learn/security' },
     ],
   },
   {
@@ -97,6 +99,22 @@ export const sidebar: SidebarEntry[] = [
       { label: 'Performance', slug: 'tutorial/performance' },
       { label: 'Production', slug: 'tutorial/production' },
       { label: "What's Next", slug: 'tutorial/whats-next' },
+    ],
+  },
+  {
+    label: 'Tutorial: Godot Games',
+    items: [
+      { label: 'Overview', slug: 'godot/overview' },
+      { label: 'Shooter: Overview', slug: 'godot/shooter-overview' },
+      { label: 'Shooter: Server', slug: 'godot/shooter-server' },
+      { label: 'Shooter: Client', slug: 'godot/shooter-client' },
+      { label: 'Shooter: Multiplayer', slug: 'godot/shooter-multiplayer' },
+      { label: 'Shooter: Web Export', slug: 'godot/shooter-web' },
+      { label: 'Tic-Tac-Toe: Overview', slug: 'godot/tictactoe-overview' },
+      { label: 'Tic-Tac-Toe: Server', slug: 'godot/tictactoe-server' },
+      { label: 'Tic-Tac-Toe: Client', slug: 'godot/tictactoe-client' },
+      { label: 'Tic-Tac-Toe: Multiplayer', slug: 'godot/tictactoe-multiplayer' },
+      { label: 'Tic-Tac-Toe: Web Deploy', slug: 'godot/tictactoe-web' },
     ],
   },
   {
