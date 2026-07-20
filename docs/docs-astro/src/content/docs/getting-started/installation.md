@@ -73,15 +73,16 @@ evo install full          # Install all optional deps
 Need Redis, PostgreSQL, or advanced features? Install plugins from PyPI:
 
 ```bash
-# Via evo CLI
-evo plug install evoid-redis           # Redis cache
-evo plug install evoid-postgresql      # PostgreSQL storage
-evo plug install evoid-di              # Advanced DI
-evo plug install evoid-auth            # Custom auth providers
+# Short names via evo CLI
+evo plug install redis           # Redis cache
+evo plug install postgresql      # PostgreSQL storage
+evo plug install di              # Advanced DI
+evo plug install auth            # Custom auth providers
 
-# Or via uv
-uv add evoid-redis
-uv add evoid-postgresql
+# Plugins without short names — use full package name
+evo plug install evoid-scheduler   # Priority scheduler
+evo plug install evoid-cluster     # Multi-node clustering
+evo plug install evoid-godot       # Godot game hosting
 
 # Search for plugins
 evo plug search cache
