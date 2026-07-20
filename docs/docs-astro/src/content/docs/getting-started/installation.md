@@ -73,13 +73,13 @@ evo install full          # Install all optional deps
 Need Redis, PostgreSQL, or advanced features? Install plugins from PyPI:
 
 ```bash
-# Short names via evo CLI
-evo plug install redis           # Redis cache
-evo plug install postgresql      # PostgreSQL storage
-evo plug install di              # Advanced DI
-evo plug install auth            # Custom auth providers
+# Short names — evo maps them to full package names automatically
+evo plug install redis           # → evoid-redis
+evo plug install postgresql      # → evoid-postgresql
+evo plug install di              # → evoid-di
+evo plug install auth            # → evoid-auth
 
-# Plugins without short names — use full package name
+# Some plugins need full package names (no short name available)
 evo plug install evoid-scheduler   # Priority scheduler
 evo plug install evoid-cluster     # Multi-node clustering
 evo plug install evoid-godot       # Godot game hosting
@@ -90,6 +90,9 @@ evo plug search cache
 # List installed
 evo plug list
 ```
+
+!!! info "Short names vs full names"
+    `evo plug install` supports short names for common plugins. The CLI automatically maps `di` → `evoid-di`, `redis` → `evoid-redis`, etc. You can also use the full package name — both work. For plugins without a short name (like `evoid-scheduler`), use the full name.
 
 ## Verify Installation
 
