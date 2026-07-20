@@ -11,6 +11,9 @@ WebSocket for live order status. Streaming data to clients.
 
 Sandy's customers want live order tracking: "Your BLT is being prepared..."
 
+!!! info "Real-time = kitchen window"
+    Instead of customers asking "is my order ready?" every 30 seconds, the kitchen shouts updates through a window. WebSocket is that window — bidirectional, persistent, no polling.
+
 ## WebSocket Adapter
 
 ```python
@@ -91,6 +94,47 @@ app = Starlette(routes=[
 | WebSocket | Bidirectional real-time communication |
 | SSE | Server-to-client streaming |
 | Custom adapters | Build your own transport layer |
+
+## Beyond Sandy: Game Integration
+
+The same real-time patterns power game servers. The `evoid-godot` and `evoid-transport` plugins bring IOP to game development:
+
+```python
+# Game client sends: EvoidApp.send_intent("player_move", {"x": 10, "y": 20})
+# Server receives it as an Intent:
+
+PLAYER_MOVE = Intent(
+    name="game:my-game:player_move",
+    level=Level.EPHEMERAL,  # Position updates are disposable
+    metadata={"player_id": "abc", "x": 10, "y": 20},
+)
+# Pipeline: validate → handler (5s)
+# Fast, no auth, no audit. Next frame corrects any errors.
+
+# But a purchase? That's CRITICAL:
+PURCHASE_ITEM = Intent(
+    name="game:my-game:purchase_item",
+    level=Level.CRITICAL,
+    metadata={"player_id": "abc", "item": "sword", "price": 9.99},
+)
+# Pipeline: validate → authorize → audit → protect → handler (30s)
+# Real money, full protection.
+```
+
+!!! example "Game transport: UDP for speed"
+    ```python
+    # WebSocket: ~2-5ms overhead (TCP, reliable, ordered)
+    # UDP: ~0.5ms overhead (fast, but unreliable)
+    
+    # The evoid-transport plugin picks the right channel:
+    # Channel 0 (RELIABLE) — card plays, purchases (CRITICAL)
+    # Channel 1 (UNRELIABLE) — position updates (EPHEMERAL)
+    # Channel 2 (CHAT) — chat messages (STANDARD)
+    
+    # Same IOP concept: level determines infrastructure.
+    # Game state uses EPHEMERAL for speed.
+    # Game purchases use CRITICAL for safety.
+    ```
 
 ## Next: Plugin System
 

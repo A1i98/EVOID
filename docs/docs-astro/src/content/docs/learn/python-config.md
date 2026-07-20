@@ -15,7 +15,7 @@ from evoid.config import config
 app = config(
     service={"name": "my-api", "version": "1.0.0"},
     runtime={"adapter": "asgi", "port": 8000},
-    engines={"storage": "redis", "cache": "memory", "logger": "loguru"},
+    engines={"storage": "memory", "cache": "memory", "logger": "loguru"},
 )
 ```
 
@@ -38,7 +38,7 @@ adapter = "asgi"
 port = 8000
 
 [engines]
-storage = "redis"
+storage = "memory"
 cache = "memory"
 logger = "loguru"
 ```
@@ -98,17 +98,25 @@ config(
 ```python
 config(
     engines={
-        "schema": "native",     # native, pydantic, msgspec
-        "storage": "memory",    # memory, sqlite, sqlalchemy, redis
-        "cache": "memory",      # memory, redis
-        "serializer": "json",   # json, msgspec, orjson
-        "di": "native",         # native
-        "logger": "structlog",  # structlog, loguru
-        "metrics": "simple",    # simple, prometheus
-        "auth": "simple",       # simple, jwt
+        "schema": "native",     # native (built-in), pydantic, msgspec
+        "storage": "memory",    # memory, sqlite (built-in), sqlalchemy
+        "cache": "memory",      # memory (built-in)
+        "serializer": "json",   # json (built-in), msgspec, orjson
+        "di": "native",         # native (built-in)
+        "logger": "loguru",     # loguru, structlog
+        "metrics": "simple",    # simple (built-in), prometheus
+        "auth": "simple",       # simple (built-in)
     }
 )
 ```
+
+!!! note "Plugin engines"
+    Need Redis, PostgreSQL, or advanced DI? Install the corresponding plugin:
+    ```bash
+    uv add evoid-redis        # Redis cache
+    uv add evoid-postgresql   # PostgreSQL storage
+    uv add evoid-di           # Advanced DI (scoped, context-aware)
+    ```
 
 ### [pipeline]
 
@@ -133,7 +141,7 @@ base = config(
 # Production override
 prod = config(
     service={"name": "prod-api"},
-    engines={"storage": "redis", "cache": "redis"},
+    engines={"storage": "sqlite", "cache": "memory"},
 )
 ```
 
@@ -149,7 +157,7 @@ from evoid import Intent, Level
 # Load config
 app = config(
     service={"name": "user-service"},
-    engines={"storage": "postgresql"},
+    engines={"storage": "memory"},
 )
 
 # Create service

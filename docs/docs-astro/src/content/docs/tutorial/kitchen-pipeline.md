@@ -9,6 +9,9 @@ The full order workflow — receive, prepare, package, serve. Pipeline extension
 
 Sandy's kitchen has a workflow: receive order → check ingredients → prepare → package → serve. Let's model this as a pipeline.
 
+!!! info "Pipeline = recipe"
+    A pipeline is like a recipe card. Each step is a processor — one job, one responsibility. The pipeline runs them in order. You can insert steps, remove steps, or swap the entire recipe without touching the kitchen code.
+
 ## The Kitchen Flow
 
 ```python
@@ -194,6 +197,39 @@ overrides = list_overrides()
 print(overrides)
 # {'order': ['timing', 'receive', 'check_ingredients', ...]}
 ```
+
+## Where Plugins Fit
+
+Sandy's pipeline is pure IOP — no plugins yet. But the moment she installs one, the pipeline expands:
+
+```python
+# Before: Sandy's manual pipeline
+# receive → check_ingredients → prepare → package → serve
+
+# After installing evoid-auth:
+# validate → authorize → receive → check_ingredients → prepare → package → serve
+# The auth plugin added two steps automatically based on the Intent level.
+
+# After installing evoid-sqlite:
+# validate → authorize → receive → check_ingredients → store_order → prepare → package → serve
+# Sandy added store_order as a processor, and the storage plugin handles persistence.
+```
+
+!!! example "Pipeline with plugins"
+    ```python
+    from evoid import Intent, Level
+    
+    # This Intent is STANDARD — auth plugin activates
+    ORDER = Intent(name="order", level=Level.STANDARD)
+    # Pipeline: validate → authorize → receive → check_ingredients → ...
+    
+    # This Intent is CRITICAL — full plugin activation
+    PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
+    # Pipeline: validate → authorize → audit → protect → handler
+    
+    # Sandy didn't write auth code. She didn't write audit code.
+    # She just chose the level. The plugins did the rest.
+    ```
 
 ## What You Learned
 

@@ -116,19 +116,42 @@ Watch how the same action behaves differently with different levels:
 
 ```python
 # EPHEMERAL — fast, no auth, 5s timeout
+# Anyone can search the menu. No identity needed.
 SEARCH = Intent(name="search_menu", level=Level.EPHEMERAL)
+# Pipeline: validate → handler
+# What runs: shape check, then your search code. That's it.
 
 # STANDARD — balanced, auth check, 10s timeout
+# Adding an item needs to know who's doing it.
 ADD = Intent(name="add_item", level=Level.STANDARD)
+# Pipeline: validate → authorize → handler
+# What runs: shape check, then "are you an editor?" Then your code.
 
 # CRITICAL — full protection, audit, 30s timeout
+# Deleting items from the menu is permanent. Log everything.
 DELETE = Intent(name="delete_item", level=Level.CRITICAL)
+# Pipeline: validate → authorize → audit → protect → handler
+# What runs: shape check, auth, full audit trail, rate limit, then your code.
 ```
 
 The level determines:
 - Which processors run by default
 - How long the pipeline can take
 - Whether auditing and protection are enabled
+
+!!! example "Plugin activation per level"
+    ```python
+    # When you install evoid-auth and set up a provider:
+    # - STANDARD Intents get automatic authorization
+    # - CRITICAL Intents get authorization + audit logging
+    
+    # When you install evoid-redis:
+    # - EPHEMERAL Intents can use cache (fast, disposable)
+    # - STANDARD Intents can use cache + disk storage
+    
+    # The plugins don't know about your menu.
+    # The level tells the plugins when to activate.
+    ```
 
 ## Error Handling
 

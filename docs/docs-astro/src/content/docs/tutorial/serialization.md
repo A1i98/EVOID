@@ -38,7 +38,11 @@ The runtime doesn't serialize — it passes your dict to the adapter. The adapte
 
 ## Pydantic Models
 
-Use Pydantic for structured serialization:
+Use Pydantic for structured serialization. Requires the `pydantic` extra:
+
+```bash
+uv add "evoid[pydantic]"
+```
 
 ```python
 from pydantic import BaseModel

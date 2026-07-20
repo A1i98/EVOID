@@ -39,9 +39,51 @@ Phase 3: Sandy's Franchise
 | TypedDict + compose | `TypedDict` | Medium CLIs |
 | Dataclass + decorator | `dataclass(frozen=True)` | Production systems |
 
+## The Plugin Ecosystem
+
+Sandy started with zero plugins. Here's what she could add as she grows:
+
+| Plugin | When Sandy Needs It | What It Does |
+|--------|-------------------|--------------|
+| `evoid-sqlite` | Save orders to a database | SQLite storage engine |
+| `evoid-redis` | Cache menu for speed | Redis cache with TTL |
+| `evoid-auth` | Know who's ordering | BYO auth providers |
+| `evoid-di` | Manage database connections | 3-tier dependency injection |
+| `evoid-tasks` | Background order processing | Godot-inspired task lifecycle |
+| `evoid-dashboard` | Monitor all locations | Web monitoring UI |
+| `evoid-smart-storage` | Route data to the right DB | Multi-DB routing by level |
+| `evoid-scheduler` | Priority orders when busy | System-aware priority scheduling |
+| `evoid-cluster` | Connect 4 locations | Multi-node clustering |
+| `evoid-godot` | Sandy's sandwich video game | Godot game integration |
+| `evoid-transport` | Low-latency game state | UDP transport for games |
+
+!!! example "Sandy's full stack"
+    ```python
+    # Phase 1: Dict + Functions (no plugins)
+    # → 5 minutes to working prototype
+    
+    # Phase 2: + evoid-sqlite + evoid-redis + evoid-auth
+    # → Online shop with database, cache, login
+    
+    # Phase 3: + evoid-cluster + evoid-dashboard + evoid-scheduler
+    # → 4 locations, monitoring, priority orders
+    
+    # Bonus: + evoid-godot + evoid-transport
+    # → "Sandy's Sandwich Simulator" video game
+    ```
+
+## Intent Levels Recap
+
+| Level | Pipeline | Timeout | Use Case |
+|-------|----------|---------|----------|
+| `ephemeral` | `validate` | 5s | Cache, sessions, game state |
+| `standard` | `validate`, `authorize` | 10s | Profiles, orders, posts |
+| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, medical, legal |
+
 ## Where to Go Next
 
 - [IOP Levels](../learn/iop-levels.md) — Deep dive into the three levels
+- [Plugin Collection](../learn/plugin-collection.md) — All 14 official plugins
 - [Configuration](../learn/configuration.md) — Full config reference
 - [Plugin Standard](../learn/plugin-standard.md) — Build your own plugins
 - [Schema Export](../learn/schema-export.md) — AI agent integration

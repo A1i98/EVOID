@@ -26,6 +26,9 @@ Order Service → Message Bus → Inventory Service
                   (in-process, no network)
 ```
 
+!!! info "Message bus = kitchen passthrough"
+    Instead of each station yelling across the kitchen (HTTP), they pass tickets through a window (Message Bus). Same kitchen, zero echo. The bus routes by Intent name — "stock_updated" goes to whoever's listening.
+
 ## Message Bus
 
 ```python
@@ -159,6 +162,37 @@ clear_history()
 | `subscribe()` | Listen for specific Intents |
 | Topic matching | Exact, level-based, wildcard |
 | Message history | Debug communication flow |
+
+## Plugins in the Message Bus
+
+The `evoid-cluster` plugin extends the Message Bus across machines:
+
+```python
+# Without cluster: services communicate in-process (0ms)
+# Order Service → Message Bus → Inventory Service (same process)
+
+# With cluster: services communicate across nodes (via WebSocket)
+# Order Service (Node 1) → ClusterBridge → Inventory Service (Node 2)
+# Your code doesn't change. The plugin routes the Intent.
+```
+
+!!! example "Cluster: distributed Intents"
+    ```python
+    # Node 1 handles orders
+    CREATE_ORDER = Intent(name="create_order", level=Level.STANDARD)
+    
+    # Node 2 handles inventory
+    UPDATE_STOCK = Intent(name="update_stock", level=Level.STANDARD)
+    
+    # When Node 1 publishes "update_stock":
+    # 1. Local bus checks for subscribers on Node 1 — none found
+    # 2. ClusterBridge forwards to Node 2 via WebSocket
+    # 3. Node 2's bus delivers to the inventory handler
+    # 4. Result comes back to Node 1
+    
+    # Your code: await publish(update_intent, source="orders")
+    # The cluster plugin handles routing. You don't know if it's local or remote.
+    ```
 
 ## Next: Inventory Service
 

@@ -9,6 +9,9 @@ Manage dependencies through the pipeline — data carries what it needs.
 
 In IOP, dependencies flow through the pipeline: processors inject into `ctx.deps`, handlers read from it. The Intent declares what it needs, the pipeline provides it.
 
+!!! info "DI = kitchen supplies"
+    Think of `ctx.deps` as the kitchen's supply closet. A processor stocks it (injects the database, the cache, the auth provider). The handler grabs what it needs. Each request gets its own closet — no sharing, no conflicts.
+
 ## The IOP Way: Pipeline Injection
 
 Define what your Intent needs, then wire it through the pipeline:
@@ -184,3 +187,45 @@ class OrderController:
 | Module singleton | Connection pools | One instance per process |
 | `before()` | Wiring processors to intents | `before("intent_name", "processor_name")` |
 | Pipeline composition | Chaining injectors | `pipeline=("inject_db", "handle")` |
+
+## Plugins and DI
+
+The `evoid-di` plugin takes this further — three levels of dependency injection:
+
+```python
+from evoid_di import DIEngine
+
+# Level 1: Simple — name in, instance out
+di = DIEngine()
+di.register("db", create_db)
+db = di.resolve("db")
+
+# Level 2: Scoped — singleton, transient, or per-user
+di.register("db", create_db, scope="singleton")  # One connection for all requests
+di.register("session", create_session, scope="per_user")  # One session per user
+
+# Level 3: Context-aware — different impl based on Intent level
+di = DIEngine(rules_config=rules, implementations=impls)
+# CRITICAL intent → PostgreSQL (ACID, audit-friendly)
+# STANDARD intent → SQLite (simple, fast)
+# EPHEMERAL intent → Redis (temporary, fast)
+```
+
+!!! example "IOP: level-aware DI"
+    ```python
+    # Same database interface, different backends per level
+    # The Intent level determines which database you get
+    
+    PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
+    # → DI injects PostgreSQL (ACID transactions for money)
+    
+    GET_PROFILE = Intent(name="get_profile", level=Level.STANDARD)
+    # → DI injects SQLite (simple user data)
+    
+    CACHE_CHECK = Intent(name="cache_check", level=Level.EPHEMERAL)
+    # → DI injects Redis (temporary, fast)
+    
+    # Your handler doesn't know which database it got.
+    # It just calls ctx.deps["db"].read(...)
+    # The DI plugin figured out the rest based on the level.
+    ```

@@ -70,14 +70,17 @@ Intent Resolver (reads Intent level + metadata)
 Pipeline Composer (builds execution plan)
       ↓
 Processor 1: validate    → checks input
-Processor 2: authorize   → checks permissions
+Processor 2: authorize   → checks permissions (evoid-auth plugin)
 Processor 3: your handler → business logic
-Processor 4: audit       → logs the action
+Processor 4: audit       → logs the action (evoid-auth plugin)
       ↓
 Result (success/failure with timing)
 ```
 
 Each processor is a **pure function** that receives a `Context` and returns a result. The pipeline composes them. You don't call them directly — the runtime does.
+
+!!! info "Plugins are processors"
+    The `authorize` and `audit` processors come from the `evoid-auth` plugin. The `validate` processor is built-in. Your handler is your code. The pipeline doesn't care where a processor comes from — it just runs them in order. That's IOP: data declares what, the pipeline decides how.
 
 ## Three Intent Levels
 
@@ -90,6 +93,27 @@ Each level maps to a different pipeline with different infrastructure behaviors:
 | **CRITICAL** | "This must never be lost" | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, medical, legal |
 
 You choose the level. The runtime chooses the infrastructure.
+
+!!! example "Three Intents, three worlds"
+    ```python
+    # EPHEMERAL: Checking the weather
+    GET_CACHE = Intent(name="cache_check", level=Level.EPHEMERAL)
+    # Pipeline: validate → handler (5s)
+    # You glance at the data. If it's wrong, you'll check again.
+    # No auth. No audit. The fastest path through the system.
+    
+    # STANDARD: Showing your ID at reception
+    GET_PROFILE = Intent(name="get_profile", level=Level.STANDARD)
+    # Pipeline: validate → authorize → handler (10s)
+    # "Who are you?" "Can you do this?" "Okay, here you go."
+    # Balanced. Most business operations live here.
+    
+    # CRITICAL: Wire transferring a million dollars
+    PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
+    # Pipeline: validate → authorize → audit → protect → handler (30s)
+    # Papers signed, cameras rolling, guards standing by.
+    # Every step logged. Every action traceable. Forever.
+    ```
 
 ## Traditional vs IOP
 

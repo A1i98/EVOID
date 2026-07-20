@@ -32,7 +32,9 @@ description: 'Install EVOID with zero core dependencies. Add only what you need.
 
 ## Optional Dependencies
 
-Install extras for specific features:
+Install extras for specific features. Core EVOID has zero required dependencies.
+
+### Built-in Extras
 
 ```bash
 # ASGI server (starlette + uvicorn)
@@ -43,12 +45,6 @@ uv add "evoid[pydantic]"
 
 # SQLite storage
 uv add "evoid[sqlite]"
-
-# Redis caching
-uv add "evoid[redis]"
-
-# SQLAlchemy storage (plugin)
-uv add "evoid[sqlalchemy]"
 
 # Loguru logging
 uv add "evoid[loguru]"
@@ -63,34 +59,44 @@ uv add "evoid[testing]"
 uv add "evoid[full]"
 ```
 
-### Using evo install
-
-```bash
-evo install sqlite        # Install SQLite storage
-evo install redis         # Install Redis cache
-evo install full          # Install all optional deps
-```
-
-### Installing Plugins
-
-```bash
-evo plug install evoid-redis           # From PyPI
-evo plug install git+https://...       # From git link
-evo plug search cache                  # Search PyPI
-evo plug list                          # List installed
-```
-
 | Extra | Packages | Use When |
 |-------|----------|----------|
 | `asgi` | starlette, uvicorn | Running HTTP APIs |
 | `pydantic` | pydantic | Schema validation with Pydantic models |
 | `sqlite` | aiosqlite | SQLite database storage |
-| `redis` | redis | Distributed caching |
-| `sqlalchemy` | sqlalchemy, aiosqlite | SQL database storage |
 | `loguru` | loguru | Beautiful structured logging |
 | `toml` | tomli, tomli_w | TOML config support |
 | `testing` | starlette | Test dashboard WebUI |
 | `full` | All above | Everything enabled |
+
+### Using evo install
+
+```bash
+evo install sqlite        # Install SQLite storage
+evo install full          # Install all optional deps
+```
+
+### Plugins (Advanced)
+
+Need Redis, PostgreSQL, or advanced features? Install plugins from PyPI:
+
+```bash
+# Via evo CLI
+evo plug install evoid-redis           # Redis cache
+evo plug install evoid-postgresql      # PostgreSQL storage
+evo plug install evoid-di              # Advanced DI
+evo plug install evoid-auth            # Custom auth providers
+
+# Or via pip/uv
+uv add evoid-redis
+uv add evoid-postgresql
+
+# Search for plugins
+evo plug search cache
+
+# List installed
+evo plug list
+```
 
 ## Verify Installation
 

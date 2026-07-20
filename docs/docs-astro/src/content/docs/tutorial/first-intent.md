@@ -9,6 +9,9 @@ Build a sandwich order system in 5 minutes. One file, one Intent, one processor.
 
 Sandy runs a small sandwich shop. Paper orders get lost. Let's fix that with a simple EVOID program.
 
+!!! info "IOP in one sentence"
+    You declare **what** you want (the Intent). The runtime decides **how** to do it (the pipeline). Sandy says "I need to process an order." EVOID figures out the rest.
+
 ## The Smallest Possible EVOID Program
 
 ```python
@@ -71,25 +74,57 @@ Result (Data — what you got)
 
 ## Adding a Level
 
-Sandy's BLT is popular but takes longer. Mark it as `critical` so the system allocates more time:
+Sandy's BLT is popular but takes longer. More importantly, some operations need different treatment:
 
 ```python
+from evoid import Intent, Level
+
+# Ephemeral — "I don't care if this disappears"
+VIEW_MENU = Intent(
+    name="view_menu",
+    level=Level.EPHEMERAL,  # Fast, disposable, no overhead
+)
+
+# Standard — "Normal business data"
 ORDER_SANDWICH = Intent(
     name="order_sandwich",
-    level=Level.CRITICAL,  # More time, full audit
-    metadata={"shop": "Sandy's Sandwiches"},
+    level=Level.STANDARD,  # Balanced — auth check, reasonable timeout
+)
+
+# Critical — "This must never be lost"
+PROCESS_PAYMENT = Intent(
+    name="process_payment",
+    level=Level.CRITICAL,  # Full protection — audit, rate limit, 30s timeout
 )
 ```
 
 Three levels, three behaviors:
 
-| Level | Pipeline | Timeout | Use Case |
-|-------|----------|---------|----------|
-| `ephemeral` | `validate` | 5s | Cache, temp data |
-| `standard` | `validate`, `authorize` | 10s | Normal orders |
-| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, important data |
+| Level | Pipeline | Timeout | Real-World Analogy |
+|-------|----------|---------|-------------------|
+| `ephemeral` | `validate` | 5s | Checking the weather — glance, know, move on |
+| `standard` | `validate`, `authorize` | 10s | Showing ID at reception — verify who you are |
+| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Wire transfer — papers, cameras, guards, paper trail |
 
 You choose the level. The runtime handles the infrastructure.
+
+!!! example "Same shop, three levels"
+    ```python
+    # Sandy's menu is public — anyone can view it
+    # No auth, no audit, just validate the request shape
+    VIEW_MENU = Intent(name="view_menu", level=Level.EPHEMERAL)
+    # Pipeline: validate → handler (5s)
+    
+    # Placing an order needs to know who's ordering
+    # Auth check, but no audit trail needed
+    ORDER = Intent(name="place_order", level=Level.STANDARD)
+    # Pipeline: validate → authorize → handler (10s)
+    
+    # Processing a payment — real money, real consequences
+    # Full audit, rate limiting, protection
+    PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
+    # Pipeline: validate → authorize → audit → protect → handler (30s)
+    ```
 
 ## Adding More Intents
 
@@ -141,7 +176,7 @@ result = await execute(ORDER_SANDWICH, sandwich="Club", qty=3)
 
 ## Using Context
 
-Processors share data through a `Context` object. One processor writes, the next reads:
+Processors share data through a `Context` object. One processor writes, the next reads. Think of it as a conveyor belt in Sandy's kitchen:
 
 ```python
 from evoid import Intent, Level, execute, register, register_processor
@@ -151,15 +186,15 @@ CHECK_INVENTORY = Intent(name="check_inventory", level=Level.STANDARD)
 PREPARE_ORDER = Intent(name="prepare_order", level=Level.STANDARD)
 
 async def check_inventory(intent: Intent, ctx: Context) -> dict:
-    """Processor 1: Check if we have ingredients."""
+    """Step 1: Check if we have ingredients."""
     sandwich = intent.metadata.get("sandwich", "BLT")
     ctx.state["sandwich"] = sandwich
     ctx.state["in_stock"] = True  # Simplified check
     return {"checked": True}
 
 async def prepare_order(intent: Intent, ctx: Context) -> dict:
-    """Processor 2: Prepare the sandwich."""
-    sandwich = ctx.state.get("sandwich")
+    """Step 2: Prepare the sandwich."""
+    sandwich = ctx.state.get("sandwich")  # Reads what check_inventory wrote
     in_stock = ctx.state.get("in_stock", False)
     if not in_stock:
         return {"error": "Out of stock"}
@@ -171,7 +206,19 @@ register_processor("check_inventory", check_inventory)
 register_processor("prepare_order", prepare_order)
 ```
 
-`ctx.state` is shared between processors. `ctx.intent` is the current Intent. `ctx.deps` is for injected dependencies (covered later).
+`ctx.state` is shared between processors — data flows from one step to the next. `ctx.intent` is the current Intent (immutable). `ctx.deps` is for injected dependencies like databases and caches (covered later).
+
+!!! info "The conveyor belt"
+    ```python
+    # Processor 1 writes to ctx.state:
+    ctx.state["sandwich"] = "BLT"
+    
+    # Processor 2 reads from ctx.state:
+    sandwich = ctx.state.get("sandwich")  # "BLT"
+    
+    # It's like passing a ticket down the kitchen line.
+    # Each station reads what the previous one wrote.
+    ```
 
 ## What You Learned
 

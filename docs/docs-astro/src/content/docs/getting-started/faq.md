@@ -65,7 +65,7 @@ Zero code changes to your business logic.
 
 ### How do I add authentication?
 
-Use the `auth_checker` processor in your pipeline:
+Use the built-in `auth_checker` processor with the `simple` auth engine:
 
 ```python
 from evoid.processors import auth_checker
@@ -74,7 +74,7 @@ from evoid.core.extend import before
 before("GET:/users/{id}", "auth_checker")
 ```
 
-Or create a custom processor:
+Or create a custom processor (no plugin needed):
 
 ```python
 from evoid.core import Context, register_processor
@@ -88,6 +88,12 @@ async def check_auth(ctx: Context) -> dict:
 
 register_processor("check_auth", check_auth)
 ```
+
+!!! note "Need custom auth providers?"
+    For JWT validation, OAuth, or custom auth logic, install the auth plugin:
+    ```bash
+    uv add evoid-auth
+    ```
 
 ### How do I handle errors?
 

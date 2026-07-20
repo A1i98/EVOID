@@ -7,6 +7,9 @@ description: 'Custom engines, adapters, and processors. Extend EVOID with plugin
 
 Custom engines, adapters, and processors. Extend EVOID with plugins.
 
+!!! info "The official collection"
+    EVOID ships with 14 official plugins on PyPI. See [Plugin Collection](../learn/plugin-collection.md) for the full catalog — storage, cache, DI, auth, tasks, cluster, game integration, transport, scheduler, and dashboard.
+
 ## Plugin Registry
 
 Every infrastructure component is a plugin:
@@ -63,6 +66,16 @@ evo plugin install evoid-redis
 evo plugin list
 ```
 
+!!! example "Real-world: Sandy's shop gets a database"
+    ```bash
+    # Sandy's sandwich shop needs to save orders
+    evo install sqlite
+    
+    # Now the pipeline can use storage:
+    # validate → authorize → store_order → handler
+    # Sandy didn't write database code. The plugin handles it.
+    ```
+
 ## Writing a Plugin
 
 ```python
@@ -84,14 +97,52 @@ def create_engine():
     return {"type": "my-engine", "config": {}}
 ```
 
+!!! example "IOP: plugins are processors"
+    ```python
+    # A plugin doesn't know about your business logic.
+    # It implements a contract (StorageEngine, CacheEngine, etc.)
+    # and the pipeline calls it when the Intent level demands it.
+    
+    # Your payment Intent (CRITICAL):
+    # → validate (built-in)
+    # → authorize (evoid-auth plugin)
+    # → audit (evoid-auth plugin)
+    # → protect (built-in)
+    # → handler (your code)
+    
+    # Your cache Intent (EPHEMERAL):
+    # → validate (built-in)
+    # → handler (your code, which calls evoid-redis)
+    
+    # Same codebase, different infrastructure — the level decides.
+    ```
+
 ## Plugin Types
 
 | Type | Purpose | Example |
 |------|---------|---------|
-| `adapter` | Transport layer | Telegram, Discord, MQTT |
-| `engine` | Infrastructure | Storage, cache, serializer |
+| `adapter` | Transport layer | ASGI, Telegram, WebSocket, Godot |
+| `engine` | Infrastructure | Storage, cache, DI, auth, scheduler |
 | `language` | Runtime support | Rust, Go |
-| `processor` | Pipeline step | Custom validation, auth |
+| `processor` | Pipeline step | Custom validation, auth, audit |
+
+!!! info "Official plugin types"
+    | Plugin | Type | What it does |
+    |--------|------|-------------|
+    | evoid-sqlite | engine | SQLite storage |
+    | evoid-redis | engine | Redis cache with TTL |
+    | evoid-postgresql | engine | PostgreSQL storage |
+    | evoid-scylla | engine | ScyllaDB/Cassandra storage |
+    | evoid-smart-storage | engine | Multi-DB routing |
+    | evoid-di | engine | 3-tier dependency injection |
+    | evoid-auth | engine | BYO auth providers |
+    | evoid-tasks | engine | Background tasks with lifecycle |
+    | evoid-scheduler | engine | Priority-aware scheduling |
+    | evoid-cluster | engine | Multi-node clustering |
+    | evoid-transport | engine | Low-latency UDP transport |
+    | evoid-dashboard | adapter | Monitoring web UI |
+    | evoid-godot | adapter | Godot game integration |
+    | evoid-base | contracts | Shared protocols |
 
 ## What You Learned
 

@@ -9,6 +9,13 @@ Deploy, monitor, and scale Sandy's franchise.
 
 ## Production Config
 
+!!! note "Scaling up?"
+    This example uses built-in engines. For distributed caching (Redis) or advanced monitoring (Dashboard), install plugins:
+    ```bash
+    uv add evoid-redis        # Distributed caching
+    uv add evoid-dashboard    # Monitoring UI
+    ```
+
 ```toml
 # evoid.toml
 [project]
@@ -23,7 +30,7 @@ port = 8000
 [engines]
 schema = "native"
 storage = "sqlite"
-cache = "redis"
+cache = "memory"
 logger = "loguru"
 
 [pipeline]
@@ -119,7 +126,7 @@ config = Config(
 config = Config(
     name="sandy-prod",
     adapter="asgi",
-    engines={"storage": "sqlite", "cache": "redis"},
+    engines={"storage": "sqlite", "cache": "memory"},
 )
 ```
 

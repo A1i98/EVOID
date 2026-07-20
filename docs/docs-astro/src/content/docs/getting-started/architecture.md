@@ -193,7 +193,7 @@ Two formats supported:
 name = "my-api"
 
 [engines]
-storage = "redis"
+storage = "memory"
 ```
 
 ### Python (evoid_config.py)
@@ -203,7 +203,7 @@ from evoid.config import config
 
 app = config(
     service={"name": "my-api"},
-    engines={"storage": "redis"},
+    engines={"storage": "memory"},
 )
 ```
 

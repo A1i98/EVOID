@@ -10,132 +10,9 @@ EVOID is infrastructure-agnostic. Every infrastructure component — database, c
 !!! warning "Contracts, not implementations"
     Always code against the contract interface (e.g., `StorageEngine`), never the concrete class. This lets you swap implementations without changing business logic.
 
-## Official Plugin Collection
-
-EVOID has an official plugin repository at [EvolveBeyond/evoid-plugins](https://github.com/EvolveBeyond/evoid-plugins). Each plugin is an independent Python package.
-
-### Install
-
-```bash
-# Short names via evo CLI
-evo install di            # → evoid-di
-evo install redis         # → evoid-redis
-evo install smart-storage # → evoid-smart-storage
-
-# Or directly with pip/uv
-pip install evoid-di
-pip install evoid-redis
-pip install evoid-smart-storage
-```
-
-### Available Plugins
-
-| Plugin | Package | Description |
-|--------|---------|-------------|
-| Base | `evoid-base` | Shared protocols (StorageEngine, CacheEngine, LoggerEngine) |
-| SQLite | `evoid-sqlite` | SQLite storage engine |
-| Redis | `evoid-redis` | Redis cache with TTL |
-| PostgreSQL | `evoid-postgresql` | PostgreSQL via SQLAlchemy + asyncpg |
-| ScyllaDB | `evoid-scylla` | ScyllaDB/Cassandra storage |
-| Smart Storage | `evoid-smart-storage` | Multi-DB routing, schema enforcement, multi-tenancy |
-| DI | `evoid-di` | Dependency injection — simple, scoped, or context-aware |
-| Auth | `evoid-auth` | Bring your own auth provider |
-| Tasks | `evoid-tasks` | Background tasks + structured logging |
-| Dashboard | `evoid-dashboard` | Monitoring UI — service map, DB viewer, logs |
-
-### Base Contracts
-
-All plugins implement contracts from `evoid-base`:
-
-```python
-from evoid_base.contracts import StorageEngine, CacheEngine, LoggerEngine
-
-# These are Protocol types — plugins implement them as functions
-# StorageEngine: write(), read(), delete(), health()
-# CacheEngine: get(), set(), delete(), exists(), health()
-# LoggerEngine: info(), warning(), error(), debug()
-```
-
-### Smart Storage Example
-
-Routes data to different backends based on type, level, or user:
-
-```toml
-[engines]
-storage = "smart_storage"
-
-[engines.smart_storage.mapping]
-credentials = "postgresql"   # Sensitive data → PostgreSQL
-session = "redis"            # Sessions → Redis
-logs = "memory"              # Logs → Memory
-
-[engines.smart_storage.level_routing]
-critical = "postgresql"      # Critical intents → PostgreSQL
-standard = "sqlite"          # Standard → SQLite
-```
-
-### DI Engine Example
-
-Three levels of complexity in one package:
-
-```python
-from evoid_di import DIEngine
-
-# Level 1: Simple
-di = DIEngine()
-di.register("db", create_db)
-db = di.resolve("db")
-
-# Level 2: Scoped
-di.register("db", create_db, scope="singleton")
-di.register("session", create_session, scope="per_user")
-
-# Level 3: Context-aware routing
-di = DIEngine(rules_config=rules, implementations=impls)
-instance = await di.resolve("notifier", ctx)  # Routes by level/role
-```
-
-### Auth Example
-
-Bring your own provider — no forced JWT:
-
-```python
-from evoid_auth import register_provider
-
-# Your auth logic
-async def my_auth(token: str) -> dict:
-    user = await db.find_by_token(token)
-    return {"user": user.name, "role": user.role}
-
-register_provider("my_auth", my_auth)
-
-# Wire to pipeline
-from evoid.core.extend import before
-before("GET:/users", "authenticate")
-```
-
-## Plugin Registry
-
-The plugin system is a dict-based registry. Register a plugin, resolve it by name.
-
-```python
-from evoid.engines.plugin import register, resolve
-
-# Register a plugin
-register(
-    name="sqlite",
-    type="storage",
-    factory=sqlite_storage_factory,
-    version="1.0.0",
-    description="SQLite storage engine",
-)
-
-# Resolve it later
-factory = resolve("sqlite", "storage")
-engine = factory()
-```
-
 ## Built-in Engines
+
+EVOID ships with built-in engines. No plugins required.
 
 ### Schema Engine
 
@@ -231,7 +108,7 @@ Engines are configured in `evoid.toml`:
 ```toml
 [engines]
 schema = "native"
-storage = "sqlite"
+storage = "memory"
 cache = "memory"
 serializer = "json"
 di = "native"
@@ -280,6 +157,30 @@ register(
 )
 ```
 
+!!! tip "Build your own plugin"
+    Need Redis caching, PostgreSQL storage, or advanced DI? You can either install an existing plugin or write your own. See [Plugin Ecosystem](plugin-ecosystem.md) for a quick-start guide.
+
+## Plugin Registry
+
+The plugin system is a dict-based registry. Register a plugin, resolve it by name.
+
+```python
+from evoid.engines.plugin import register, resolve
+
+# Register a plugin
+register(
+    name="sqlite",
+    type="storage",
+    factory=sqlite_storage_factory,
+    version="1.0.0",
+    description="SQLite storage engine",
+)
+
+# Resolve it later
+factory = resolve("sqlite", "storage")
+engine = factory()
+```
+
 ## Dependency Map
 
 EVOID maps engine names to Python packages for `evo sync`:
@@ -295,3 +196,100 @@ ENGINE_PACKAGES = {
 ```
 
 `evo sync` reads `evoid.toml`, resolves package names, and installs them via `uv`.
+
+## Official Plugin Collection
+
+Need more than built-in engines? The official plugin repository at [EvolveBeyond/evoid-plugins](https://github.com/EvolveBeyond/evoid-plugins) has you covered.
+
+### Install
+
+```bash
+# Short names via evo CLI
+evo install di            # → evoid-di
+evo install redis         # → evoid-redis
+evo install smart-storage # → evoid-smart-storage
+
+# Or directly with pip/uv
+pip install evoid-di
+pip install evoid-redis
+pip install evoid-smart-storage
+```
+
+### Available Plugins
+
+| Plugin | Package | Description |
+|--------|---------|-------------|
+| Base | `evoid-base` | Shared protocols (StorageEngine, CacheEngine, LoggerEngine) |
+| SQLite | `evoid-sqlite` | SQLite storage engine |
+| Redis | `evoid-redis` | Redis cache with TTL |
+| PostgreSQL | `evoid-postgresql` | PostgreSQL via SQLAlchemy + asyncpg |
+| ScyllaDB | `evoid-scylla` | ScyllaDB/Cassandra storage |
+| Smart Storage | `evoid-smart-storage` | Multi-DB routing, schema enforcement, multi-tenancy |
+| DI | `evoid-di` | Dependency injection — simple, scoped, or context-aware |
+| Auth | `evoid-auth` | Bring your own auth provider |
+| Tasks | `evoid-tasks` | Background tasks + structured logging |
+| Dashboard | `evoid-dashboard` | Monitoring UI — service map, DB viewer, logs |
+
+### Smart Storage Example
+
+Routes data to different backends based on type, level, or user:
+
+```toml
+[engines]
+storage = "smart_storage"
+
+[engines.smart_storage.mapping]
+credentials = "postgresql"   # Sensitive data → PostgreSQL
+session = "redis"            # Sessions → Redis
+logs = "memory"              # Logs → Memory
+
+[engines.smart_storage.level_routing]
+critical = "postgresql"      # Critical intents → PostgreSQL
+standard = "sqlite"          # Standard → SQLite
+```
+
+### DI Engine Example
+
+Three levels of complexity in one package:
+
+```python
+from evoid_di import DIEngine
+
+# Level 1: Simple
+di = DIEngine()
+di.register("db", create_db)
+db = di.resolve("db")
+
+# Level 2: Scoped
+di.register("db", create_db, scope="singleton")
+di.register("session", create_session, scope="per_user")
+
+# Level 3: Context-aware routing
+di = DIEngine(rules_config=rules, implementations=impls)
+instance = await di.resolve("notifier", ctx)  # Routes by level/role
+```
+
+### Auth Example
+
+Bring your own provider — no forced JWT:
+
+```python
+from evoid_auth import register_provider
+
+# Your auth logic
+async def my_auth(token: str) -> dict:
+    user = await db.find_by_token(token)
+    return {"user": user.name, "role": user.role}
+
+register_provider("my_auth", my_auth)
+
+# Wire to pipeline
+from evoid.core.extend import before
+before("GET:/users", "authenticate")
+```
+
+## Related
+
+- [Plugin Ecosystem](plugin-ecosystem.md) — Build your own plugins
+- [Plugin Collection](plugin-collection.md) — Full plugin reference
+- [Plugin Standard](plugin-standard.md) — Plugin packaging spec

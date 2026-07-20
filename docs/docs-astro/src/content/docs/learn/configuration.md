@@ -24,7 +24,7 @@ from evoid.config import config
 app = config(
     service={"name": "my-api", "version": "1.0.0"},
     runtime={"adapter": "asgi", "port": 8000},
-    engines={"storage": "redis", "cache": "memory"},
+    engines={"storage": "memory", "cache": "memory"},
 )
 ```
 
@@ -41,7 +41,7 @@ adapter = "asgi"
 port = 8000
 
 [engines]
-storage = "redis"
+storage = "memory"
 cache = "memory"
 ```
 
@@ -167,6 +167,9 @@ logger = "loguru"
 
 ### Production API with PostgreSQL
 
+!!! note "Plugin features ahead"
+    This example uses plugins for production-grade infrastructure. Start with the [Minimal API](#minimal-api-development) example, then add plugins as needed. See [Plugin Collection](plugin-collection.md) for available plugins.
+
 ```toml
 [service]
 name = "production-api"
@@ -215,6 +218,9 @@ logger = "loguru"
 
 ### Microservices (Multiple Services)
 
+!!! note "Plugin features ahead"
+    This example uses plugins for production-grade infrastructure. See [Plugin Collection](plugin-collection.md) for available plugins.
+
 **Project root** (`evoid.toml`):
 ```toml
 [service]
@@ -248,7 +254,7 @@ name = "workers"
 adapter = "cli"
 
 [engines]
-storage = "postgres"
+storage = "sqlite"
 ```
 
 The worker inherits `schema`, `cache`, `serializer`, `logger` from project config but overrides `storage` and `adapter`.
@@ -266,9 +272,9 @@ Service config  →  merges into  →  Project config  →  defaults
 Example:
 
 ```toml
-# Project: services/ with PostgreSQL
+# Project: services/ with SQLite
 [engines]
-storage = "sqlalchemy"
+storage = "sqlite"
 
 # Service: services/cache-only/evoid.toml
 # This service only needs memory — override storage
@@ -299,36 +305,48 @@ evo sync
 
 ### Engine → Package Map
 
-| Engine | Value | Packages Installed |
-|--------|-------|-------------------|
-| `schema` | `pydantic` | `pydantic>=2.0.0` |
-| `schema` | `msgspec` | `msgspec>=0.18.0` |
-| `storage` | `sqlite` | `aiosqlite>=0.20.0` |
-| `storage` | `sqlalchemy` | `sqlalchemy[asyncio]>=2.0.0`, `aiosqlite` |
-| `storage` | `redis` | `redis>=4.0.0` |
-| `storage` | `postgres` | `asyncpg>=0.28.0` |
-| `cache` | `redis` | `redis>=4.0.0` |
-| `serializer` | `msgspec` | `msgspec>=0.18.0` |
-| `serializer` | `orjson` | `orjson>=3.9.0` |
-| `logger` | `structlog` | `structlog>=24.0.0` |
-| `logger` | `loguru` | `loguru>=0.7.0` |
-| `metrics` | `prometheus` | `prometheus-client>=0.15.0` |
-| `auth` | `jwt` | `pyjwt>=2.10.0` |
-| `adapter` | `asgi` | `starlette>=0.27.0`, `uvicorn[standard]>=0.24.0` |
-| `adapter` | `robyn` | `robyn>=0.30.0` |
-| `adapter` | `telegram` | `aiogram>=3.0.0` |
+| Engine | Value | Packages Installed | Built-in? |
+|--------|-------|-------------------|-----------|
+| `schema` | `native` | none | ✓ |
+| `schema` | `pydantic` | `pydantic>=2.0.0` | extra |
+| `schema` | `msgspec` | `msgspec>=0.18.0` | extra |
+| `storage` | `memory` | none | ✓ |
+| `storage` | `sqlite` | `aiosqlite>=0.20.0` | extra |
+| `storage` | `sqlalchemy` | `sqlalchemy[asyncio]>=2.0.0`, `aiosqlite` | extra |
+| `storage` | `redis` | `redis>=4.0.0` | plugin |
+| `storage` | `postgres` | `asyncpg>=0.28.0` | plugin |
+| `cache` | `memory` | none | ✓ |
+| `cache` | `redis` | `redis>=4.0.0` | plugin |
+| `serializer` | `json` | none | ✓ |
+| `serializer` | `msgspec` | `msgspec>=0.18.0` | extra |
+| `serializer` | `orjson` | `orjson>=3.9.0` | extra |
+| `logger` | `structlog` | `structlog>=24.0.0` | extra |
+| `logger` | `loguru` | `loguru>=0.7.0` | extra |
+| `metrics` | `simple` | none | ✓ |
+| `metrics` | `prometheus` | `prometheus-client>=0.15.0` | extra |
+| `auth` | `simple` | none | ✓ |
+| `auth` | `jwt` | `pyjwt>=2.10.0` | extra |
+| `adapter` | `asgi` | `starlette>=0.27.0`, `uvicorn[standard]>=0.24.0` | extra |
+| `adapter` | `robyn` | `robyn>=0.30.0` | extra |
+| `adapter` | `telegram` | `aiogram>=3.0.0` | extra |
 
 ## Optional Dependencies
 
-Install only what you need:
+Install only what you need. Core EVOID has zero required dependencies:
 
 ```bash
+# Core extras (built into EVOID)
 uv add "evoid[asgi]"           # HTTP APIs
 uv add "evoid[pydantic]"       # Pydantic schemas
-uv add "evoid[redis]"          # Redis cache
-uv add "evoid[sqlalchemy]"     # SQL storage
+uv add "evoid[sqlite]"         # SQLite storage
 uv add "evoid[loguru]"         # Loguru logging
-uv add "evoid[full]"           # Everything
+uv add "evoid[full]"           # All extras
+
+# Plugins (separate packages)
+uv add evoid-redis             # Redis cache
+uv add evoid-postgresql        # PostgreSQL storage
+uv add evoid-di                # Advanced DI
+uv add evoid-auth              # Custom auth providers
 ```
 
 ## Environment Variables

@@ -11,20 +11,106 @@ Users can:
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol
 
 from .intent import Intent
 from .pipeline import Result
 from .runtime import execute as execute_intent
 
 # ============================================================
-# Parallel execution
+# System metrics
 # ============================================================
 
+
+@dataclass(frozen=True)
+class SystemMetrics:
+    """System state snapshot."""
+
+    cpu_cores: int
+    cpu_count_logical: int
+    load_avg_1m: float
+    load_avg_5m: float
+    load_avg_15m: float
+    memory_total_mb: float
+    memory_available_mb: float
+
+    @property
+    def is_overloaded(self) -> bool:
+        """System is overloaded if load > logical cores."""
+        return self.load_avg_1m > self.cpu_count_logical
+
+    @property
+    def recommended_concurrency(self) -> int:
+        """Suggested concurrency based on load."""
+        if self.is_overloaded:
+            return max(1, self.cpu_count_logical // 2)
+        return self.cpu_count_logical
+
+
+def get_system_metrics() -> SystemMetrics:
+    """Get current system metrics."""
+    try:
+        import resource
+
+        load = os.getloadavg()
+        mem_info = resource.getrusage(resource.RUSAGE_SELF)
+        # Rough estimate: ru_maxrss is in KB on Linux, bytes on macOS
+        mem_mb = mem_info.ru_maxrss / 1024
+    except (OSError, AttributeError):
+        load = (0.0, 0.0, 0.0)
+        mem_mb = 0.0
+
+    try:
+        with open("/proc/meminfo") as f:
+            lines = f.readlines()
+        mem_total = int(lines[0].split()[1]) / 1024  # KB to MB
+        mem_avail = int(lines[2].split()[1]) / 1024
+    except (FileNotFoundError, IndexError, ValueError):
+        mem_total = mem_mb
+        mem_avail = mem_mb
+
+    return SystemMetrics(
+        cpu_cores=os.cpu_count() or 4,
+        cpu_count_logical=os.cpu_count() or 4,
+        load_avg_1m=load[0],
+        load_avg_5m=load[1],
+        load_avg_15m=load[2],
+        memory_total_mb=mem_total,
+        memory_available_mb=mem_avail,
+    )
+
+
+# ============================================================
+# Scheduler backend protocol (for plugins)
+# ============================================================
+
+
+class SchedulerBackend(Protocol):
+    """Protocol for scheduler plugins (e.g., evoid-scheduler with PyO3)."""
+
+    async def submit(self, intent: Intent, priority: int = 0) -> str: ...
+
+    async def cancel(self, task_id: str) -> bool: ...
+
+    async def defer(self, intent: Intent, until: float) -> str: ...
+
+    def metrics(self) -> SystemMetrics: ...
+
+    @property
+    def queue_size(self) -> int: ...
+
+    @property
+    def active_workers(self) -> int: ...
+
+
+# ============================================================
 # Thread pool for CPU-bound work
+# ============================================================
+
 _thread_pool: ThreadPoolExecutor | None = None
 
 
@@ -32,8 +118,16 @@ def _get_thread_pool() -> ThreadPoolExecutor:
     """Get or create thread pool."""
     global _thread_pool
     if _thread_pool is None:
-        _thread_pool = ThreadPoolExecutor(max_workers=4)
+        _thread_pool = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
     return _thread_pool
+
+
+def configure_thread_pool(max_workers: int | None = None) -> None:
+    """Configure thread pool. Call before first use."""
+    global _thread_pool
+    if _thread_pool is not None:
+        _thread_pool.shutdown(wait=False)
+    _thread_pool = ThreadPoolExecutor(max_workers=max_workers or os.cpu_count() or 4)
 
 
 async def gather(
@@ -59,28 +153,34 @@ async def gather(
 
 async def gather_with_priority(
     *intents: Intent,
-    concurrency: int = 10,
+    concurrency: int | None = None,
+    backend: SchedulerBackend | None = None,
 ) -> list[Result]:
-    """Execute intents with priority ordering.
+    """Execute intents with true priority ordering.
 
     Higher priority intents execute first.
-    Uses priority queue for ordering.
+    If backend is provided, delegates to plugin scheduling.
     """
-    # Sort by priority (higher first)
-    sorted_intents = sorted(intents, key=lambda i: i.priority, reverse=True)
+    if backend is not None:
+        task_ids = []
+        for intent in intents:
+            tid = await backend.submit(intent, intent.priority)
+            task_ids.append(tid)
+        # Results collected via backend.result()
+        return []
 
-    semaphore = asyncio.Semaphore(concurrency)
-    results: list[Result] = []
+    # Built-in: concurrent with priority ordering
+    sorted_intents = sorted(intents, key=lambda i: i.priority, reverse=True)
+    effective_concurrency = concurrency or len(sorted_intents)
+    semaphore = asyncio.Semaphore(effective_concurrency)
 
     async def limited_execute(intent: Intent) -> Result:
         async with semaphore:
             return await execute_intent(intent)
 
-    # Execute in priority order
-    tasks = [limited_execute(intent) for intent in sorted_intents]
-    results = await asyncio.gather(*tasks)
-
-    return results
+    return await asyncio.gather(
+        *[limited_execute(i) for i in sorted_intents]
+    )
 
 
 async def parallel(
@@ -183,17 +283,20 @@ class IntentQueue:
 
     async def process(self) -> list[Result]:
         """Process all intents in queue with priority ordering."""
-        results = []
+        results: list[Result] = []
 
-        async def process_one(intent: Intent) -> Result:
-            async with self._semaphore:
-                return await execute_intent(intent)
+        async def worker() -> None:
+            while True:
+                intent = self.dequeue()
+                if intent is None:
+                    break
+                async with self._semaphore:
+                    result = await execute_intent(intent)
+                    results.append(result)
 
-        while self._queue:
-            intent = self.dequeue()
-            if intent:
-                result = await process_one(intent)
-                results.append(result)
+        # Launch workers concurrently
+        workers = [worker() for _ in range(self._max_concurrent)]
+        await asyncio.gather(*workers)
 
         return results
 

@@ -11,6 +11,9 @@ Process multiple orders concurrently. gather(), priority, concurrency limits.
 
 Sandy's 4 locations process 100+ orders per hour. Sequential processing is too slow.
 
+!!! info "Parallel = multiple cooks"
+    One cook makes sandwiches one at a time. Four cooks make four at once. But you need to decide who gets the premium ingredients first — that's priority.
+
 ## Parallel Execution
 
 ```python
@@ -103,6 +106,55 @@ print(f"Parallel: {time.time() - start:.1f}s")
 | `gather_with_priority()` | Priority-ordered execution |
 | Concurrency limits | Max concurrent executions |
 | Thread offloading | CPU-bound work in thread pool |
+
+## The Scheduler Plugin
+
+The `evoid-scheduler` plugin goes further — it watches system load and defers low-priority tasks when the CPU is busy:
+
+```python
+from evoid_scheduler import SchedulerEngine, Priority
+
+scheduler = SchedulerEngine()
+
+# High-priority order goes first — always
+scheduler.submit(process_vip_order, priority=Priority.CRITICAL)  # 100
+
+# Normal order — runs when capacity exists
+scheduler.submit(process_normal_order, priority=Priority.NORMAL)  # 50
+
+# Analytics sync — deferred if CPU is overloaded
+scheduler.submit(sync_analytics, priority=Priority.LOW)  # 25
+```
+
+!!! example "IOP: priority in metadata"
+    ```python
+    # Priority declared in Intent metadata
+    VIP_ORDER = Intent(
+        name="process_order",
+        level=Level.CRITICAL,
+        metadata={"priority": Priority.CRITICAL},  # 100
+        location="downtown",
+    )
+    
+    NORMAL_ORDER = Intent(
+        name="process_order",
+        level=Level.STANDARD,
+        metadata={"priority": Priority.NORMAL},  # 50
+        location="mall",
+    )
+    
+    ANALYTICS_SYNC = Intent(
+        name="sync_analytics",
+        level=Level.EPHEMERAL,
+        metadata={"priority": Priority.LOW},  # 25
+    )
+    
+    # Scheduler reads system load:
+    # - CPU < 80%: all run immediately
+    # - CPU > 80%: LOW intents get deferred to a queue
+    # - CPU > 95%: NORMAL intents get deferred too
+    # CRITICAL always runs. Your code doesn't know this happens.
+    ```
 
 ## Next: Performance
 
