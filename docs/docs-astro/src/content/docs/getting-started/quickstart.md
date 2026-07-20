@@ -14,21 +14,11 @@ Build a working EVOID API in 5 minutes.
 
 ## Step 1: Install & Create
 
-=== "uv (Recommended)"
-
-    ```bash
-    uv add evoid
-    evo init my-api
-    cd my-api
-    ```
-
-=== "pip"
-
-    ```bash
-    pip install evoid
-    evo init my-api
-    cd my-api
-    ```
+```bash
+uv add evoid
+evo init my-api
+cd my-api
+```
 
 This creates:
 

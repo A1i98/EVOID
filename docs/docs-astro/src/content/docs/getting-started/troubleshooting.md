@@ -33,8 +33,6 @@ from evoid.core import Context
 EVOID is not installed:
 
 ```bash
-pip install evoid
-# or
 uv add evoid
 ```
 

@@ -10,7 +10,7 @@ The server handles game state, validates actions, and broadcasts events to all p
 ## 1. Install Dependencies
 
 ```bash
-pip install evoid evoid-godot websockets
+uv add evoid evoid-godot websockets
 ```
 
 ## 2. Server Entry Point

@@ -8,24 +8,16 @@ description: 'Install EVOID with zero core dependencies. Add only what you need.
 ## Requirements
 
 - Python 3.12+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+- [uv](https://docs.astral.sh/uv/)
 
 !!! tip "Why uv?"
     `uv` is 10-100x faster than pip and handles virtual environments automatically. Install it from [astral.sh/uv](https://docs.astral.sh/uv/).
 
 ## Install EVOID
 
-=== "uv (Recommended)"
-
-    ```bash
-    uv add evoid
-    ```
-
-=== "pip"
-
-    ```bash
-    pip install evoid
-    ```
+```bash
+uv add evoid
+```
 
 !!! info "Zero core dependencies"
     EVOID has NO required dependencies. Install only what you need.
@@ -87,7 +79,7 @@ evo plug install evoid-postgresql      # PostgreSQL storage
 evo plug install evoid-di              # Advanced DI
 evo plug install evoid-auth            # Custom auth providers
 
-# Or via pip/uv
+# Or via uv
 uv add evoid-redis
 uv add evoid-postgresql
 

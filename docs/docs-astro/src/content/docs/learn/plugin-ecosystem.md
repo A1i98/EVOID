@@ -99,7 +99,7 @@ hello = "evoid_hello:register_plugin"
 ### Step 5: Install and use
 
 ```bash
-pip install -e .
+uv add -e .
 ```
 
 ```toml

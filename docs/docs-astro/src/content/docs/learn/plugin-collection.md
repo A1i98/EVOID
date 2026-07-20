@@ -21,10 +21,10 @@ evo install di
 evo install redis
 evo install smart-storage
 
-# Via pip
-pip install evoid-di
-pip install evoid-redis
-pip install evoid-smart-storage
+# Via uv
+uv add evoid-di
+uv add evoid-redis
+uv add evoid-smart-storage
 ```
 
 ## Available Plugins
@@ -52,9 +52,9 @@ class MyStorage(StorageEngine):
 
 | Package | Install | Best For |
 |---------|---------|----------|
-| `evoid-sqlite` | `pip install evoid-sqlite` | Prototyping, single-user apps, embedded |
-| `evoid-postgresql` | `pip install evoid-postgresql` | Production, multi-tenant, complex queries |
-| `evoid-scylla` | `pip install evoid-scylla` | High-throughput, distributed, Cassandra-compatible |
+| `evoid-sqlite` | `evo install sqlite` | Prototyping, single-user apps, embedded |
+| `evoid-postgresql` | `evo install postgresql` | Production, multi-tenant, complex queries |
+| `evoid-scylla` | `evo install scylla` | High-throughput, distributed, Cassandra-compatible |
 
 ```python
 from evoid_sqlite import create_storage
@@ -84,7 +84,7 @@ user = await storage.read("user:1")
 Async Redis cache with TTL. The standard choice for ephemeral data.
 
 ```bash
-pip install evoid-redis
+evo install redis
 ```
 
 ```python
@@ -117,7 +117,7 @@ session = await cache.get("session:abc123")
 Routes data to different backends automatically. The traffic controller for your storage layer.
 
 ```bash
-pip install evoid-smart-storage
+evo install smart-storage
 ```
 
 ```toml
@@ -154,7 +154,7 @@ standard = "sqlite"           # Profiles → SQLite (simple)
 Three levels of complexity in one package. From "give me the thing" to "give me the right thing based on who's asking."
 
 ```bash
-pip install evoid-di
+evo install di
 ```
 
 ```python
@@ -197,7 +197,7 @@ instance = await di.resolve("notifier", ctx)
 Bring your own provider — no forced JWT, no forced OAuth. Just a function that takes a token and returns a role.
 
 ```bash
-pip install evoid-auth
+evo install auth
 ```
 
 ```python
@@ -238,8 +238,8 @@ before("GET:/users", "authenticate")
 Godot-inspired task lifecycle with EVOID pipeline integration. Fire-and-forget, scheduled, or event-driven.
 
 ```bash
-pip install evoid-tasks
-pip install "evoid-tasks[loguru]"  # with structured logging
+evo install tasks
+uv add "evoid-tasks[loguru]"  # with structured logging
 ```
 
 ```python
@@ -283,7 +283,7 @@ async def update_stats(ctx: TaskContext):
 Replaces EVOID's built-in parallel execution with a system-aware priority scheduler. Auto-defers low-priority tasks when the system is overloaded.
 
 ```bash
-pip install evoid-scheduler
+evo plug install evoid-scheduler
 ```
 
 ```python
@@ -326,7 +326,7 @@ scheduler.submit(sync_analytics, priority=Priority.LOW)
 Connects multiple EVOID nodes into a unified distributed system via WebSocket. Nodes share Intents, not data.
 
 ```bash
-pip install evoid-cluster
+evo plug install evoid-cluster
 ```
 
 ```toml
@@ -369,7 +369,7 @@ pattern = "chat:*"
 Server-side adapter for connecting Godot games to EVOID. Works with the GDScript client plugin.
 
 ```bash
-pip install evoid-godot
+evo plug install evoid-godot
 ```
 
 ```python
@@ -408,7 +408,7 @@ setup_game_subscriptions("my-game")
 Binary UDP protocol for game state synchronization. ~0.5ms overhead vs ~2-5ms for WebSocket.
 
 ```bash
-pip install evoid-transport
+evo plug install evoid-transport
 ```
 
 ```python
@@ -446,8 +446,8 @@ latency = await transport.measure_latency("player-123")
 ASGI-based web dashboard. Service map, intent registry, message bus history, DB viewer.
 
 ```bash
-pip install evoid-dashboard
-pip install "evoid-dashboard[full]"  # with jinja2 + uvicorn
+evo install dashboard
+uv add "evoid-dashboard[full]"  # with jinja2 + uvicorn
 ```
 
 ```python

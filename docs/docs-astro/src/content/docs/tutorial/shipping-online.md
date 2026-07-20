@@ -23,7 +23,7 @@ Sandy's online shop has:
 
 ```bash
 # Install EVOID
-pip install evoid
+uv add evoid
 
 # Run with production settings
 evo service run sandy-api --host 0.0.0.0 --port 8000

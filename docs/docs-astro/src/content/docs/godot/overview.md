@@ -81,10 +81,10 @@ Both projects follow the same pattern:
 
 ```bash
 # 1. Install EVOID server plugins
-pip install evoid evoid-godot
+uv add evoid evoid-godot
 
 # 2. Clone the Godot plugin
-git clone https://github.com/EvolveBeyond/evolvebeyond-evoid-godot.git
+git clone https://github.com/EvolveBeyond/evoid-godot.git
 
 # 3. Copy to your Godot project
 cp -r evolvebeyond-evoid-godot/evoid_godot your-game/addons/

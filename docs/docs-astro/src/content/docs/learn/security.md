@@ -40,7 +40,7 @@ app = config(
 #### Development: `.env` + `python-dotenv`
 
 ```bash
-pip install python-dotenv
+uv add python-dotenv
 ```
 
 ```python

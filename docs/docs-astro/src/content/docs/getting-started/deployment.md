@@ -54,7 +54,7 @@ sudo systemctl start my-api
 FROM python:3.13-slim
 WORKDIR /app
 COPY pyproject.toml .
-RUN pip install -e .
+RUN pip install uv && uv sync
 COPY . .
 EXPOSE 8000
 CMD ["evo", "service", "run", "api"]

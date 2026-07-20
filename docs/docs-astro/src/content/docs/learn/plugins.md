@@ -209,10 +209,10 @@ evo install di            # → evoid-di
 evo install redis         # → evoid-redis
 evo install smart-storage # → evoid-smart-storage
 
-# Or directly with pip/uv
-pip install evoid-di
-pip install evoid-redis
-pip install evoid-smart-storage
+# Or directly with uv
+uv add evoid-di
+uv add evoid-redis
+uv add evoid-smart-storage
 ```
 
 ### Available Plugins

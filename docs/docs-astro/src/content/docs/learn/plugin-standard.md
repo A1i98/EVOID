@@ -129,10 +129,10 @@ evo plug list
 uv add evoid-redis
 ```
 
-### Via pip
+### Via evo CLI
 
 ```bash
-pip install evoid-redis
+evo install redis
 ```
 
 ### Via EVOID Config
