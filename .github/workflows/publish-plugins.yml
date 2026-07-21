@@ -1,0 +1,82 @@
+name: Publish Plugins to PyPI
+
+on:
+  push:
+    tags:
+      - "plugins-v*"
+
+jobs:
+  build:
+    name: Build Plugin Distributions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build all plugins
+        run: |
+          for dir in packages/*/; do
+            if [ -f "$dir/pyproject.toml" ]; then
+              echo "Building $dir..."
+              cd "$dir" && uv build && cd ../..
+            fi
+          done
+
+      - name: Store all distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-distributions
+          path: packages/*/dist/*.whl
+
+  publish-to-testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/evoid-base
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download plugin distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-distributions
+          path: dist/
+
+      - name: Publish plugins to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/evoid-base
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download plugin distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-distributions
+          path: dist/
+
+      - name: Publish plugins to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
