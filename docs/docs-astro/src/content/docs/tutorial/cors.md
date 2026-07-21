@@ -66,9 +66,9 @@ ALLOWED_ORIGINS = {
 
 
 async def cors_processor(ctx: Context) -> dict:
-    method = ctx.metadata.get("method", "")
-    path = ctx.metadata.get("path", "")
-    headers = ctx.metadata.get("headers", {})
+    method = ctx.intent.metadata.get("method", "")
+    path = ctx.intent.metadata.get("path", "")
+    headers = ctx.intent.metadata.get("headers", {})
     origin = headers.get("origin", "")
 
     # Find matching CORS policy

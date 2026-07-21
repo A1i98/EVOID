@@ -38,7 +38,7 @@ docs/             # Documentation (Astro-based)
 
 ## Code Style
 
-- Python 3.13+ only
+- Python 3.12+ only
 - Type hints required
 - Async-first (all I/O is async)
 - No classes with behavior — dataclasses and functions only

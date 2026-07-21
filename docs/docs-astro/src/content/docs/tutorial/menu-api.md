@@ -81,7 +81,7 @@ register(GET_ITEM)
 
 # Your handler is wrapped as a processor:
 async def processor(ctx: Context) -> dict:
-    params = ctx.metadata.get("params", {})
+    params = ctx.intent.metadata.get("params", {})
     return await get_item(**params)  # item_id extracted from URL
 
 register_processor("GET:/menu/{item_id}", processor)

@@ -58,6 +58,7 @@ def config(
             logger=engines.get("logger", "structlog") if engines else "structlog",
             metrics=engines.get("metrics", "simple") if engines else "simple",
             auth=engines.get("auth", "simple") if engines else "simple",
+            options=engines.get("options", {}) if engines else {},
         ),
         pipeline=PipelineConfig(
             processors=pipeline.get("processors", ["validate", "authorize"]) if pipeline else ["validate", "authorize"],
@@ -141,10 +142,10 @@ def validate_config(config: EvoidConfig) -> list[str]:
     if not (1 <= config.runtime.port <= 65535):
         errors.append(f"runtime.port must be 1-65535 (got {config.runtime.port})")
 
-    # Engines
+    # Engines (including third-party plugins)
     valid_engines = {
         "schema": {"native", "pydantic", "msgspec", "attrs"},
-        "storage": {"memory", "sqlite", "sqlalchemy", "redis", "postgres", "mongo"},
+        "storage": {"memory", "sqlite", "sqlalchemy", "redis", "postgres", "mongo", "scylla", "smart_storage"},
         "cache": {"memory", "redis"},
         "serializer": {"json", "msgspec", "orjson"},
         "di": {"native"},

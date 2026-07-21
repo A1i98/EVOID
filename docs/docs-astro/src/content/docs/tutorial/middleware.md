@@ -71,12 +71,13 @@ for route in ["GET:/menu", "POST:/orders", "GET:/orders"]:
 ## Apply Globally
 
 ```python
-from evoid.core.extend import before_all
-from evoid import Level
+from evoid.core.extend import before
 
-# Apply to all standard-level intents
-before_all("rate_limit", level=Level.STANDARD)
-before_all("log_request", level=Level.STANDARD)
+# Apply to specific intents
+before("GET:/menu", "rate_limit")
+before("POST:/orders", "rate_limit")
+before("GET:/menu", "log_request")
+before("POST:/orders", "log_request")
 ```
 
 ## Insert Relative to Processors
@@ -105,7 +106,6 @@ replace_pipeline("GET:/health", ["handle_health"])
 | Concept | What It Is |
 |---------|-----------|
 | `before()` / `after()` | Inject at pipeline start/end |
-| `before_all()` | Apply to all intents at a level |
 | `before_processor()` / `after_processor()` | Insert relative to specific steps |
 | `replace_pipeline()` | Swap the entire chain |
 | Cross-cutting concerns | Logging, rate limiting, timing as processors |

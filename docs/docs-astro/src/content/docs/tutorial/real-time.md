@@ -27,7 +27,7 @@ async def handle_connect(ctx):
 
 @ws_app.on("message")
 async def handle_message(ctx):
-    data = ctx.metadata.get("data", {})
+    data = ctx.intent.metadata.get("data", {})
     if data.get("type") == "track_order":
         order_id = data.get("order_id")
         # Send live updates

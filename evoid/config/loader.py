@@ -44,6 +44,8 @@ class EnginesConfig:
     logger: str = "structlog"
     metrics: str = "simple"
     auth: str = "simple"
+    # Per-engine config options (e.g. redis url, sqlite db_path)
+    options: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 @dataclass
@@ -89,6 +91,12 @@ def _parse_config(data: dict[str, Any]) -> EvoidConfig:
     engines_data = data.get("engines", {})
     pipeline_data = data.get("pipeline", {})
 
+    # Extract sub-tables as per-engine options
+    engine_options: dict[str, dict[str, Any]] = {}
+    for key, value in engines_data.items():
+        if isinstance(value, dict):
+            engine_options[key] = value
+
     return EvoidConfig(
         service=ServiceConfig(
             name=service_data.get("name", "evoid-service"),
@@ -108,6 +116,7 @@ def _parse_config(data: dict[str, Any]) -> EvoidConfig:
             logger=engines_data.get("logger", "structlog"),
             metrics=engines_data.get("metrics", "simple"),
             auth=engines_data.get("auth", "simple"),
+            options=engine_options,
         ),
         pipeline=PipelineConfig(
             processors=pipeline_data.get("processors", ["validate", "authorize"]),

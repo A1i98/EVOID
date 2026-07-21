@@ -49,7 +49,7 @@ from evoid.core import Context
 
 async def validate_inventory(intent: Intent, ctx: Context) -> dict:
     """Check if sandwich is in stock."""
-    body = ctx.metadata.get("body", {})
+    body = ctx.intent.metadata.get("body", {})
     sandwich = body.get("sandwich")
     qty = body.get("quantity", 1)
 

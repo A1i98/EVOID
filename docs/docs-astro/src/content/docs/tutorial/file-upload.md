@@ -108,7 +108,7 @@ from evoid.core import Context
 
 
 async def validate_upload(ctx: Context) -> dict:
-    files = ctx.metadata.get("files", {})
+    files = ctx.intent.metadata.get("files", {})
 
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
     ALLOWED_TYPES = {"image/jpeg", "image/png", "application/pdf"}
@@ -124,7 +124,7 @@ async def validate_upload(ctx: Context) -> dict:
 
 
 async def process_upload(ctx: Context) -> dict:
-    files = ctx.metadata.get("files", {})
+    files = ctx.intent.metadata.get("files", {})
     results = []
 
     for key, info in files.items():
@@ -148,7 +148,7 @@ app = Service("api")
 
 @post("/upload")
 async def upload() -> dict:
-    files = ctx.metadata.get("files", {})
+    files = ctx.intent.metadata.get("files", {})
     return {"uploaded": len(files)}
 
 before("POST:/upload", "validate_upload")
@@ -168,7 +168,7 @@ app = Service("api")
 class DocumentController:
     @POST("/upload")
     async def upload(self) -> dict:
-        files = ctx.metadata.get("files", {})
+        files = ctx.intent.metadata.get("files", {})
         return {"uploaded": len(files)}
 ```
 

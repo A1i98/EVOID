@@ -68,3 +68,46 @@ def _evict_oldest() -> None:
     if _cache:
         oldest_key = next(iter(_cache))
         del _cache[oldest_key]
+
+
+async def exists(key: str) -> bool:
+    """Check if key exists in cache."""
+    return key in _cache
+
+
+def register_handlers() -> None:
+    """Register memory cache as Intent handlers."""
+    from ...core import register, register_processor
+    from ...core.intents import CACHE_GET, CACHE_SET, CACHE_DELETE, CACHE_EXISTS, CACHE_HEALTH
+
+    async def handle_get(ctx):
+        key = ctx.intent.metadata.get("key")
+        return await get(key)
+
+    async def handle_set(ctx):
+        key = ctx.intent.metadata.get("key")
+        value = ctx.intent.metadata.get("value")
+        ttl = ctx.intent.metadata.get("ttl")
+        return await set(key, value, ttl)
+
+    async def handle_delete(ctx):
+        key = ctx.intent.metadata.get("key")
+        return await delete(key)
+
+    async def handle_exists(ctx):
+        key = ctx.intent.metadata.get("key")
+        return await exists(key)
+
+    async def handle_health(ctx):
+        return await health()
+
+    register(CACHE_GET)
+    register(CACHE_SET)
+    register(CACHE_DELETE)
+    register(CACHE_EXISTS)
+    register(CACHE_HEALTH)
+    register_processor("cache.get", handle_get)
+    register_processor("cache.set", handle_set)
+    register_processor("cache.delete", handle_delete)
+    register_processor("cache.exists", handle_exists)
+    register_processor("cache.health", handle_health)

@@ -119,7 +119,7 @@ from evoid.core import Context
 
 
 async def validate_registration(ctx: Context) -> dict:
-    form = ctx.metadata.get("form", {})
+    form = ctx.intent.metadata.get("form", {})
 
     required = ["username", "email", "password"]
     missing = [f for f in required if f not in form]
@@ -131,7 +131,7 @@ async def validate_registration(ctx: Context) -> dict:
 
 
 async def create_user(ctx: Context) -> dict:
-    form = ctx.metadata.get("form", {})
+    form = ctx.intent.metadata.get("form", {})
     return {"status": "created", "username": form["username"]}
 ```
 

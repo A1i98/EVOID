@@ -65,9 +65,11 @@ from evoid.processors import rate_limiter
 register_processor("rate_limiter", rate_limiter)
 
 # Apply to all standard endpoints
-from evoid.core.extend import before_all
-from evoid import Level
-before_all("rate_limiter", level=Level.STANDARD)
+from evoid.core.extend import before
+
+# Apply to specific intents
+before("GET:/menu", "rate_limiter")
+before("POST:/orders", "rate_limiter")
 ```
 
 ## Bounded State
@@ -127,10 +129,12 @@ register_processor("report_metrics", report_metrics)
 Apply globally:
 
 ```python
-from evoid.core.extend import before_all
+from evoid.core.extend import before
 
-before_all("monitor_pipeline", level=Level.STANDARD)
-before_all("monitor_pipeline", level=Level.CRITICAL)
+# Apply to specific intents
+before("GET:/menu", "monitor_pipeline")
+before("POST:/orders", "monitor_pipeline")
+before("POST:/payment", "monitor_pipeline")
 ```
 
 ## Profiling Slow Processors

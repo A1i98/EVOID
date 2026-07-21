@@ -81,7 +81,7 @@ from evoid.core import Context
 
 
 async def auth_check(ctx: Context) -> dict:
-    cookies = ctx.metadata.get("cookies", {})
+    cookies = ctx.intent.metadata.get("cookies", {})
     session_id = cookies.get("session_id")
 
     if not session_id:
@@ -114,7 +114,7 @@ from evoid.core import Context
 
 
 async def require_session(ctx: Context) -> dict:
-    cookies = ctx.metadata.get("cookies", {})
+    cookies = ctx.intent.metadata.get("cookies", {})
     if "session_id" not in cookies:
         raise ValueError("Authentication required")
     return {"authenticated": True}

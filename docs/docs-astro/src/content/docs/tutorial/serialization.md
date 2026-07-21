@@ -66,7 +66,7 @@ async def get_order(order_id: int) -> dict:
 For complex types, register a custom serializer:
 
 ```python
-from evoid.engines.serializer import register_serializer
+from evoid.engines.serializer import set_serializer
 
 class Money:
     def __init__(self, amount: float, currency: str = "USD"):
@@ -78,7 +78,7 @@ def serialize_money(obj):
         return {"amount": obj.amount, "currency": obj.currency}
     return None
 
-register_serializer("money", serialize_money)
+set_serializer("money", serialize_money)
 ```
 
 ## Schema Export

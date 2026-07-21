@@ -1,35 +1,35 @@
 # EVOID Web Overview
 
-## EVOID چیست؟
+## What is EVOID?
 
-EVOID یک runtime مرجع برای Intent-Oriented Programming (IOP) هست. داده‌هات به سیستم میگن چی میخوان. Runtime مدیریت می‌کنه چطور انجام بشه.
+EVOID is the reference runtime for Intent-Oriented Programming (IOP). Your data tells the system what it wants. The runtime handles how to execute it.
 
-## ویژگی‌های کلیدی
+## Key Features
 
-| ویژگی | توضیح |
-|-------|-------|
-| **Intent-Driven** | داده اعلام می‌کنه چی میخواد، runtime تصمیم می‌گیره چطور انجام بده |
-| **Async-Native** | پشتیبانی کامل async/await |
-| **Plugin-Based** | هر engine قابل تعویض هست |
-| **Pipeline Composition** | Processorها توابع خالص هستن که کنار هم قرار می‌گیرن |
+| Feature | Description |
+|---------|-------------|
+| **Intent-Driven** | Data declares intent, runtime decides execution |
+| **Async-Native** | Full async/await support |
+| **Plugin-Based** | Every engine is replaceable |
+| **Pipeline Composition** | Processors are pure functions composed together |
 | **Multi-Adapter** | ASGI, CLI, Telegram, Robyn, WebSocket |
-| **Zero Overhead** | IOP بدون هزینه اضافی اجرا میشه |
+| **Zero Overhead** | IOP executes with no extra cost |
 
-## نصب
+## Install
 
 ```bash
 uv add evoid
 ```
 
-یا با pip:
+Or with pip:
 
 ```bash
 pip install evoid
 ```
 
-الزامی: Python 3.13+
+Requires: Python 3.12+
 
-## مثال اولیه
+## Basic Example
 
 ### @route (Function-based)
 
@@ -72,17 +72,20 @@ class UserController:
 ### Native (Full Control)
 
 ```python
-from evoid import Intent, Level, add_intent
+from evoid.native import create_service, on
+from evoid import Intent, Level
 
-MY_INTENT = Intent(name="get_user", level=Level.STANDARD)
+app = create_service("my-api")
 
-async def handler(intent: Intent) -> dict:
+GET_USER = Intent(name="get_user", level=Level.STANDARD)
+
+async def get_user(intent: Intent) -> dict:
     return {"id": 1, "name": "Alice"}
 
-add_intent(MY_INTENT, handler)
+on(app, GET_USER, get_user)
 ```
 
-## اجرا
+## Running
 
 ```bash
 evo init my-api
@@ -91,31 +94,31 @@ evo service new api
 evo service run api
 ```
 
-سرور در `http://0.0.0.0:8000` شروع میشه.
+Server starts at `http://0.0.0.0:8000`.
 
-## چیزی که با یک declaration دریافت می‌کنی
+## What You Get From One Declaration
 
-با یک declaration ساده از type:
-- **Editor support** — completion، type checks
-- **Validation** — اعتبارسنجی خودکار با خطاهای واضح
-- **Input conversion** — JSON، path params، query params، cookies، headers
+With a single type declaration:
+- **Editor support** — completion, type checks
+- **Validation** — automatic validation with clear errors
+- **Input conversion** — JSON, path params, query params, cookies, headers
 - **Output conversion** — Python types → JSON
-- **Pipeline execution** — processorها به ترتیب اجرا میشن
+- **Pipeline execution** — processors run in sequence
 
 ## Intent Levels
 
 | Level | Pipeline | Timeout | Use Case |
 |-------|----------|---------|----------|
-| `ephemeral` | `validate` | 5s | Cache، sessions، داده موقت |
-| `standard` | `validate`, `authorize` | 10s | پروفایل کاربر، پست، نظرات |
-| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | پرداخت، پزشکی، حقوقی |
+| `ephemeral` | `validate` | 5s | Cache, sessions, temporary data |
+| `standard` | `validate`, `authorize` | 10s | User profile, posts, comments |
+| `critical` | `validate`, `authorize`, `audit`, `protect` | 30s | Payments, medical, legal |
 
-## تفاوت EVOID با FastAPI
+## EVOID vs FastAPI
 
-| جنبه | FastAPI | EVOID |
-|------|---------|-------|
-| پارادایم | OOP + FP | IOP |
-| جریان داده | Request → Response | Intent → Pipeline → Result |
+| Aspect | FastAPI | EVOID |
+|--------|---------|-------|
+| Paradigm | OOP + FP | IOP |
+| Data Flow | Request → Response | Intent → Pipeline → Result |
 | Extension | Middleware | Pipeline Extension (before/after) |
 | Communication | HTTP | Intent-based (Message Bus) |
 | State | Request-scoped | Context (mutable databag) |

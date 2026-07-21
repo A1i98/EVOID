@@ -72,7 +72,7 @@ register_processor("add_item", handle_add_item)
 Each Intent gets a pipeline. The default pipeline depends on the level:
 
 ```python
-from evoid.core.resolve import resolve_pipeline
+from evoid.core.extend import resolve_pipeline
 
 # See what pipeline each intent gets
 config = resolve_pipeline(VIEW_MENU)

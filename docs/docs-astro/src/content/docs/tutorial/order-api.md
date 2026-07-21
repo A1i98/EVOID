@@ -69,7 +69,7 @@ CREATE_ORDER = Intent(
 
 # 2. Wraps your function — extracts body, validates with Pydantic
 async def processor(ctx: Context) -> dict:
-    body = ctx.metadata.get("body", {})
+    body = ctx.intent.metadata.get("body", {})
     order = CreateOrder(**body)  # Pydantic validates here
     return await create_order(order)
 

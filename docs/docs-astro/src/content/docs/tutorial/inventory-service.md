@@ -12,40 +12,34 @@ description: '@controller for grouping — inventory management across locations
 Group related routes under a prefix:
 
 ```python
-from evoid.web.controller import Controller
+from evoid.web.controller import Service, Controller, GET, POST, PUT
 from evoid import Intent, Level
 
-inventory = Controller("/inventory")
+app = Service("inventory-service")
 
-@inventory.get("/")
-async def list_inventory(intent):
-    location = intent.metadata.get("location", "all")
-    return {"location": location, "items": []}
+@Controller("/inventory")
+class InventoryController:
+    @GET("/")
+    async def list_inventory(self, location: str = "all") -> dict:
+        return {"location": location, "items": []}
 
-@inventory.get("/{item_id}")
-async def get_item(intent):
-    item_id = intent.metadata.get("item_id")
-    return {"id": item_id, "name": "BLT Kit", "stock": 50}
+    @GET("/{item_id}")
+    async def get_item(self, item_id: int) -> dict:
+        return {"id": item_id, "name": "BLT Kit", "stock": 50}
 
-@inventory.post("/restock")
-async def restock(intent):
-    body = intent.metadata.get("body", {})
-    item_id = body.get("item_id")
-    qty = body.get("qty", 0)
-    return {"status": "restocked", "item_id": item_id, "added": qty}
+    @POST("/restock")
+    async def restock(self, item_id: int, qty: int = 0) -> dict:
+        return {"status": "restocked", "item_id": item_id, "added": qty}
 
-@inventory.put("/{item_id}")
-async def update_stock(intent):
-    item_id = intent.metadata.get("item_id")
-    body = intent.metadata.get("body", {})
-    new_stock = body.get("stock", 0)
-    return {"status": "updated", "item_id": item_id, "stock": new_stock}
+    @PUT("/{item_id}")
+    async def update_stock(self, item_id: int, stock: int = 0) -> dict:
+        return {"status": "updated", "item_id": item_id, "stock": stock}
 ```
 
 ## What @controller Does Under the Hood
 
 ```python
-# @controller("/inventory") + @get("/") creates:
+# @controller("/inventory") + @GET("/") creates:
 INVENTORY_LIST = Intent(
     name="GET:/inventory/",
     level=Level.STANDARD,
@@ -61,7 +55,7 @@ Same as @route — Intents are auto-created. @controller just adds a prefix.
 |---|--------|-------------|
 | Grouping | None | Prefix-based |
 | Best for | Small APIs | Large APIs, domain grouping |
-| Syntax | `@get("/path")` | `Controller("/prefix")` + `@.get("/path")` |
+| Syntax | `@get("/path")` | `@Controller("/prefix")` class with `@GET`/`@POST` |
 
 ## Middleware on Controllers
 

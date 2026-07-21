@@ -22,6 +22,9 @@ from .events import Event, EventContext, on as on_event, off as off_event, emit,
 # Schema Export
 from .schema import IntentSchema, FieldSchema, export_schemas, export_schema_for, export_json_schemas, export_json_schema
 
+# Convenience functions (Intent-based engine access)
+from . import intents, storage, cache
+
 __all__ = [
     # Intent
     "Intent",

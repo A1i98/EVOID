@@ -147,7 +147,7 @@ async def handle_player_join(ctx: Context) -> dict:
     # Track connection
     if room_id not in connections:
         connections[room_id] = {}
-    connections[room_id][player_id] = ctx.metadata.get("websocket")
+    connections[room_id][player_id] = ctx.intent.metadata.get("websocket")
 
     # Broadcast join
     await broadcast_to_room(room_id, {

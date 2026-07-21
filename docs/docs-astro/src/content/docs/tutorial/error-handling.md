@@ -81,7 +81,7 @@ Use `ctx.errors` to collect warnings without stopping:
 ```python
 async def validate_optional(intent: Intent, ctx: Context) -> dict:
     try:
-        validate(ctx.metadata.get("body"))
+        validate(ctx.intent.metadata.get("body"))
     except ValidationError as e:
         ctx.errors.append(e)
         # Pipeline continues

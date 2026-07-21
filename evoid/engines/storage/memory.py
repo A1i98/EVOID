@@ -38,3 +38,34 @@ async def health() -> bool:
 def clear() -> None:
     """Clear all stored data."""
     _store.clear()
+
+
+def register_handlers() -> None:
+    """Register memory storage as Intent handlers."""
+    from ...core import register, register_processor
+    from ...core.intents import STORAGE_READ, STORAGE_WRITE, STORAGE_DELETE, STORAGE_HEALTH
+
+    async def handle_read(ctx):
+        key = ctx.intent.metadata.get("key")
+        return await read(key)
+
+    async def handle_write(ctx):
+        key = ctx.intent.metadata.get("key")
+        value = ctx.intent.metadata.get("value")
+        return await write(key, value)
+
+    async def handle_delete(ctx):
+        key = ctx.intent.metadata.get("key")
+        return await delete(key)
+
+    async def handle_health(ctx):
+        return await health()
+
+    register(STORAGE_READ)
+    register(STORAGE_WRITE)
+    register(STORAGE_DELETE)
+    register(STORAGE_HEALTH)
+    register_processor("storage.read", handle_read)
+    register_processor("storage.write", handle_write)
+    register_processor("storage.delete", handle_delete)
+    register_processor("storage.health", handle_health)

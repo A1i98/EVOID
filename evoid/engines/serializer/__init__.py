@@ -6,13 +6,13 @@ Just implement the Serializer protocol and register it.
 
 from __future__ import annotations
 
-from ...contracts.serializer import Serializer
+from ...contracts.serializer import SerializerEngine
 
 # Global registry
-_serializer: Serializer | None = None
+_serializer: SerializerEngine | None = None
 
 
-def get_serializer() -> Serializer:
+def get_serializer() -> SerializerEngine:
     """Get the active serializer. Falls back to stdlib json."""
     global _serializer
     if _serializer is not None:
@@ -41,7 +41,7 @@ def get_serializer() -> Serializer:
     return JsonSerializer()
 
 
-def set_serializer(serializer: Serializer) -> None:
+def set_serializer(serializer: SerializerEngine) -> None:
     """Register a custom serializer.
 
     Usage:

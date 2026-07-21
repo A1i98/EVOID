@@ -70,7 +70,7 @@ from evoid.core import Context
 
 
 async def check_api_key(ctx: Context) -> dict:
-    headers = ctx.metadata.get("headers", {})
+    headers = ctx.intent.metadata.get("headers", {})
     api_key = headers.get("x-api-key")
 
     if not api_key:
@@ -83,7 +83,7 @@ async def check_api_key(ctx: Context) -> dict:
 
 
 async def rate_limiter(ctx: Context) -> dict:
-    headers = ctx.metadata.get("headers", {})
+    headers = ctx.intent.metadata.get("headers", {})
     client_ip = headers.get("x-forwarded-for", "unknown")
 
     if is_rate_limited(client_ip):

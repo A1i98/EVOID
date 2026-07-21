@@ -146,7 +146,7 @@ def _intent_from_request(
         level = Level.EPHEMERAL
 
     # Create intent name from method + path
-    name = f"{method.lower()}:{path}"
+    name = f"{method.upper()}:{path}"
 
     return Intent(
         name=name,

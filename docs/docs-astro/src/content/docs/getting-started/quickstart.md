@@ -9,7 +9,7 @@ Build a working EVOID API in 5 minutes.
 
 ## Prerequisites
 
-- Python 3.13 or higher
+- Python 3.12 or higher
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Step 1: Install & Create
@@ -108,7 +108,7 @@ curl -X POST http://localhost:8000/users?name=Ali&email=ali@example.com
 
     # Your handler is wrapped as a processor:
     async def processor(ctx: Context) -> dict:
-        params = ctx.metadata.get("params", {})
+        params = ctx.intent.metadata.get("params", {})
         return await get_user(**params)  # Your original function
     ```
 

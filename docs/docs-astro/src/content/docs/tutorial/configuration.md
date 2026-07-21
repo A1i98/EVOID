@@ -88,11 +88,12 @@ config = Config(
 Set default pipeline behavior per level:
 
 ```python
-from evoid.core.resolver import set_default_pipeline
+from evoid.core.extend import replace_pipeline
 
-set_default_pipeline("ephemeral", ["validate"], timeout=5.0)
-set_default_pipeline("standard", ["validate", "authorize"], timeout=10.0)
-set_default_pipeline("critical", ["validate", "authorize", "audit"], timeout=30.0)
+# Override pipeline for specific intents
+replace_pipeline("cache_check", ["validate"])
+replace_pipeline("get_user", ["validate", "authorize"])
+replace_pipeline("process_payment", ["validate", "authorize", "audit"])
 ```
 
 ## What You Learned
