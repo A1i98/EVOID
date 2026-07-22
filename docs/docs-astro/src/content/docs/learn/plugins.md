@@ -220,15 +220,35 @@ uv add evoid-smart-storage
 | Plugin | Package | Description |
 |--------|---------|-------------|
 | Base | `evoid-base` | Shared protocols (StorageEngine, CacheEngine, LoggerEngine) |
+| DI | `evoid-di` | Dependency injection with fault tolerance |
 | SQLite | `evoid-sqlite` | SQLite storage engine |
 | Redis | `evoid-redis` | Redis cache with TTL |
 | PostgreSQL | `evoid-postgresql` | PostgreSQL via SQLAlchemy + asyncpg |
 | ScyllaDB | `evoid-scylla` | ScyllaDB/Cassandra storage |
 | Smart Storage | `evoid-smart-storage` | Multi-DB routing, schema enforcement, multi-tenancy |
-| DI | `evoid-di` | Dependency injection — simple, scoped, or context-aware |
 | Auth | `evoid-auth` | Bring your own auth provider |
 | Tasks | `evoid-tasks` | Background tasks + structured logging |
 | Dashboard | `evoid-dashboard` | Monitoring UI — service map, DB viewer, logs |
+| Cluster | `evoid-cluster` | Multi-node clustering with failover |
+| Godot | `evoid-godot` | Godot game integration adapter |
+| Scheduler | `evoid-scheduler` | Priority-aware scheduler with adaptive concurrency |
+| Transport | `evoid-transport` | Low-latency UDP transport (Rust core) |
+
+### DI Integration
+
+All plugins integrate with `evoid-di` for automatic service discovery and fault tolerance:
+
+```python
+from evoid_di import di
+
+# Plugins register themselves with DI
+di.register("storage.sqlite", SQLiteStorage, scope="singleton")
+di.register("cache.redis", RedisCache, scope="singleton")
+
+# Resolve with automatic fallback
+storage = di.resolve_with_fallback("storage.postgresql")
+# Tries: postgresql → sqlite → redis → cluster peers → None
+```
 
 ### Smart Storage Example
 
@@ -239,24 +259,23 @@ Routes data to different backends based on type, level, or user:
 storage = "smart_storage"
 
 [engines.smart_storage.mapping]
-credentials = "postgresql"   # Sensitive data → PostgreSQL
-session = "redis"            # Sessions → Redis
-logs = "memory"              # Logs → Memory
+credentials = "cache.redis"   # Sensitive data → Redis
+session = "storage.sqlite"    # Sessions → SQLite
+logs = "storage.postgresql"   # Logs → PostgreSQL
 
 [engines.smart_storage.level_routing]
-critical = "postgresql"      # Critical intents → PostgreSQL
-standard = "sqlite"          # Standard → SQLite
+CRITICAL = "storage.postgresql"  # Critical intents → PostgreSQL
+STANDARD = "storage.sqlite"      # Standard → SQLite
 ```
 
 ### DI Engine Example
 
-Three levels of complexity in one package:
+Three levels of complexity with fault tolerance:
 
 ```python
-from evoid_di import DIEngine
+from evoid_di import di
 
 # Level 1: Simple
-di = DIEngine()
 di.register("db", create_db)
 db = di.resolve("db")
 
@@ -266,7 +285,27 @@ di.register("session", create_session, scope="per_user")
 
 # Level 3: Context-aware routing
 di = DIEngine(rules_config=rules, implementations=impls)
-instance = await di.resolve("notifier", ctx)  # Routes by level/role
+instance = await di.resolve("notifier", ctx)
+
+# Fault tolerance
+di.set_fallback("storage.postgresql", ["storage.sqlite", "cache.redis"])
+storage = di.resolve_with_fallback("storage.postgresql")
+```
+
+### Cluster Integration
+
+Cluster nodes share services automatically via DI:
+
+```python
+from evoid_cluster import ClusterBridge
+
+bridge = ClusterBridge(config)
+await bridge.start()
+
+# Cluster connects its registry to DI
+# Remote services become available as fallbacks
+storage = di.resolve("storage.postgresql")
+# If not local, checks cluster peers automatically
 ```
 
 ### Auth Example

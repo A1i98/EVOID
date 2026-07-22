@@ -149,19 +149,18 @@ standard = "sqlite"           # Profiles → SQLite (simple)
 
 ---
 
-### evoid-di — Dependency Injection
+### evoid-di — Dependency Injection with Fault Tolerance
 
-Three levels of complexity in one package. From "give me the thing" to "give me the right thing based on who's asking."
+Three levels of complexity plus automatic failover, health checking, and cluster integration.
 
 ```bash
 evo install di
 ```
 
 ```python
-from evoid_di import DIEngine
+from evoid_di import di
 
 # Level 1: Simple — name in, instance out
-di = DIEngine()
 di.register("db", create_db)
 db = di.resolve("db")
 
@@ -172,23 +171,36 @@ di.register("session", create_session, scope="per_user")
 # Level 3: Context-aware — different impl based on Intent level
 di = DIEngine(rules_config=rules, implementations=impls)
 instance = await di.resolve("notifier", ctx)
-# CRITICAL intent → EmailNotifier
-# STANDARD intent → SlackNotifier
-# EPHEMERAL intent → LogNotifier
 ```
 
-!!! example "IOP: context-aware DI"
-    ```python
-    # Same interface, different implementations per level
-    rules = [
-        Rule(condition="level == CRITICAL", target="email_notifier"),
-        Rule(condition="level == STANDARD", target="slack_notifier"),
-    ]
-    
-    # The Intent declares its level. DI decides which notifier to inject.
-    # Your processor just calls ctx.deps["notifier"].send(...)
-    # No switch/case. No config reading. The pipeline does it.
-    ```
+**Fault Tolerance:**
+
+```python
+# Define fallback chain
+di.set_fallback("storage.postgresql", ["storage.sqlite", "cache.redis"])
+
+# Health checking
+di.set_health_check("cache.redis", lambda: redis.ping())
+
+# Auto-fallback on failure (never crashes)
+storage = di.resolve_with_fallback("storage.postgresql")
+# Tries: postgresql → sqlite → redis → cluster peers → None
+
+# Resolve first available from list
+cache = di.resolve_any("cache.redis", "cache.memory", "storage.sqlite")
+```
+
+**Cluster Integration:**
+
+```python
+# Connect cluster registry for remote resolution
+from evoid_cluster import ServiceRegistry
+di.set_cluster_registry(cluster._registry)
+
+# Remote services become fallbacks automatically
+storage = di.resolve("storage.postgresql")
+# If not local, checks cluster peers
+```
 
 ---
 

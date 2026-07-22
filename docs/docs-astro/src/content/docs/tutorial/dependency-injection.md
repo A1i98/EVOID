@@ -191,13 +191,12 @@ class OrderController:
 
 ## Plugins and DI
 
-The `evoid-di` plugin takes this further — three levels of dependency injection:
+The `evoid-di` plugin takes this further — three levels of dependency injection with fault tolerance:
 
 ```python
-from evoid_di import DIEngine
+from evoid_di import di
 
 # Level 1: Simple — name in, instance out
-di = DIEngine()
 di.register("db", create_db)
 db = di.resolve("db")
 
@@ -211,6 +210,74 @@ di = DIEngine(rules_config=rules, implementations=impls)
 # STANDARD intent → SQLite (simple, fast)
 # EPHEMERAL intent → Redis (temporary, fast)
 ```
+
+### Fault Tolerance
+
+DI provides automatic failover when services fail:
+
+```python
+# Define fallback chain
+di.set_fallback("storage.postgresql", ["storage.sqlite", "cache.redis"])
+
+# Health checking
+di.set_health_check("cache.redis", lambda: redis.ping())
+
+# Auto-fallback on failure (never crashes)
+storage = di.resolve_with_fallback("storage.postgresql")
+# Tries: postgresql → sqlite → redis → cluster peers → None
+
+# Resolve first available from list
+cache = di.resolve_any("cache.redis", "cache.memory", "storage.sqlite")
+```
+
+### Cluster Integration
+
+Cluster nodes share services via DI:
+
+```python
+from evoid_cluster import ClusterBridge
+
+bridge = ClusterBridge(config)
+await bridge.start()
+
+# Cluster connects its registry to DI
+# Remote services become available as fallbacks
+storage = di.resolve("storage.postgresql")
+# If not local, checks cluster peers automatically
+```
+
+### Creating Plugins with DI
+
+All official plugins register with DI automatically. To create your own:
+
+```python
+from evoid_di import di
+
+def register_handlers(config=None):
+    # 1. Register with DI
+    di.register("storage.mydb", lambda: MyStorage(config), scope="singleton")
+
+    # 2. Define fallback chain
+    di.set_fallback("storage.mydb", ["storage.sqlite", "cache.redis"])
+
+    # 3. Optional: health check
+    di.set_health_check("storage.mydb", lambda: my_storage.ping())
+
+    # 4. Wire to EVOID intents
+    from evoid.core import register as register_intent, register_processor
+
+    async def handle_read(ctx):
+        storage = di.resolve("storage.mydb")  # resolve via DI
+        return await storage.read(ctx.intent.metadata.get("key"))
+
+    register_processor("storage.read", handle_read)
+```
+
+**Benefits:**
+- Automatic fallback when service fails
+- Load balancing across cluster nodes
+- Health checking and auto-reconnect
+- Smart-storage integration
 
 !!! example "IOP: level-aware DI"
     ```python
