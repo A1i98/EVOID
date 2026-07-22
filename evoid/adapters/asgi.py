@@ -195,14 +195,7 @@ def run(
 # Route decorators — adapter-specific
 # ============================================================
 
-def _create_intent(method: str, path: str, level: str = "standard") -> Intent:
-    """Create Intent from HTTP method + path."""
-    intent_level = Level(level) if level in ("ephemeral", "standard", "critical") else Level.STANDARD
-    return Intent(
-        name=f"{method.upper()}:{path}",
-        level=intent_level,
-        metadata={"method": method, "path": path},
-    )
+from ..web._shared import create_intent as _create_intent
 
 
 def get(path: str, level: str = "standard") -> Callable:

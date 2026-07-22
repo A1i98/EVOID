@@ -36,12 +36,3 @@ def intent_from_args(
             "kwargs": kwargs or {},
         },
     )
-
-
-def response_from_result(result: Any) -> str:
-    """Convert pipeline result to CLI output."""
-    if isinstance(result, str):
-        return result
-    if isinstance(result, dict):
-        return " ".join(f"{k}={v}" for k, v in result.items())
-    return str(result)
