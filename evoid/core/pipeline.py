@@ -15,6 +15,27 @@ from typing import Any
 from .context import Context
 from .processor import Processor
 
+
+def _check_rejection(result: Any, name: str) -> Exception | None:
+    """Check if a processor result signals rejection.
+
+    Returns an Exception if rejected, None if ok.
+    Security processors return {"authorized": False} on rejection.
+    Schema processors return {"validated": False} on failure.
+    """
+    if not isinstance(result, dict):
+        return None
+
+    if result.get("authorized") is False:
+        reason = result.get("reason", "unauthorized")
+        return PermissionError(f"Rejected by {name}: {reason}")
+
+    if result.get("validated") is False:
+        error_msg = result.get("error", "validation failed")
+        return ValueError(f"Validation failed in {name}: {error_msg}")
+
+    return None
+
 # Lazy import to avoid circular dependency
 _events = None
 
@@ -90,6 +111,25 @@ async def execute(
                         processor(context),
                         timeout=timeout,
                     )
+
+                    # Check if processor signals rejection
+                    rejection = _check_rejection(result, name)
+                    if rejection:
+                        steps.append(ProcessorResult(
+                            name=name,
+                            duration=time.monotonic() - step_start,
+                            input_state=input_state,
+                            output_state=context.state.copy(),
+                            success=False,
+                            error=rejection,
+                        ))
+                        return Result(
+                            success=False,
+                            error=rejection,
+                            steps=tuple(steps),
+                            duration=time.monotonic() - start,
+                        )
+
                     ran.append(name)
                     steps.append(ProcessorResult(
                         name=name,
@@ -147,6 +187,17 @@ async def execute(
                         processor(context),
                         timeout=timeout,
                     )
+
+                    # Check if processor signals rejection
+                    rejection = _check_rejection(result, name)
+                    if rejection:
+                        return Result(
+                            success=False,
+                            error=rejection,
+                            processors=tuple(ran),
+                            duration=time.monotonic() - start,
+                        )
+
                     ran.append(name)
                 except TimeoutError:
                     return Result(
@@ -173,6 +224,17 @@ async def execute(
 
                 try:
                     result = await processor(context)
+
+                    # Check if processor signals rejection
+                    rejection = _check_rejection(result, name)
+                    if rejection:
+                        return Result(
+                            success=False,
+                            error=rejection,
+                            processors=tuple(ran),
+                            duration=time.monotonic() - start,
+                        )
+
                     ran.append(name)
                 except Exception as e:
                     return Result(

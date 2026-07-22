@@ -20,7 +20,9 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from ..core import Context, register, register_processor
+from ..core.extend import replace_pipeline
 from ..core.intent import Intent, Level
+from ..core.resolver import _DEFAULT_PROCESSORS
 from ..core.runtime import execute
 
 # Handler type: takes Intent, returns result
@@ -81,22 +83,25 @@ def create_app(
         # Convert to Intent
         intent = _intent_from_request(method, path, body, headers, query=query)
 
-        # Find handler or use default pipeline
+        # Find handler and inject into pipeline
         handler = _handlers.get(intent.name)
 
         try:
             if handler:
-                result = await handler(intent)
+                # Register handler as processor and compose pipeline
+                register_processor(intent.name, handler)
+                security = _DEFAULT_PROCESSORS.get(intent.level, ())
+                replace_pipeline(intent.name, [*security, intent.name])
+
+            # Always execute through pipeline
+            pipeline_result = await execute(intent)
+            if pipeline_result.success:
+                result = pipeline_result.value
             else:
-                # Execute through pipeline
-                pipeline_result = await execute(intent)
-                if pipeline_result.success:
-                    result = pipeline_result.value
-                else:
-                    return JSONResponse(
-                        {"error": str(pipeline_result.error)},
-                        status_code=500,
-                    )
+                return JSONResponse(
+                    {"error": str(pipeline_result.error)},
+                    status_code=500,
+                )
 
             duration = time.monotonic() - start
 
@@ -186,7 +191,7 @@ def run(
     except ImportError:
         raise ImportError("uvicorn required: pip install uvicorn")
 
-    app = create_app(name=name, handlers=handlers, port=port)
+    app = create_app(name=name, handlers=handlers)
     print(f"Starting {name} on http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
 
@@ -209,6 +214,11 @@ def get(path: str, level: str = "standard") -> Callable:
             return await func(**params)
 
         register_processor(intent.name, processor)
+
+        # Compose full pipeline: security processors + handler
+        security = _DEFAULT_PROCESSORS.get(intent.level, ())
+        replace_pipeline(intent.name, [*security, intent.name])
+
         return func
     return decorator
 
@@ -226,6 +236,11 @@ def post(path: str, level: str = "standard") -> Callable:
             return await func(**body)
 
         register_processor(intent.name, processor)
+
+        # Compose full pipeline: security processors + handler
+        security = _DEFAULT_PROCESSORS.get(intent.level, ())
+        replace_pipeline(intent.name, [*security, intent.name])
+
         return func
     return decorator
 
@@ -243,6 +258,11 @@ def put(path: str, level: str = "standard") -> Callable:
             return await func(**body)
 
         register_processor(intent.name, processor)
+
+        # Compose full pipeline: security processors + handler
+        security = _DEFAULT_PROCESSORS.get(intent.level, ())
+        replace_pipeline(intent.name, [*security, intent.name])
+
         return func
     return decorator
 
@@ -258,5 +278,10 @@ def delete(path: str, level: str = "standard") -> Callable:
             return await func(**params)
 
         register_processor(intent.name, processor)
+
+        # Compose full pipeline: security processors + handler
+        security = _DEFAULT_PROCESSORS.get(intent.level, ())
+        replace_pipeline(intent.name, [*security, intent.name])
+
         return func
     return decorator
