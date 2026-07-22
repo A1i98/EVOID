@@ -141,7 +141,7 @@ def run_app(
         path = route_info["path"]
         handler = route_info["handler"]
 
-        async def make_handler(h, m, p):
+        def make_handler(h, m, p):
             async def route_handler(request: Request) -> Response:
                 body = request.body if hasattr(request, "body") else b""
                 headers = dict(request.headers) if hasattr(request, "headers") else {}

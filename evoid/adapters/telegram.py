@@ -77,7 +77,7 @@ async def run_bot(bot: TelegramBot) -> None:
         handler = bot.handlers.get("message")
 
         if intent.metadata.get("command"):
-            cmd_handler = bot.handlers.get(f"command:/{intent.metadata['command']}")
+            cmd_handler = bot.handlers.get(f"command:{intent.metadata['command']}")
             if cmd_handler:
                 handler = cmd_handler
 

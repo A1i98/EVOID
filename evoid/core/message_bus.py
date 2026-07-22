@@ -8,6 +8,7 @@ No HTTP overhead. Intent-based routing.
 from __future__ import annotations
 
 import asyncio
+import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -19,6 +20,9 @@ Handler = Callable[[Intent], Awaitable[Any]]
 
 # Max history size — prevents unbounded memory growth
 _MAX_HISTORY = 1000
+
+# Thread lock for global state mutations
+_lock = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -47,18 +51,20 @@ def subscribe(topic: str, handler: Handler) -> None:
     - Level (e.g., "critical")
     - Wildcard ("*")
     """
-    _subscriptions.setdefault(topic, []).append(handler)
+    with _lock:
+        _subscriptions.setdefault(topic, []).append(handler)
 
 
 def unsubscribe(topic: str, handler: Handler) -> bool:
     """Unsubscribe from a topic."""
-    if topic in _subscriptions:
-        try:
-            _subscriptions[topic].remove(handler)
-            return True
-        except ValueError:
-            pass
-    return False
+    with _lock:
+        if topic in _subscriptions:
+            try:
+                _subscriptions[topic].remove(handler)
+                return True
+            except ValueError:
+                pass
+        return False
 
 
 async def publish(intent: Intent, source: str = "", target: str = "") -> list[Any]:
@@ -68,8 +74,9 @@ async def publish(intent: Intent, source: str = "", target: str = "") -> list[An
     No HTTP. No serialization. Direct function calls.
     """
     message = Message(intent=intent, source=source, target=target)
-    if len(_history) < _MAX_HISTORY:
-        _history.append(message)
+    with _lock:
+        if len(_history) < _MAX_HISTORY:
+            _history.append(message)
 
     # Find matching handlers
     handlers = _find_handlers(intent)

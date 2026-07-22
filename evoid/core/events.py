@@ -94,10 +94,13 @@ async def emit(event: str, ctx: Any = None, metadata: dict[str, Any] | None = No
     if isinstance(ctx, EventContext):
         event_ctx = ctx
     elif ctx is not None:
+        # Get pipeline from metadata first, then context, then default to ()
+        pipeline = (metadata or {}).get("pipeline", None) or getattr(ctx, "pipeline", ())
+        intent_obj = getattr(ctx, "intent", None)
         event_ctx = EventContext(
-            intent_name=getattr(ctx, "intent_name", getattr(getattr(ctx, "intent", None), "name", "")),
-            intent_level=getattr(ctx, "intent_level", getattr(getattr(ctx, "intent", None), "level", "")).value if hasattr(getattr(getattr(ctx, "intent", None), "level", ""), "value") else str(getattr(getattr(ctx, "intent", None), "level", "")),
-            pipeline=getattr(ctx, "pipeline", ()),
+            intent_name=getattr(ctx, "intent_name", getattr(intent_obj, "name", "")),
+            intent_level=getattr(ctx, "intent_level", getattr(getattr(intent_obj, "level", ""), "value", str(getattr(intent_obj, "level", "")))),
+            pipeline=pipeline,
             timestamp=time.monotonic(),
             metadata=metadata or {},
         )

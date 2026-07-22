@@ -78,11 +78,15 @@ def Controller(prefix: str = "", level: str = "standard") -> Callable:
                     instance = cls()
                     original_method = getattr(instance, attr_name)
 
-                    async def processor(ctx: Context, m=original_method) -> Any:
-                        if "body" not in ctx.metadata:
-                            raise ValueError(f"Controller {cls.__name__}.{attr_name}: missing request body")
-                        body = ctx.metadata["body"]
-                        return await m(**body)
+                    async def processor(ctx: Context, m=original_method, _method=method) -> Any:
+                        if _method in ("POST", "PUT", "PATCH"):
+                            if "body" not in ctx.metadata:
+                                raise ValueError(f"Controller {cls.__name__}.{attr_name}: missing request body")
+                            body = ctx.metadata["body"]
+                            return await m(**body)
+                        else:
+                            params = ctx.metadata.get("params", {})
+                            return await m(**params)
 
                     register_processor(intent.name, processor)
 
@@ -161,10 +165,13 @@ def replace_pipeline(route: str, processors: list[str]) -> None:
 
 async def run(app: App, host: str = "0.0.0.0", port: int = 8000) -> None:
     """Run the @controller app."""
+    import asyncio
     from ..adapters.asgi import create_app
 
     asgi_app = create_app(name=app.name)
 
     import uvicorn
     print(f"Starting {app.name} on http://{host}:{port}")
-    uvicorn.run(asgi_app, host=host, port=port)
+    config = uvicorn.Config(asgi_app, host=host, port=port, log_level="info")
+    server = uvicorn.Server(config)
+    await asyncio.to_thread(server.run)

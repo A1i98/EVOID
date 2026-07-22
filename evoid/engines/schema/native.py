@@ -53,3 +53,12 @@ def schema_of(schema: type) -> dict[str, Any]:
             "fields": {name: str(hint) for name, hint in hints.items()},
         }
     return {"type": schema.__name__ if hasattr(schema, "__name__") else str(schema)}
+
+
+def register_handlers() -> None:
+    """Register native schema engine."""
+    from ..handler import set_handler
+    set_handler("schema", "schema.validate", {})
+    set_handler("schema", "schema.serialize", {})
+    set_handler("schema", "schema.deserialize", {})
+    set_handler("schema", "schema.schema_of", {})

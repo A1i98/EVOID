@@ -238,9 +238,14 @@ def _get_or_create_override(intent_name: str) -> PipelineConfig:
     if intent_name in _pipeline_overrides:
         return _pipeline_overrides[intent_name]
 
-    # Create from default processors
+    # Get level from registered intent
+    from .intent import _registry
+    intent = _registry.get(intent_name)
+    level = intent.level if intent else Level.STANDARD
+
+    # Create from level-appropriate default processors
     return PipelineConfig(
-        processors=_DEFAULT_PROCESSORS.get(Level.STANDARD, ("validate",)),
+        processors=_DEFAULT_PROCESSORS.get(level, ("validate",)),
     )
 
 

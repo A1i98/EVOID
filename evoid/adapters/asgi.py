@@ -77,8 +77,11 @@ def create_app(
             "content-type": request.headers.get("content-type", ""),
         }
 
+        # Get query params
+        query = dict(request.query_params) if hasattr(request, "query_params") else {}
+
         # Convert to Intent
-        intent = _intent_from_request(method, path, body, headers)
+        intent = _intent_from_request(method, path, body, headers, query=query)
 
         # Find handler or use default pipeline
         handler = _handlers.get(intent.name)
@@ -127,6 +130,8 @@ def _intent_from_request(
     path: str,
     body: bytes,
     headers: dict[str, str],
+    query: dict[str, str] | None = None,
+    path_params: dict[str, str] | None = None,
 ) -> Intent:
     """Convert HTTP request to Intent."""
     # Parse body
@@ -148,6 +153,13 @@ def _intent_from_request(
     # Create intent name from method + path
     name = f"{method.upper()}:{path}"
 
+    # Merge path params + query params into metadata
+    params = {}
+    if path_params:
+        params.update(path_params)
+    if query:
+        params.update(query)
+
     return Intent(
         name=name,
         level=level,
@@ -156,6 +168,7 @@ def _intent_from_request(
             "path": path,
             "body": data,
             "headers": headers,
+            "params": params,
         },
     )
 

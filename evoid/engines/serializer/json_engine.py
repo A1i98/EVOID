@@ -39,3 +39,11 @@ def _default(obj: Any) -> Any:
     if hasattr(obj, "__dict__"):
         return obj.__dict__
     return str(obj)
+
+
+def register_handlers() -> None:
+    """Register JSON serializer as the default serializer engine."""
+    from ..handler import set_handler
+    instance = JsonSerializer()
+    set_handler("serializer", "serializer.encode", {"instance": instance})
+    set_handler("serializer", "serializer.decode", {"instance": instance})
