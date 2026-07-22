@@ -119,9 +119,11 @@ async def emit(event: str, ctx: Any = None, metadata: dict[str, Any] | None = No
             if asyncio.iscoroutine(result):
                 await asyncio.wait_for(result, timeout=_HOOK_TIMEOUT)
         except asyncio.TimeoutError:
-            pass
-        except Exception:
-            pass
+            import logging
+            logging.warning("Event '%s' hook timed out after %ss", event, _HOOK_TIMEOUT)
+        except Exception as e:
+            import logging
+            logging.warning("Event '%s' hook raised %s: %s", event, type(e).__name__, e)
 
 
 def emit_sync(event: str, metadata: dict[str, Any] | None = None) -> None:
@@ -140,9 +142,14 @@ def emit_sync(event: str, metadata: dict[str, Any] | None = None) -> None:
 
     for handler in handlers:
         try:
-            handler(event_ctx)
-        except Exception:
-            pass
+            result = handler(event_ctx)
+            if asyncio.iscoroutine(result):
+                import logging
+                logging.warning("Event '%s' hook is async but emit_sync cannot await it", event)
+                result.close()
+        except Exception as e:
+            import logging
+            logging.warning("Event '%s' hook raised %s: %s", event, type(e).__name__, e)
 
 
 def clear_hooks() -> None:

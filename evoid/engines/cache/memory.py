@@ -1,15 +1,16 @@
 """Memory Cache Engine — LRU cache with TTL.
 
-IOP: Simple dict with expiry. No class behavior.
+IOP: OrderedDict-based LRU with expiry.
 """
 
 from __future__ import annotations
 
 import time
+from collections import OrderedDict
 from typing import Any
 
-# Cache entries: key -> (value, expiry_time)
-_cache: dict[str, tuple[Any, float | None]] = {}
+# Cache entries: OrderedDict[key] = (value, expiry_time)
+_cache: OrderedDict[str, tuple[Any, float | None]] = OrderedDict()
 _max_size: int = 1000
 
 
@@ -20,7 +21,7 @@ def configure(max_size: int = 1000) -> None:
 
 
 async def get(key: str) -> Any | None:
-    """Get value from cache."""
+    """Get value from cache (moves to end for LRU)."""
     entry = _cache.get(key)
     if entry is None:
         return None
@@ -30,6 +31,8 @@ async def get(key: str) -> Any | None:
         del _cache[key]
         return None
 
+    # Move to end (most recently used)
+    _cache.move_to_end(key)
     return value
 
 
@@ -37,10 +40,11 @@ async def set(key: str, value: Any, ttl: float | None = None) -> bool:
     """Set value in cache with optional TTL."""
     # Evict if full
     if len(_cache) >= _max_size and key not in _cache:
-        _evict_oldest()
+        _evict_lru()
 
     expiry = time.time() + ttl if ttl else None
     _cache[key] = (value, expiry)
+    _cache.move_to_end(key)
     return True
 
 
@@ -63,11 +67,10 @@ async def health() -> bool:
     return True
 
 
-def _evict_oldest() -> None:
-    """Remove oldest entry."""
+def _evict_lru() -> None:
+    """Remove least recently used entry."""
     if _cache:
-        oldest_key = next(iter(_cache))
-        del _cache[oldest_key]
+        _cache.popitem(last=False)
 
 
 async def exists(key: str) -> bool:

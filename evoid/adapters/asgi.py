@@ -30,14 +30,12 @@ Handler = Callable[[Intent], Awaitable[Any]]
 def create_app(
     name: str = "evoid-service",
     handlers: dict[str, Handler] | None = None,
-    port: int = 8000,
 ) -> Any:
     """Create an ASGI application.
 
     Args:
         name: Service name
         handlers: Intent name → handler function mapping
-        port: Server port
 
     Returns:
         ASGI application (Starlette)
@@ -218,7 +216,6 @@ def get(path: str, level: str = "standard") -> Callable:
             return await func(**params)
 
         register_processor(intent.name, processor)
-        func._evoid_intent = intent
         return func
     return decorator
 
@@ -236,7 +233,6 @@ def post(path: str, level: str = "standard") -> Callable:
             return await func(**body)
 
         register_processor(intent.name, processor)
-        func._evoid_intent = intent
         return func
     return decorator
 
@@ -254,7 +250,6 @@ def put(path: str, level: str = "standard") -> Callable:
             return await func(**body)
 
         register_processor(intent.name, processor)
-        func._evoid_intent = intent
         return func
     return decorator
 
@@ -270,6 +265,5 @@ def delete(path: str, level: str = "standard") -> Callable:
             return await func(**params)
 
         register_processor(intent.name, processor)
-        func._evoid_intent = intent
         return func
     return decorator

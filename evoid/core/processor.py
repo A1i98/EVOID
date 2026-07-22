@@ -31,8 +31,8 @@ def get(name: str) -> Processor | None:
 
 
 def all_processors() -> dict[str, Processor]:
-    """Return all registered processors (reference, not copy)."""
-    return _processors
+    """Return all registered processors (copy, not reference)."""
+    return _processors.copy()
 
 
 def clear_processors() -> None:

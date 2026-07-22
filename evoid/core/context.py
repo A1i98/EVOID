@@ -48,6 +48,6 @@ def fork(ctx: Context) -> Context:
     return Context(
         intent=ctx.intent,
         state=ctx.state.copy(),
-        deps=ctx.deps,
+        deps=ctx.deps.copy(),
         metadata={**ctx.metadata, "parent_id": ctx.id},
     )

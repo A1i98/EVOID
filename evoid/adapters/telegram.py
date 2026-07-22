@@ -23,6 +23,10 @@ class TelegramBot:
     token: str
     handlers: dict[str, Handler] = field(default_factory=dict)
 
+    def on(self, event_type: str, handler: Handler) -> None:
+        """Register handler for event type."""
+        self.handlers[event_type] = handler
+
 
 def create_bot(token: str) -> TelegramBot:
     """Create a Telegram bot."""
@@ -83,11 +87,11 @@ async def run_bot(bot: TelegramBot) -> None:
 
         if handler:
             result = await handler(intent)
-            if result:
+            if result is not None:
                 await message.answer(str(result))
         else:
             pipeline_result = await execute(intent)
-            if pipeline_result.success and pipeline_result.value:
+            if pipeline_result.success and pipeline_result.value is not None:
                 await message.answer(str(pipeline_result.value))
 
     print("Starting Telegram bot...")

@@ -64,7 +64,7 @@ async def execute(
     """
     start = time.monotonic()
     ran: list[str] = []
-    steps: list[ProcessorResult] = [] if inspect else None
+    steps: list[ProcessorResult] = []
     result = None
 
     # Emit pre_execute event (zero cost when no hooks)
