@@ -101,28 +101,30 @@ DELETE_USER = Intent(name="delete_user", level=Level.CRITICAL)
 
 ---
 
-### How Levels Affect Plugins
+### How Levels Affect Pipelines
 
-The level you choose determines which plugins activate:
+The level you choose determines which processors run by default:
 
-| Level | Auth | Audit | Rate Limit | Circuit Breaker | Storage |
-|-------|------|-------|------------|-----------------|---------|
-| Ephemeral | - | - | 100/min | - | Memory/Redis |
-| Standard | Yes | - | 50/min | - | SQLite/Redis |
-| Critical | Yes | Yes | 20/min | Yes | PostgreSQL |
+| Level | Default Pipeline | Timeout |
+|-------|-----------------|---------|
+| Ephemeral | `validate` | 5s |
+| Standard | `validate`, `authorize` | 10s |
+| Critical | `validate`, `authorize`, `audit`, `protect` | 30s |
+
+Processors are just registered functions — you can replace, remove, or add any processor at any level:
 
 ```python
 # Ephemeral: fast path, minimal infrastructure
 CACHE_HIT = Intent(name="cache_hit", level=Level.EPHEMERAL)
-# → validate → handler (5s timeout, memory cache)
+# → validate → handler (5s timeout)
 
 # Standard: balanced, auth required
 GET_USER = Intent(name="get_user", level=Level.STANDARD)
-# → validate → authorize → handler (10s timeout, disk cache)
+# → validate → authorize → handler (10s timeout)
 
 # Critical: full protection, everything logged
 PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
-# → validate → authorize → audit → protect → handler (30s timeout, PostgreSQL)
+# → validate → authorize → audit → protect → handler (30s timeout)
 ```
 
 ---
@@ -140,6 +142,7 @@ The simplest form of IOP. Data is a dict. Processors are functions. The pipeline
 ```python
 from evoid import Intent, Level, execute
 from evoid.core import Context
+from evoid.core.extend import add_intent_with_pipeline
 
 # Level 1: Data is just a dict
 state = {"order_id": "ORD-001", "items": ["pizza", "salad"], "total": 25.99}
@@ -157,15 +160,12 @@ async def calculate_total(ctx: Context) -> dict:
     ctx.state["total"] = total
     return {"total": total}
 
-# Level 1: Register and execute
-from evoid import register_processor
-register_processor("validate_order", validate_order)
-register_processor("calculate_total", calculate_total)
+# Level 1: Register with custom pipeline
+intent = Intent(name="place_order", level=Level.STANDARD)
 
-intent = Intent(
-    name="place_order",
-    level=Level.STANDARD,
-    pipeline=("validate_order", "calculate_total"),
+add_intent_with_pipeline(
+    intent,
+    processors=["validate_order", "calculate_total"],
 )
 
 result = await execute(intent)
@@ -176,6 +176,7 @@ result = await execute(intent)
     ```python
     # Quick data pipeline — no classes, no imports, no ceremony
     from evoid import Intent, Level, execute
+    from evoid.core.extend import add_intent_with_pipeline
     
     async def clean_data(ctx):
         raw = ctx.state["raw"]
@@ -188,15 +189,10 @@ result = await execute(intent)
             f.writerows(data)
         return {"saved": True}
     
-    from evoid import register_processor
-    register_processor("clean", clean_data)
-    register_processor("save", save_to_file)
+    intent = Intent(name="etl_pipeline", level=Level.EPHEMERAL)
+    add_intent_with_pipeline(intent, processors=["clean", "save"])
     
-    result = await execute(Intent(
-        name="etl_pipeline",
-        level=Level.EPHEMERAL,  # Disposable data
-        pipeline=("clean", "save"),
-    ))
+    result = await execute(intent)
     ```
 
 **What you get:** Dicts for data, functions for logic, pipeline for composition.
@@ -243,16 +239,15 @@ async def apply_discount(ctx: Context) -> dict:
     return {"discounted": True}
 
 # Level 2: Pipeline is explicit
-intent = Intent(
-    name="place_order",
-    level=Level.STANDARD,
-    pipeline=("validate_order", "calculate_total", "apply_discount"),
-)
-
 from evoid import register_processor
-register_processor("validate_order", validate_order)
-register_processor("calculate_total", calculate_total)
-register_processor("apply_discount", apply_discount)
+from evoid.core.extend import add_intent_with_pipeline
+
+intent = Intent(name="place_order", level=Level.STANDARD)
+
+add_intent_with_pipeline(
+    intent,
+    processors=["validate_order", "calculate_total", "apply_discount"],
+)
 
 result = await execute(intent)
 ```
@@ -288,8 +283,9 @@ Frozen dataclasses for immutable data. Decorators for registration. Full IOP.
 
 ```python
 from dataclasses import dataclass, field
-from evoid import Intent, Level, execute, register_processor
+from evoid import Intent, Level, execute
 from evoid.core import Context
+from evoid.core.extend import add_intent_with_pipeline
 
 # Level 3: Frozen dataclass — immutable, validated, thread-safe
 @dataclass(frozen=True)
@@ -316,16 +312,17 @@ async def calculate_total(ctx: Context) -> dict:
 PLACE_ORDER = Intent(
     name="place_order",
     level=Level.STANDARD,
-    pipeline=("validate_order", "calculate_total"),
     timeout=10.0,
     priority=0,
 )
 
 # Level 3: Register and execute with full Result
-register_processor("validate_order", validate_order)
-register_processor("calculate_total", calculate_total)
+add_intent_with_pipeline(
+    PLACE_ORDER,
+    processors=["validate_order", "calculate_total"],
+)
 
-result = await execute(PLACE_ORDER, context=Context(intent=PLACE_ORDER))
+result = await execute(PLACE_ORDER)
 
 if result.success:
     print(f"Done in {result.duration:.3f}s")
@@ -338,6 +335,7 @@ else:
     ```python
     # Level 3 with Critical Intent — the full IOP experience
     from dataclasses import dataclass
+    from evoid.core.extend import add_intent_with_pipeline
     
     @dataclass(frozen=True)
     class PaymentResult:
@@ -348,11 +346,15 @@ else:
     
     PROCESS_PAYMENT = Intent(
         name="process_payment",
-        level=Level.CRITICAL,  # Full pipeline: validate → authorize → audit → protect
-        pipeline=("validate_payment", "charge_card", "send_receipt"),
+        level=Level.CRITICAL,
         timeout=30.0,
-        priority=100,  # High priority — payments first
+        priority=100,
         metadata={"currency": "USD"},
+    )
+    
+    add_intent_with_pipeline(
+        PROCESS_PAYMENT,
+        processors=["validate_payment", "charge_card", "send_receipt"],
     )
     
     # Pipeline runs:

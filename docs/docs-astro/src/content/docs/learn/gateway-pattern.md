@@ -162,16 +162,14 @@ after_processor("process_payment", "authorize", "enforce_mfa")
 Run multiple Intents concurrently:
 
 ```python
-from evoid import parallel, Intent, Level
+from evoid import gather, Intent, Level
 
 # Fire 3 intents in parallel
-intents = [
+results = await gather(
     Intent(name="check_inventory", metadata={"item_id": "SKU-123"}),
     Intent(name="calculate_shipping", metadata={"address": "..."}),
     Intent(name="apply_discount", metadata={"code": "SAVE20"}),
-]
-
-results = await parallel(intents)
+)
 # All 3 run concurrently through the gateway
 ```
 
@@ -180,8 +178,7 @@ results = await parallel(intents)
 Chain Intents in order:
 
 ```python
-from evoid.core.pipeline import execute
-from evoid import Intent, Level
+from evoid import execute, Intent, Level
 
 # Order processing pipeline
 steps = [
@@ -243,8 +240,7 @@ await publish(PAYMENT, metadata={"amount": 99.99})
 
 The gateway maintains a registry of:
 - Intent names → handlers
-- Intent levels → pipelines
-- Service health → routing decisions
+- Intent levels → default pipelines
 
 ## Real-World Example: Jitsi Bot
 

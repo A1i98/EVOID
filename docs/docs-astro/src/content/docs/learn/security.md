@@ -9,7 +9,7 @@ Security in EVOID operates at three layers: **secrets management**, **pipeline e
 
 ## 1. Secrets Management
 
-EVOID has zero core dependencies and no built-in `.env` loader. This is deliberate — secrets management is infrastructure, not runtime. Here's how to handle it.
+EVOID has minimal core dependencies and no built-in `.env` loader. This is deliberate — secrets management is infrastructure, not runtime. Here's how to handle it.
 
 ### The Problem with `.env` Files
 

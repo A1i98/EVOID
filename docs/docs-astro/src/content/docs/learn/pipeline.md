@@ -142,6 +142,8 @@ async def main():
 | `error` | `Exception \| None` | Exception if a processor failed |
 | `processors` | `tuple[str, ...]` | Names of processors that ran |
 | `duration` | `float` | Total execution time in seconds |
+| `steps` | `tuple[ProcessorResult, ...]` | Per-processor state snapshots (only when `inspect=True`) |
+| `warnings` | `tuple[str, ...]` | Non-fatal warnings (e.g., missing processors skipped) |
 
 ## Context
 

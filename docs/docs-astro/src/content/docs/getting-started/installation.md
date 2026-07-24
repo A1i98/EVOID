@@ -1,6 +1,6 @@
 ---
 title: 'Installation'
-description: 'Install EVOID with zero core dependencies. Add only what you need.'
+description: 'Install EVOID with minimal core dependencies. Add only what you need.'
 ---
 
 # Installation
@@ -19,12 +19,12 @@ description: 'Install EVOID with zero core dependencies. Add only what you need.
 uv add evoid
 ```
 
-!!! info "Zero core dependencies"
-    EVOID has NO required dependencies. Install only what you need.
+!!! info "Minimal core"
+    Core EVOID has one required dependency (`tomli_w` for TOML config). Everything else is optional.
 
 ## Optional Dependencies
 
-Install extras for specific features. Core EVOID has zero required dependencies.
+Install extras for specific features. Core EVOID has minimal required dependencies.
 
 ### Built-in Extras
 
@@ -103,7 +103,7 @@ evo version
 Expected output:
 
 ```
-evo 0.4.1
+evo 0.5.0
 ```
 
 ## Create Your First Project

@@ -18,19 +18,18 @@ Plugins must follow this naming:
 
 ## Manifest
 
-Every plugin must have an `evoid_plugin.json`:
+Every plugin must have a `MANIFEST` dict in its `__init__.py`:
 
-```json
-{
+```python
+MANIFEST = {
     "name": "evoid-redis",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "type": "engine",
     "description": "Redis cache engine for EVOID",
-    "author": "Your Name",
     "entry_point": "evoid_redis:register_plugin",
     "dependencies": ["redis>=4.0.0"],
     "evoid_version": ">=0.4.0",
-    "tags": ["cache", "redis"]
+    "tags": ["cache", "redis"],
 }
 ```
 
@@ -42,7 +41,6 @@ Every plugin must have an `evoid_plugin.json`:
 | `version` | yes | Semantic version |
 | `type` | yes | `adapter`, `engine`, `language`, or `processor` |
 | `description` | no | What the plugin does |
-| `author` | no | Plugin author |
 | `entry_point` | no | `module:function` format |
 | `dependencies` | no | Required packages |
 | `evoid_version` | no | Required EVOID version |
@@ -54,9 +52,9 @@ Every plugin must have an `evoid_plugin.json`:
 
 ```
 evoid-redis/
-  evoid_plugin/
+  evoid_redis/
     __init__.py
-    evoid_plugin.json
+    cache.py
   pyproject.toml
   README.md
 ```

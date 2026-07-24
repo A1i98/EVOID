@@ -1,8 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/version-0.4.3-orange?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.5.0-orange?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/core%20deps-zero-brightgreen?style=for-the-badge" alt="Zero Dependencies">
+  <img src="https://img.shields.io/badge/core%20deps-1-brightgreen?style=for-the-badge" alt="One Core Dependency">
   <img src="https://img.shields.io/badge/status-Beta-purple?style=for-the-badge" alt="Status">
 </p>
 
@@ -174,8 +174,8 @@ See [Adapters](https://evolvebeyond.github.io/EVOID/learn/adapters/) for details
 <tr>
 <td>
 
-**Zero Dependencies**
-Core has no required packages
+**Minimal Core**
+Core has one required package (tomli_w)
 
 </td>
 <td>

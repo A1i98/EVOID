@@ -332,7 +332,7 @@ evo sync
 
 ## Optional Dependencies
 
-Install only what you need. Core EVOID has zero required dependencies:
+Install only what you need. Core EVOID has minimal required dependencies:
 
 ```bash
 # Core extras (built into EVOID)

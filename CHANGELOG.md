@@ -5,6 +5,19 @@ All notable changes to EVOID will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-24
+
+### Changed
+- `tomli_w` is now a core dependency (required for project scaffolding)
+- Version bumped to 0.5.0
+
+### Fixed
+- Duplicate `delete` function in ASGI adapter (dead code removed)
+- Documentation version mismatches across README, wiki, and docs
+- SECURITY.md supported versions updated
+- CONTRIBUTING.md project structure updated to match actual layout
+- "Zero dependencies" claims corrected across all docs (tomli_w is required)
+
 ## [0.4.1] - 2026-07-18
 
 ### Changed

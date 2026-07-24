@@ -30,21 +30,21 @@ Every plugin has three parts:
 evoid-hello/
   evoid_hello/
     __init__.py
-    evoid_plugin.json
   pyproject.toml
   README.md
 ```
 
 ### Step 2: Write the manifest
 
-```json
-{
-  "name": "evoid-hello",
-  "version": "1.0.0",
-  "type": "engine",
-  "description": "Hello world engine for EVOID",
-  "entry_point": "evoid_hello:register_plugin",
-  "evoid_version": ">=0.4.0"
+```python
+# evoid_hello/__init__.py
+MANIFEST = {
+    "name": "evoid-hello",
+    "version": "0.1.0",
+    "type": "engine",
+    "description": "Hello world engine for EVOID",
+    "entry_point": "evoid_hello:register_plugin",
+    "evoid_version": ">=0.4.0",
 }
 ```
 

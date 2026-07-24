@@ -32,7 +32,7 @@ EVOID is overkill for:
 
 ### Is EVOID production-ready?
 
-EVOID is in beta (v0.4.x). The core is stable, zero dependencies, all tests passing. APIs may change before v1.0. Pin your version in production.
+EVOID is in beta (v0.5.x). The core is stable, minimal dependencies, all tests passing. APIs may change before v1.0. Pin your version in production.
 
 ## Technical
 

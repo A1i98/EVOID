@@ -158,7 +158,7 @@ server = create_mcp_server("my-api")
 3. **No stateful objects** — Registries are dicts, not singleton classes
 4. **Extensibility without inheritance** — Use `before/after/replace` to modify pipelines
 5. **Zero overhead IOP** — Fast path skips inspection and timeout when not needed
-6. **Zero core dependencies** — Everything optional, infrastructure is replaceable via plugins
+6. **Minimal core dependencies** — Only `tomli_w` required, infrastructure is replaceable via plugins
 
 ## Plugin Standard
 

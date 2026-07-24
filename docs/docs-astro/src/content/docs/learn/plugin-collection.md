@@ -31,17 +31,16 @@ uv add evoid-smart-storage
 
 ### evoid-base — Shared Contracts
 
-The foundation. Defines `StorageEngine`, `CacheEngine`, and `LoggerEngine` protocols that all other plugins implement.
+The foundation. Defines `StorageEngine`, `CacheEngine`, and `LoggerEngine` contracts that all other plugins implement.
 
 ```python
-from evoid_base import StorageEngine, CacheEngine
+from evoid_base import StorageEngine, CacheEngine, LoggerEngine
 
-# Every storage plugin implements this interface
-class MyStorage(StorageEngine):
-    async def read(self, key: str) -> dict | None: ...
-    async def write(self, key: str, data: dict) -> None: ...
-    async def delete(self, key: str) -> None: ...
-    async def health(self) -> bool: ...
+# Every storage plugin follows this interface:
+# async def read(key: str, **kwargs) -> Any | None
+# async def write(key: str, data: dict, **kwargs) -> bool
+# async def delete(key: str, **kwargs) -> bool
+# async def health() -> bool
 ```
 
 **Why it matters:** You can swap `evoid-sqlite` for `evoid-postgresql` without changing a single line of business code. The contract stays the same. That's IOP — the Intent says "store this," and the pipeline routes to whichever engine you installed.
@@ -412,6 +411,23 @@ setup_game_subscriptions("my-game")
     )
     # Pipeline: validate → authorize → audit → protect → handler
     ```
+
+---
+
+### evoid-maubot — Matrix Bot Adapter
+
+Maubot plugin for Matrix messaging. Converts Matrix events to Intents.
+
+```bash
+evo plug install evoid-maubot
+```
+
+```python
+from evoid_maubot import MaubotAdapter
+
+adapter = MaubotAdapter("my-matrix-bot")
+# Matrix messages become Intents, routed through the pipeline
+```
 
 ---
 

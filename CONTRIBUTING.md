@@ -23,14 +23,16 @@ uv run ruff check .
 
 ```
 evoid/
-  core/           # IOP runtime (Intent, Pipeline, Processor, Context)
+  core/           # IOP runtime (Intent, Pipeline, Processor, Context, Events, Extend)
   native/         # Native IOP syntax (create_service, on)
-  web/            # Web adapters (route, controller, pipeline)
-  adapters/       # Framework adapters (ASGI, Robyn, Telegram, WebSocket)
-  engines/        # Plugin engines (schema, storage, cache, serializer, logger)
-  processors/     # Built-in processors (validate, auth, rate limit, etc.)
+  web/            # Web syntax (route, controller)
+  adapters/       # Framework adapters (ASGI, Robyn, Telegram, WebSocket, MCP, CLI)
+  engines/        # Plugin engines (storage, cache, auth, di, logger, metrics, schema, serializer)
+  processors/     # Built-in processors (validate, auth, rate limit, circuit breaker, etc.)
   contracts/      # Plugin interfaces (pure types)
-  config/         # Configuration loading
+  config/         # TOML + Python config loading
+  testing/        # pytest plugin + WebUI dashboard
+  project/        # Project scaffolding (evo init, evo service new)
 tests/            # Test suite
 examples/         # Usage examples
 docs/             # Documentation (Astro-based)

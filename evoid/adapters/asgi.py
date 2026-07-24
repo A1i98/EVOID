@@ -501,7 +501,7 @@ def delete(path: str, level: str = "standard") -> Callable:
         register(intent_obj)
 
         ann = apply_annotations(func)
-        errors = validate_annotations(func, method="DELETE")
+        errors = validate_annotations(func)
         if errors:
             import logging
             for e in errors:
@@ -523,51 +523,6 @@ def delete(path: str, level: str = "standard") -> Callable:
             existing = _pipeline_overrides.get(intent_obj.name)
             if existing:
                 _pipeline_overrides[intent_obj.name] = PipelineConfig(
-                    processors=existing.processors,
-                    priority=existing.priority,
-                    timeout=ann["timeout"],
-                    metadata=existing.metadata,
-                )
-
-        return func
-    return decorator
-
-
-def delete(path: str, level: str = "standard") -> Callable:
-    """DELETE route — creates Intent, registers ASGI handler."""
-    def decorator(func: Handler) -> Handler:
-        from ..web._shared import create_intent as _create_intent
-        from ..core.annotations import apply_annotations, validate_annotations
-
-        intent = _create_intent("DELETE", path, level)
-        register(intent)
-
-        ann = apply_annotations(func)
-        errors = validate_annotations(func)
-        if errors:
-            import logging
-            for e in errors:
-                logging.error("Annotation error on %s: %s", func.__name__, e)
-
-        async def processor(ctx: Context) -> Any:
-            params = ctx.metadata.get("params", {})
-            return await func(**params)
-
-        register_processor(intent.name, processor)
-
-        if ann["pipeline"]:
-            pipeline = ann["pipeline"]
-        else:
-            security = _DEFAULT_PROCESSORS.get(intent.level, ())
-            pipeline = [*security, intent.name]
-
-        replace_pipeline(intent.name, pipeline)
-
-        if ann["timeout"] is not None:
-            from ..core.extend import _pipeline_overrides
-            existing = _pipeline_overrides.get(intent.name)
-            if existing:
-                _pipeline_overrides[intent.name] = PipelineConfig(
                     processors=existing.processors,
                     priority=existing.priority,
                     timeout=ann["timeout"],
