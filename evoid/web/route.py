@@ -107,7 +107,7 @@ def replace_pipeline(route: str, processors: list[str]) -> None:
     _replace_pipeline(route, processors)
 
 
-async def run(app: App, host: str = "0.0.0.0", port: int = 8000) -> None:
+def run(app: App, host: str = "0.0.0.0", port: int = 8000) -> None:
     """Run the @route app via ASGI adapter."""
     from ..adapters.asgi import create_app
 

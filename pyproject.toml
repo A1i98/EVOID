@@ -6,7 +6,9 @@ authors = [
     { name = "EvolveBeyond", email = "pakrohk@gmail.com" }
 ]
 dependencies = [
+    "starlette>=0.39.2",
     "tomli_w>=1.0.0,<2.0.0",
+    "uvicorn>=0.24.0.post1",
 ]
 requires-python = ">=3.12"
 readme = "README.md"

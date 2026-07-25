@@ -237,7 +237,9 @@ name = "evoid"
 version = "0.5.0"
 source = { editable = "." }
 dependencies = [
+    { name = "starlette" },
     { name = "tomli-w" },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -309,10 +311,12 @@ requires-dist = [
     { name = "redis", marker = "extra == 'redis'", specifier = ">=4.0.0,<5.0.0" },
     { name = "robyn", marker = "extra == 'robyn'", specifier = ">=0.30.0,<1.0.0" },
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'sqlalchemy'", specifier = ">=2.0.0,<3.0.0" },
+    { name = "starlette", specifier = ">=0.39.2" },
     { name = "starlette", marker = "extra == 'asgi'", specifier = ">=0.27.0,<0.40.0" },
     { name = "starlette", marker = "extra == 'testing'", specifier = ">=0.27.0,<0.40.0" },
     { name = "tomli", marker = "extra == 'toml'", specifier = ">=2.0.0,<3.0.0" },
     { name = "tomli-w", specifier = ">=1.0.0,<2.0.0" },
+    { name = "uvicorn", specifier = ">=0.24.0.post1" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'asgi'", specifier = ">=0.24.0,<0.25.0" },
 ]
 provides-extras = ["pydantic", "asgi", "robyn", "telegram", "sqlite", "redis", "sqlalchemy", "loguru", "toml", "msgpack", "testing", "full"]

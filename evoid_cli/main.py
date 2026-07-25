@@ -47,15 +47,15 @@ def cmd_init(name: str) -> None:
     print(f"  {name}/shared/")
     print()
     print(f"  cd {name}")
-    print(f"  evo service new api")
-    print(f"  evo service run api")
+    print(f"  evo service run gateway    # Start the gateway (port 8000)")
+    print(f"  evo service new api        # Add another service (port 8001)")
 
 
 # ============================================================
 # Service commands
 # ============================================================
 
-def cmd_service_new(service_name: str, port: int = 8000) -> None:
+def cmd_service_new(service_name: str, port: int = 8001) -> None:
     """Add new service to project."""
     from evoid.project import add_service
 
@@ -528,7 +528,7 @@ def main() -> None:
             if len(args) < 3:
                 print("Usage: evo service new <name> [port]")
                 sys.exit(1)
-            port = int(args[3]) if len(args) > 3 else 8000
+            port = int(args[3]) if len(args) > 3 else 8001
             cmd_service_new(args[2], port)
         elif subcmd == "list":
             cmd_service_list()

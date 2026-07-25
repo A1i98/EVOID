@@ -65,6 +65,7 @@ def init_project(name: str, path: str | Path = ".") -> ProjectInfo:
     - <name>/pyproject.toml (project config + [tool.evoid])
     - <name>/services/ (services directory)
     - <name>/shared/ (shared code)
+    - <name>/services/gateway/ (default gateway service)
     """
     project_path = Path(path) / name
     project_path.mkdir(parents=True, exist_ok=True)
@@ -110,9 +111,13 @@ def init_project(name: str, path: str | Path = ".") -> ProjectInfo:
 '''
     (project_path / "shared" / "__init__.py").write_text(shared_init)
 
+    # Create default gateway service
+    add_service(project_path, "gateway", port=8000)
+
     return ProjectInfo(
         name=name,
         path=project_path,
+        services=[ServiceInfo(name="gateway", path=project_path / "services" / "gateway", port=8000)],
     )
 
 
@@ -165,15 +170,14 @@ from evoid.engines.logger import loguru as log
 app = Service("{service_name}")
 
 
-@app.get("/health")
+@get("/health")
 async def health() -> dict:
     return {{"status": "healthy"}}
 
 
 if __name__ == "__main__":
     log.init("{service_name}")
-    import asyncio
-    asyncio.run(run(app, port={port}))
+    run(app, port={port})
 '''
     (service_path / "main.py").write_text(main_py)
 
