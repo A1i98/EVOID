@@ -1,14 +1,14 @@
 ---
 title: 'IOP Levels'
-description: 'Three levels of IOP — from simple dicts to production systems. Start simple, upgrade when it hurts.'
+description: 'Three levels of IOP: from simple dicts to production systems. Start simple, upgrade when it hurts.'
 ---
 
 # IOP Levels
 
 IOP has two orthogonal concepts that people confuse:
 
-1. **Code levels** (how you write Intents) — Dict, TypedDict, Dataclass
-2. **Intent levels** (what the pipeline does) — Ephemeral, Standard, Critical
+1. **Code levels** (how you write Intents): Dict, TypedDict, Dataclass
+2. **Intent levels** (what the pipeline does): Ephemeral, Standard, Critical
 
 This page covers both. The code levels determine how much structure you get. The Intent levels determine how much infrastructure runs.
 
@@ -19,7 +19,7 @@ This page covers both. The code levels determine how much structure you get. The
 
 ## Intent Levels: What the Pipeline Does
 
-Before diving into code levels, understand the three Intent levels. These are the heart of IOP — they determine which processors run, how long you have, and what infrastructure backs you.
+Before diving into code levels, understand the three Intent levels. These are the heart of IOP: they determine which processors run, how long you have, and what infrastructure backs you.
 
 ### Ephemeral — "I don't care if this disappears"
 
@@ -43,7 +43,7 @@ PLAYER_MOVE = Intent(name="player_move", level=Level.EPHEMERAL)
 
 **Real-world analogy:** Checking the weather. You look, you know, you move on. No paperwork, no authorization, no audit trail. If the data is wrong, you'll check again in 5 minutes.
 
-**What runs:** Only `validate` — makes sure the data shape is correct. No auth, no audit, no protection. The runtime trusts this Intent is cheap.
+**What runs:** Only `validate`, which makes sure the data shape is correct. No auth, no audit, no protection. The runtime trusts this Intent is cheap.
 
 **When to use:** Anything where losing the result is inconvenience, not damage. Cache hits, session lookups, temporary state, health checks, telemetry pings, game position updates.
 
@@ -51,7 +51,7 @@ PLAYER_MOVE = Intent(name="player_move", level=Level.EPHEMERAL)
 
 **Pipeline:** `validate` → `authorize`
 **Timeout:** 10 seconds
-**Mindset:** Balanced — check inputs, check permissions, done
+**Mindset:** Balanced: check inputs, check permissions, done
 
 ```python
 # User profile — someone's identity, worth protecting
@@ -67,7 +67,7 @@ CHECK_ORDER = Intent(name="check_order", level=Level.STANDARD)
 SEND_MESSAGE = Intent(name="send_message", level=Level.STANDARD)
 ```
 
-**Real-world analogy:** Showing your ID at a reception desk. They verify who you are (authorize), then let you in. No cameras, no guards, no paperwork — just a quick identity check.
+**Real-world analogy:** Showing your ID at a reception desk. They verify who you are (authorize), then let you in. No cameras, no guards, no paperwork, just a quick identity check.
 
 **What runs:** `validate` (data shape) + `authorize` (permissions). The auth plugin checks if your role is sufficient. If you're a `viewer` trying to edit, you get rejected.
 
@@ -77,7 +77,7 @@ SEND_MESSAGE = Intent(name="send_message", level=Level.STANDARD)
 
 **Pipeline:** `validate` → `authorize` → `audit` → `protect`
 **Timeout:** 30 seconds
-**Mindset:** Full protection — every step logged, every action audited
+**Mindset:** Full protection: every step logged, every action audited
 
 ```python
 # Payment — real money, real consequences
@@ -111,7 +111,7 @@ The level you choose determines which processors run by default:
 | Standard | `validate`, `authorize` | 10s |
 | Critical | `validate`, `authorize`, `audit`, `protect` | 30s |
 
-Processors are just registered functions — you can replace, remove, or add any processor at any level:
+Processors are just registered functions. You can replace, remove, or add any processor at any level:
 
 ```python
 # Ephemeral: fast path, minimal infrastructure
@@ -368,7 +368,7 @@ else:
     ```
 
 **What you get:** Frozen dataclasses, full Result, pipeline control, plugin system.
-**What you don't get:** Simplicity — more code, more concepts.
+**What you don't get:** Simplicity: more code, more concepts.
 
 ---
 

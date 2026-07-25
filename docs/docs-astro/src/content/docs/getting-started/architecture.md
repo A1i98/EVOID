@@ -1,6 +1,6 @@
 ---
 title: 'Architecture'
-description: 'How EVOID works under the hood — Intent, Pipeline, Processor, Context, Events, Schema.'
+description: 'How EVOID works under the hood: Intent, Pipeline, Processor, Context, Events, Schema.'
 ---
 
 # Architecture
@@ -115,15 +115,15 @@ on_event(Event.POST_EXECUTE, log_execution)
 
 ### Message Bus
 
-Services communicate through Intents, not HTTP. The gateway routes Intent to the correct handler — services stay decoupled:
+Services communicate through Intents, not HTTP. The gateway routes Intent to the correct handler. Services stay decoupled:
 
 ```python
 from evoid import subscribe, publish
 
-# Service A sends Intent — doesn't know who handles it
+# Service A sends Intent: doesn't know who handles it
 await publish(Intent(name="process_payment", level=Level.CRITICAL))
 
-# Service B subscribes — doesn't know who sent it
+# Service B subscribes: doesn't know who sent it
 subscribe("process_payment", handle_payment)
 ```
 
@@ -153,12 +153,12 @@ server = create_mcp_server("my-api")
 
 ## Design Principles
 
-1. **Data carries intent** — Intent is a frozen dataclass, not a class with methods
-2. **Pipeline is composition** — Processors are pure functions composed together
-3. **No stateful objects** — Registries are dicts, not singleton classes
-4. **Extensibility without inheritance** — Use `before/after/replace` to modify pipelines
-5. **Zero overhead IOP** — Fast path skips inspection and timeout when not needed
-6. **Minimal core dependencies** — Only `tomli_w` required, infrastructure is replaceable via plugins
+1. **Data carries intent**: Intent is a frozen dataclass, not a class with methods
+2. **Pipeline is composition**: processors are pure functions composed together
+3. **No stateful objects**: registries are dicts, not singleton classes
+4. **Extensibility without inheritance**: use `before/after/replace` to modify pipelines
+5. **Zero overhead IOP**: fast path skips inspection and timeout when not needed
+6. **Minimal core dependencies**: only `tomli_w` required, infrastructure is replaceable via plugins
 
 ## Plugin Standard
 
@@ -279,10 +279,14 @@ app = config(
 
 ## Related
 
-- [Intent](../learn/intent.md) — Deep dive into Intents
-- [Pipeline](../learn/pipeline.md) — How execution works
-- [Processors](../learn/processors.md) — Functions that handle intents
-- [Schema Export](../learn/schema-export.md) — Export Intent schemas
-- [Plugin Hooks](../learn/plugin-hooks.md) — Lifecycle events
-- [Plugin Standard](../learn/plugin-standard.md) — Plugin packaging
-- [Python Config](../learn/python-config.md) — Python-native config
+- [Intent](../learn/intent.md): deep dive into Intents
+- [Pipeline](../learn/pipeline.md): how execution works
+- [Processors](../learn/processors.md): functions that handle intents
+- [Schema Export](../learn/schema-export.md): export Intent schemas
+- [Plugin Hooks](../learn/plugin-hooks.md): lifecycle events
+- [Plugin Standard](../learn/plugin-standard.md): plugin packaging
+- [Python Config](../learn/python-config.md): Python-native config
+
+## Next
+
+See it in action — [Tutorial: Your First Intent](../tutorial/first-intent.md).

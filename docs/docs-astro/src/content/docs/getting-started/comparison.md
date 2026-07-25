@@ -52,7 +52,7 @@ EVOID asks: **"What does this data want?"**
 ### Use EVOID when
 
 - Multiple services need to communicate
-- Infrastructure varies by data criticality
+- Different data needs different infrastructure (payments need PostgreSQL, sessions need Redis)
 - You want pipeline-based extensibility
 - IOP paradigm fits your domain
 

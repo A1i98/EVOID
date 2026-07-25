@@ -9,10 +9,12 @@ Services communicate via Message Bus — no HTTP, no serialization overhead.
 
 ## The Problem
 
+Sandy opens 3 more locations. Each has its own server. Orders from Location A need to update inventory at Location B. But they're on different machines.
+
 Traditional microservices communicate over HTTP:
 
 ```
-Order Service → HTTP → Inventory Service → HTTP → Analytics Service
+Location A → HTTP → Location B → HTTP → Location C
 ```
 
 Every call means: network latency, serialization, connection management.
@@ -165,16 +167,22 @@ clear_history()
 
 ## Plugins in the Message Bus
 
-The `evoid-cluster` plugin extends the Message Bus across machines:
+Sandy's 3 locations each run their own EVOID server. The `evoid-cluster` plugin connects them:
+
+```bash
+evo plug install evoid-cluster
+```
 
 ```python
 # Without cluster: services communicate in-process (0ms)
-# Order Service → Message Bus → Inventory Service (same process)
+# Location A Order Service → Message Bus → Location A Inventory (same process)
 
 # With cluster: services communicate across nodes (via WebSocket)
-# Order Service (Node 1) → ClusterBridge → Inventory Service (Node 2)
+# Location A Order Service → ClusterBridge → Location B Inventory
 # Your code doesn't change. The plugin routes the Intent.
 ```
+
+Sandy publishes "update_stock" from Location A. The cluster plugin checks: is there a local subscriber? No. Forward to Location B via WebSocket. Location B processes it. Result comes back. Sandy's handler doesn't know the inventory service is on another machine.
 
 !!! example "Cluster: distributed Intents"
     ```python

@@ -1,14 +1,14 @@
 ---
 title: 'Processors'
-description: 'A processor is a function that receives a `Context` and returns a result. Processors are independent Lego blocks — each one does one thing, and the pipeline ...'
+description: 'A processor is a function that receives a `Context` and returns a result. Processors are independent Lego blocks: each one does one thing, and the pipeline composes them.'
 ---
 
 # Processors
 
-A processor is a function that receives a `Context` and returns a result. Processors are independent Lego blocks — each one does one thing, and the pipeline composes them.
+A processor is a function that receives a `Context` and returns a result. Processors are independent Lego blocks: each one does one thing, and the pipeline composes them.
 
 !!! note "Single responsibility"
-    Each processor should do exactly one thing. If you need multiple operations, chain them in the pipeline — don't put them in one processor.
+    Each processor should do exactly one thing. If you need multiple operations, chain them in the pipeline: don't put them in one processor.
 
 ## What Is a Processor?
 
@@ -189,8 +189,8 @@ register_processor("circuit_breaker", circuit_breaker)
 
 ## Best Practices
 
-- **One responsibility** — Each processor does one thing
-- **Pure functions** — Avoid side effects outside `ctx`
-- **No hard dependencies** — Check `ctx.deps` before using engines
-- **Meaningful names** — `validate_input`, not `step1`
-- **Idempotent when possible** — Re-running should not corrupt state
+- **One responsibility**: each processor does one thing
+- **Pure functions**: avoid side effects outside `ctx`
+- **No hard dependencies**: check `ctx.deps` before using engines
+- **Meaningful names**: `validate_input`, not `step1`
+- **Idempotent when possible**: re-running should not corrupt state

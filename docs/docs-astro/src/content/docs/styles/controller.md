@@ -7,6 +7,9 @@ description: "Class-based syntax. Familiar if you have used NestJS or Django RES
 
 Class-based syntax. Familiar if you've used NestJS or Django REST Framework. Groups related routes under a controller with a URL prefix.
 
+!!! info "OOP sugar over IOP"
+    Under the hood, `@controller` registers each method as an Intent with a pipeline. The class is syntactic sugar: EVOID extracts the methods and registers them as IOP handlers. If you prefer no classes, use `@route` or native IOP instead.
+
 ## Basic Usage
 
 ```python

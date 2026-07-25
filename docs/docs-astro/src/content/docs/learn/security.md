@@ -5,11 +5,11 @@ description: 'Secrets management, pipeline security, and AI data control in EVOI
 
 # Security
 
-Security in EVOID operates at three layers: **secrets management**, **pipeline enforcement**, and **AI data control**. Each layer is independent — you can use one without the others.
+Security in EVOID operates at three layers: **secrets management**, **pipeline enforcement**, and **AI data control**. Each layer is independent. You can use one without the others.
 
 ## 1. Secrets Management
 
-EVOID has minimal core dependencies and no built-in `.env` loader. This is deliberate — secrets management is infrastructure, not runtime. Here's how to handle it.
+EVOID has minimal core dependencies and no built-in `.env` loader. This is deliberate. Secrets management is infrastructure, not runtime. Here's how to handle it.
 
 ### The Problem with `.env` Files
 
@@ -17,13 +17,13 @@ Every framework handles secrets differently. Some load `.env` automatically. Som
 
 ### The EVOID Pattern: Environment Variables
 
-The simplest approach — use `os.environ` directly:
+The simplest approach: use `os.environ` directly:
 
 ```python
 import os
 from evoid.config import config
 
-DB_URL = os.environ["DATABASE_URL"]  # crashes if missing — intentional
+DB_URL = os.environ["DATABASE_URL"]  # crashes if missing: intentional
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost")  # optional
 
 app = config(
@@ -33,7 +33,7 @@ app = config(
 ```
 
 !!! info "Why no built-in .env loader"
-    `.env` files are a development convenience, not a security feature. In production, secrets come from environment variables, secret managers, or mounted volumes. EVOID stays out of the way — you decide how to inject secrets.
+    `.env` files are a development convenience, not a security feature. In production, secrets come from environment variables, secret managers, or mounted volumes. EVOID stays out of the way. You decide how to inject secrets.
 
 ### Recommended Patterns
 
@@ -44,7 +44,7 @@ uv add python-dotenv
 ```
 
 ```python
-# main.py — load .env before anything else
+# main.py: load .env before anything else
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -100,20 +100,20 @@ DB_URL = os.environ["DATABASE_URL"]  # injected by orchestrator
 ### Config Files: Never Hardcode Secrets
 
 ```toml
-# evoid.toml — safe (no secrets)
+# evoid.toml: safe (no secrets)
 [service]
 name = "my-api"
 
 [engines]
 storage = "sqlite"
 
-# WRONG — never put secrets in config files
+# WRONG: never put secrets in config files
 # [engines.redis]
 # url = "redis://:password@localhost"  # ❌
 ```
 
 ```python
-# RIGHT — secrets from env, config from file
+# RIGHT: secrets from env, config from file
 import os
 from evoid.config import config
 
@@ -164,8 +164,8 @@ EVOID's pipeline enforces security through **Intent levels**. The level you choo
 
 The built-in `protect` processor provides:
 
-- **Rate limiting** — per-key request throttling
-- **Circuit breaker** — stops processing after repeated failures
+- **Rate limiting**: per-key request throttling
+- **Circuit breaker**: stops processing after repeated failures
 
 ```python
 from evoid import Intent, Level
@@ -209,10 +209,10 @@ CREATE_POST = Intent(
 
 Plugins follow EVOID's security model:
 
-- **Event hooks are read-only** — hooks receive `EventContext` (frozen), never the mutable `Context`
-- **Max 16 hooks per event** — prevents hook flooding
-- **5s timeout per hook** — prevents slow hooks from blocking the pipeline
-- **Zero cost when no hooks** — single dict length check
+- **Event hooks are read-only**: hooks receive `EventContext` (frozen), never the mutable `Context`
+- **Max 16 hooks per event**: prevents hook flooding
+- **5s timeout per hook**: prevents slow hooks from blocking the pipeline
+- **Zero cost when no hooks**: single dict length check
 
 ```python
 from evoid import on_event, Event
@@ -222,7 +222,7 @@ def log_execution(ctx):
     print(f"Executed: {ctx.intent_name}")  # read-only
 
 on_event(Event.POST_EXECUTE, log_execution)
-# ctx is EventContext — frozen, read-only
+# ctx is EventContext: frozen, read-only
 # You cannot write to ctx.state or ctx.deps
 ```
 
@@ -247,7 +247,7 @@ EVOID uses `mcp_visible` in Intent metadata to control what AI agents see:
 ```python
 from evoid import Intent, Level
 
-# Visible to AI agents — AI can discover and invoke this
+# Visible to AI agents: AI can discover and invoke this
 GET_USER = Intent(
     name="get_user",
     level=Level.STANDARD,
@@ -257,21 +257,21 @@ GET_USER = Intent(
     },
 )
 
-# Hidden from AI agents (default) — AI cannot see this
+# Hidden from AI agents (default): AI cannot see this
 DELETE_USER = Intent(
     name="delete_user",
     level=Level.CRITICAL,
     metadata={
         "description": "Permanently delete a user",
-        # mcp_visible defaults to False — AI cannot see this
+        # mcp_visible defaults to False: AI cannot see this
     },
 )
 
-# Internal hook — completely invisible
+# Internal hook: completely invisible
 DEBUG_INTENT = Intent(
     name="internal_debug",
     level=Level.EPHEMERAL,
-    # No description, no mcp_visible — invisible to everything
+    # No description, no mcp_visible: invisible to everything
 )
 ```
 
@@ -280,7 +280,7 @@ DEBUG_INTENT = Intent(
 ```python
 from evoid.adapters.mcp import create_mcp_server
 
-# Create MCP server — only visible Intents are exposed
+# Create MCP server: only visible Intents are exposed
 server = create_mcp_server("my-api", visible_only=True)
 
 # AI agent sees:
@@ -389,7 +389,7 @@ for name, schema in schemas.items():
 
 ## Related
 
-- [Intent](intent.md) — Intent levels and security processors
-- [Schema Export](schema-export.md) — AI visibility control
-- [Plugin Hooks](plugin-hooks.md) — Security model for lifecycle hooks
-- [Plugin Collection](plugin-collection.md) — evoid-auth for authorization
+- [Intent](intent.md): Intent levels and security processors
+- [Schema Export](schema-export.md): AI visibility control
+- [Plugin Hooks](plugin-hooks.md): security model for lifecycle hooks
+- [Plugin Collection](plugin-collection.md): evoid-auth for authorization

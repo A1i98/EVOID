@@ -109,7 +109,11 @@ print(f"Parallel: {time.time() - start:.1f}s")
 
 ## The Scheduler Plugin
 
-The `evoid-scheduler` plugin goes further — it watches system load and defers low-priority tasks when the CPU is busy:
+It's lunch rush. 50 orders come in at once. Some are VIP catering orders (must process now). Some are analytics sync (can wait). The `evoid-scheduler` plugin watches system load and defers low-priority tasks when the CPU is busy:
+
+```bash
+evo plug install evoid-scheduler
+```
 
 ```python
 from evoid_scheduler import SchedulerEngine, Priority

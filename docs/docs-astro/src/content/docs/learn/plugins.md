@@ -1,11 +1,11 @@
 ---
 title: 'Plugins and Engines'
-description: 'EVOID is infrastructure-agnostic. Every infrastructure component — database, cache, serializer, schema engine, DI — is a plugin. Plugins communicate through ...'
+description: 'EVOID is infrastructure-agnostic. Every infrastructure component (database, cache, serializer, schema engine, DI) is a plugin. Plugins communicate through ...'
 ---
 
 # Plugins and Engines
 
-EVOID is infrastructure-agnostic. Every infrastructure component — database, cache, serializer, schema engine, DI — is a plugin. Plugins communicate through contracts, never concrete implementations.
+EVOID is infrastructure-agnostic. Every infrastructure component (database, cache, serializer, schema engine, DI) is a plugin. Plugins communicate through contracts, never concrete implementations.
 
 !!! warning "Contracts, not implementations"
     Always code against the contract interface (e.g., `StorageEngine`), never the concrete class. This lets you swap implementations without changing business logic.
@@ -57,7 +57,7 @@ decoded = json_engine.decode(encoded)
 
 ### DI Engine
 
-Dependency injection — resolves dependencies by name.
+Dependency injection: resolves dependencies by name.
 
 ```python
 from evoid.engines.di import native as di
@@ -95,11 +95,11 @@ Contracts define the interface that engines must satisfy. They live in `evoid/co
 |----------|---------|
 | `SchemaEngine` | `validate()`, `serialize()`, `deserialize()` |
 | `StorageEngine` | `read()`, `write()`, `delete()`, `health()` |
-| `CacheEngine` | `get()`, `set()`, `delete()`, `clear()`, `health()` |
+| `CacheEngine` | `get()`, `set()`, `delete()`, `exists()`, `health()` |
 | `SerializerEngine` | `encode()`, `decode()` |
 | `AdapterEngine` | `start()`, `stop()`, `handle()` |
 
-Engines implement these contracts as plain functions, not classes.
+Engines implement these contracts as classes that satisfy the Protocol.
 
 ## Configuration
 
@@ -228,7 +228,7 @@ uv add evoid-smart-storage
 | Smart Storage | `evoid-smart-storage` | Multi-DB routing, schema enforcement, multi-tenancy |
 | Auth | `evoid-auth` | Bring your own auth provider |
 | Tasks | `evoid-tasks` | Background tasks + structured logging |
-| Dashboard | `evoid-dashboard` | Monitoring UI — service map, DB viewer, logs |
+| Dashboard | `evoid-dashboard` | Monitoring UI: service map, DB viewer, logs |
 | Cluster | `evoid-cluster` | Multi-node clustering with failover |
 | Godot | `evoid-godot` | Godot game integration adapter |
 | Scheduler | `evoid-scheduler` | Priority-aware scheduler with adaptive concurrency |
@@ -310,7 +310,7 @@ storage = di.resolve("storage.postgresql")
 
 ### Auth Example
 
-Bring your own provider — no forced JWT:
+Bring your own provider, no forced JWT:
 
 ```python
 from evoid_auth import register_provider
@@ -329,6 +329,6 @@ before("GET:/users", "authenticate")
 
 ## Related
 
-- [Plugin Ecosystem](plugin-ecosystem.md) — Build your own plugins
-- [Plugin Collection](plugin-collection.md) — Full plugin reference
-- [Plugin Standard](plugin-standard.md) — Plugin packaging spec
+- [Plugin Ecosystem](plugin-ecosystem.md): build your own plugins
+- [Plugin Collection](plugin-collection.md): full plugin reference
+- [Plugin Standard](plugin-standard.md): plugin packaging spec

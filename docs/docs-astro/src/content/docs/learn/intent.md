@@ -1,11 +1,11 @@
 ---
 title: 'Intent'
-description: 'An Intent is a frozen dataclass that declares what you want to achieve. It is pure data — the runtime reads it and decides what to do.'
+description: 'An Intent is a frozen dataclass that declares what you want to achieve. Pure data; the runtime reads it and decides what to do.'
 ---
 
 # Intent
 
-An **Intent** is a frozen dataclass that declares what you want to achieve. It is pure data — the runtime reads it and decides what to do.
+An **Intent** is a frozen dataclass that declares what you want to achieve. Pure data; the runtime reads it and decides what to do.
 
 !!! info "Key concept"
     Intents are immutable. Once created, they cannot be changed. This guarantees thread safety and predictable pipeline behavior.
@@ -34,7 +34,7 @@ MY_INTENT = Intent(
 
 ## Intent Levels
 
-The level you choose determines which processors run, how long you have, and what infrastructure backs you. This is IOP's core mechanic — data declares what it needs, the level decides how the system responds.
+The level you choose determines which processors run, how long you have, and what infrastructure backs you. This is IOP's core mechanic: data declares what it needs, the level decides how the system responds.
 
 | Level | Pipeline | Timeout | Use Case |
 |-------|----------|---------|----------|
@@ -52,25 +52,25 @@ The level you choose determines which processors run, how long you have, and wha
 **Mindset:** "I don't care if this disappears"
 
 ```python
-# Cache lookup — result is temporary by definition
+# Cache lookup: result is temporary by definition
 GET_CACHE = Intent(name="cache_check", level=Level.EPHEMERAL)
 # Pipeline: validate → handler (5s)
 # What happens: data shape check, then your code. That's it.
 # No auth. No audit. Fast path. If the data is wrong, check again later.
 
-# Session check — temporary identity
+# Session check: temporary identity
 CHECK_SESSION = Intent(name="check_session", level=Level.EPHEMERAL)
 # Pipeline: validate → handler (5s)
 # What happens: shape check, then session lookup. No permissions needed.
 # Sessions expire. That's the point.
 
-# Game position update — frame-by-frame, disposable
+# Game position update: frame-by-frame, disposable
 PLAYER_MOVE = Intent(name="player_move", level=Level.EPHEMERAL)
 # Pipeline: validate → handler (5s)
 # What happens: shape check, then position update. No auth for movement.
 # If a position update is wrong, the next frame corrects it.
 
-# Health check — pure liveness probe
+# Health check: pure liveness probe
 HEALTH = Intent(name="health_check", level=Level.EPHEMERAL)
 # Pipeline: validate → handler (5s)
 # What happens: shape check, then "yes I'm alive." No overhead.
@@ -84,35 +84,35 @@ HEALTH = Intent(name="health_check", level=Level.EPHEMERAL)
 
 **Pipeline:** `validate` → `authorize`
 **Timeout:** 10 seconds
-**Mindset:** "Normal business data — check who's asking"
+**Mindset:** "Normal business data. Check who's asking."
 
 ```python
-# User profile — someone's identity, worth protecting
+# User profile: someone's identity, worth protecting
 GET_PROFILE = Intent(name="get_profile", level=Level.STANDARD)
 # Pipeline: validate → authorize → handler (10s)
 # What happens: shape check, then auth plugin checks your role.
 # viewer? You can read. editor? You can write. guest? Denied.
 
-# Blog post — public content, but author matters
+# Blog post: public content, but author matters
 CREATE_POST = Intent(name="create_post", level=Level.STANDARD)
 # Pipeline: validate → authorize → handler (10s)
 # What happens: shape check, then "are you logged in?"
 # You need at least editor role to create posts.
 
-# Order status — business data, needs auth
+# Order status: business data, needs auth
 CHECK_ORDER = Intent(name="check_order", level=Level.STANDARD)
 # Pipeline: validate → authorize → handler (10s)
 # What happens: shape check, then "is this your order?"
 # Users see their own orders. Admins see all.
 
-# Chat message — needs to know who's talking
+# Chat message: needs to know who's talking
 SEND_MESSAGE = Intent(name="send_message", level=Level.STANDARD)
 # Pipeline: validate → authorize → handler (10s)
 # What happens: shape check, then "are you in this chat?"
 # No anonymous messages. Identity required.
 ```
 
-**Real-world analogy:** Showing your ID at a reception desk. They verify who you are (authorize), then let you in. No cameras, no guards, no paperwork — just a quick identity check.
+**Real-world analogy:** Showing your ID at a reception desk. They verify who you are (authorize), then let you in. No cameras, no guards, no paperwork; just a quick identity check.
 
 **When to use:** Most business operations. User profiles, posts, comments, settings, general CRUD. The bread and butter of any application.
 
@@ -120,32 +120,32 @@ SEND_MESSAGE = Intent(name="send_message", level=Level.STANDARD)
 
 **Pipeline:** `validate` → `authorize` → `audit` → `protect`
 **Timeout:** 30 seconds
-**Mindstep:** "This must never be lost — every step logged"
+**Mindset:** "This must never be lost. Every step logged."
 
 ```python
-# Payment — real money, real consequences
+# Payment: real money, real consequences
 PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
 # Pipeline: validate → authorize → audit → protect → handler (30s)
 # What happens: shape check, auth, EVERYTHING logged to audit trail,
 # rate limit + circuit breaker active, then your payment code.
 # If this fails, someone needs to know exactly what happened.
 
-# Medical record — legal requirements
+# Medical record: legal requirements
 SAVE_MEDICAL = Intent(name="save_medical_record", level=Level.CRITICAL)
 # Pipeline: validate → authorize → audit → protect → handler (30s)
 # What happens: full protection. Every access logged. Every change recorded.
 # Compliance isn't optional. The pipeline enforces it.
 
-# Legal document — must be immutable and auditable
+# Legal document: must be immutable and auditable
 SIGN_CONTRACT = Intent(name="sign_contract", level=Level.CRITICAL)
 # Pipeline: validate → authorize → audit → protect → handler (30s)
-# What happens: who signed, when, what changed — all recorded.
+# What happens: who signed, when, what changed. All recorded.
 # In court, the audit trail is your evidence.
 
-# Admin action — elevated privileges, full audit
+# Admin action: elevated privileges, full audit
 DELETE_USER = Intent(name="delete_user", level=Level.CRITICAL)
 # Pipeline: validate → authorize → audit → protect → handler (30s)
-# What happens: who deleted whom, when, why — all logged.
+# What happens: who deleted whom, when, why. All logged.
 # Admin mistakes are recoverable when you have the audit trail.
 ```
 
@@ -249,13 +249,13 @@ for name, intent in intents.items():
 
 ## Best Practices
 
-- **Use meaningful names** — `get_user` over `handler1`
-- **Choose appropriate levels** — Marking everything `critical` defeats the purpose
-- **Include useful metadata** — Processors use it for decisions
-- **Keep Intents focused** — One intent, one responsibility
-- **Set timeouts** — Prevent runaway processors
+- **Use meaningful names**: `get_user` over `handler1`
+- **Choose appropriate levels**: marking everything `critical` defeats the purpose
+- **Include useful metadata**: processors use it for decisions
+- **Keep Intents focused**: one intent, one responsibility
+- **Set timeouts**: prevent runaway processors
 
 ## Related
 
-- [Pipeline](pipeline.md) — How intents become pipelines
-- [Processors](processors.md) — Functions that handle intents
+- [Pipeline](pipeline.md): how intents become pipelines
+- [Processors](processors.md): functions that handle intents

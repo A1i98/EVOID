@@ -1,6 +1,6 @@
 ---
 title: 'What is IOP?'
-description: 'Intent-Oriented Programming — a paradigm where data declares what it needs, and the runtime handles how.'
+description: 'Intent-Oriented Programming: a paradigm where data declares what it needs, and the runtime handles how.'
 ---
 
 # What is IOP?
@@ -77,10 +77,10 @@ Processor 4: audit       → logs the action (evoid-auth plugin)
 Result (success/failure with timing)
 ```
 
-Each processor is a **pure function** that receives a `Context` and returns a result. The pipeline composes them. You don't call them directly — the runtime does.
+Each processor is a **pure function** that receives a `Context` and returns a result. The pipeline composes them. You don't call them directly, the runtime does.
 
 !!! info "Plugins are processors"
-    The `authorize` and `audit` processors come from the `evoid-auth` plugin. The `validate` processor is built-in. Your handler is your code. The pipeline doesn't care where a processor comes from — it just runs them in order. That's IOP: data declares what, the pipeline decides how.
+    The `authorize` and `audit` processors come from the `evoid-auth` plugin. The `validate` processor is built-in. Your handler is your code. The pipeline doesn't care where a processor comes from: it just runs them in order. That's IOP: data declares what, the pipeline decides how.
 
 ## Three Intent Levels
 
@@ -150,23 +150,23 @@ You choose the level. The runtime chooses the infrastructure.
     # Infrastructure: chosen by level, configurable via plugins
     ```
 
-The IOP version doesn't eliminate infrastructure — it moves it to the pipeline where it's configured once and applied everywhere.
+The IOP version doesn't eliminate infrastructure; it moves it to the pipeline where it's configured once and applied everywhere.
 
 ## Key Principles
 
-1. **Intent is Permanent** — Once declared, the Intent stays with the data through its entire lifecycle
-2. **Infrastructure is Temporary** — Swap databases, caches, queues by changing pipeline config, not business logic
-3. **Data Carries Intent** — Your data models tell the system how to handle them
-4. **Pipeline is Composition** — Processors are pure functions composed together
-5. **Processors are Independent** — Each does one thing, knows nothing about others
+1. **Intent is Permanent**: Once declared, the Intent stays with the data through its entire lifecycle
+2. **Infrastructure is Temporary**: Swap databases, caches, queues by changing pipeline config, not business logic
+3. **Data Carries Intent**: Your data models tell the system how to handle them
+4. **Pipeline is Composition**: Processors are pure functions composed together
+5. **Processors are Independent**: Each does one thing, knows nothing about others
 
 ## Why This Matters for AI
 
 IOP was designed for a world where AI agents need to understand and interact with your system:
 
-- **Schema Export** — Intents export as JSON Schema, making them machine-readable
-- **MCP Integration** — Expose Intents as MCP tools for AI agents
-- **Self-Describing** — An AI agent can read an Intent and understand what it does, what level it needs, and what pipeline it runs
+- **Schema Export**: Intents export as JSON Schema, making them machine-readable
+- **MCP Integration**: Expose Intents as MCP tools for AI agents
+- **Self-Describing**: An AI agent can read an Intent and understand what it does, what level it needs, and what pipeline it runs
 
 ```python
 # AI agents can discover and call your intents
@@ -181,8 +181,8 @@ GET_USER = Intent(
 
 ## Learn More
 
-- [IOP Levels](../learn/iop-levels.md) — Three levels from dict to dataclass
-- [Intent](../learn/intent.md) — Deep dive into Intents
-- [Pipeline](../learn/pipeline.md) — How execution works
-- [Processors](../learn/processors.md) — Functions that handle intents
-- [Syntax Styles](../styles/route.md) — Different ways to write IOP code
+- [IOP Levels](../learn/iop-levels.md): Three levels from dict to dataclass
+- [Intent](../learn/intent.md): Deep dive into Intents
+- [Pipeline](../learn/pipeline.md): How execution works
+- [Processors](../learn/processors.md): Functions that handle intents
+- [Syntax Styles](../styles/route.md): Different ways to write IOP code

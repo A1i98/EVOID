@@ -7,9 +7,12 @@ description: 'Build multiplayer games with Godot + EVOID. Desktop, web, embed, U
 
 Build real multiplayer games with Godot (client) and EVOID (server). One plugin, every scenario — desktop, web, embed, UDP.
 
+!!! info "Prerequisite: Tutorial Phase 3"
+    This section uses the same concepts from [Tutorial: Franchise](../tutorial/multi-location.md): message bus for real-time communication, plugins for game-specific engines, and multi-service architecture for game servers. If you haven't completed Phase 3, start there first.
+
 !!! info "Who is this for?"
     - Game developers who want multiplayer without writing server code from scratch
-    - Web developers who want to embed games in their sites seamlessly
+    - Web developers who want to embed games in their sites with no visible frame
     - Anyone who wants to see IOP in action beyond REST APIs
 
 ## Architecture
@@ -89,7 +92,7 @@ func _ready():
 
 **Prerequisites:** Godot 4.4+ with HTML5 export template, EVOID server with GameHost
 
-### Scenario 3: Embed in Website (Seamless)
+### Scenario 3: Embed in Website (No Borders)
 
 ```html
 <!-- Parent website -->
@@ -210,7 +213,7 @@ setup_game_subscriptions("my-game")
 # 2. Serve the game (with embed mode)
 from evoid_godot import GameHost, SplashConfig
 
-host = GameHost(embed_mode=True)  # seamless iframe embed
+host = GameHost(embed_mode=True)  # iframe embed, no borders
 host.register_build("my-game", "builds/my-game/", title="My Game")
 
 # 3. Handle game intents

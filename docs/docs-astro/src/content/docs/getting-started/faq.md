@@ -18,7 +18,7 @@ Intent-Oriented Programming is a paradigm where data declares what it needs. The
 Use EVOID when:
 
 - Multiple services need to communicate
-- Infrastructure varies by data criticality
+- Different data needs different infrastructure (payments need PostgreSQL, sessions need Redis)
 - You want pipeline-based extensibility
 - You need typed, validated processing chains
 

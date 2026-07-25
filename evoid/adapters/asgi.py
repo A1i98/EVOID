@@ -375,7 +375,7 @@ def get(path: str, level: str = "standard") -> Callable:
         register(intent_obj)
 
         ann = apply_annotations(func)
-        errors = validate_annotations(func, method="GET")
+        errors = validate_annotations(func, method="GET", intent_name=intent_obj.name)
         if errors:
             import logging
             for e in errors:
@@ -385,7 +385,11 @@ def get(path: str, level: str = "standard") -> Callable:
         register_processor(intent_obj.name, processor)
 
         if ann["pipeline"]:
-            pipeline = ann["pipeline"]
+            pipeline = list(ann["pipeline"])
+            # Ensure the handler's intent name is in the pipeline
+            if intent_obj.name not in pipeline:
+                pipeline.append(intent_obj.name)
+            pipeline = tuple(pipeline)
         else:
             security = _DEFAULT_PROCESSORS.get(intent_obj.level, ())
             pipeline = [*security, intent_obj.name]
@@ -417,7 +421,7 @@ def post(path: str, level: str = "standard") -> Callable:
         register(intent_obj)
 
         ann = apply_annotations(func)
-        errors = validate_annotations(func, method="POST")
+        errors = validate_annotations(func, method="POST", intent_name=intent_obj.name)
         if errors:
             import logging
             for e in errors:
@@ -427,7 +431,10 @@ def post(path: str, level: str = "standard") -> Callable:
         register_processor(intent_obj.name, processor)
 
         if ann["pipeline"]:
-            pipeline = ann["pipeline"]
+            pipeline = list(ann["pipeline"])
+            if intent_obj.name not in pipeline:
+                pipeline.append(intent_obj.name)
+            pipeline = tuple(pipeline)
         else:
             security = _DEFAULT_PROCESSORS.get(intent_obj.level, ())
             pipeline = [*security, intent_obj.name]
@@ -459,7 +466,7 @@ def put(path: str, level: str = "standard") -> Callable:
         register(intent_obj)
 
         ann = apply_annotations(func)
-        errors = validate_annotations(func, method="PUT")
+        errors = validate_annotations(func, method="PUT", intent_name=intent_obj.name)
         if errors:
             import logging
             for e in errors:
@@ -469,7 +476,10 @@ def put(path: str, level: str = "standard") -> Callable:
         register_processor(intent_obj.name, processor)
 
         if ann["pipeline"]:
-            pipeline = ann["pipeline"]
+            pipeline = list(ann["pipeline"])
+            if intent_obj.name not in pipeline:
+                pipeline.append(intent_obj.name)
+            pipeline = tuple(pipeline)
         else:
             security = _DEFAULT_PROCESSORS.get(intent_obj.level, ())
             pipeline = [*security, intent_obj.name]
@@ -501,7 +511,7 @@ def delete(path: str, level: str = "standard") -> Callable:
         register(intent_obj)
 
         ann = apply_annotations(func)
-        errors = validate_annotations(func)
+        errors = validate_annotations(func, method="DELETE", intent_name=intent_obj.name)
         if errors:
             import logging
             for e in errors:
@@ -511,7 +521,10 @@ def delete(path: str, level: str = "standard") -> Callable:
         register_processor(intent_obj.name, processor)
 
         if ann["pipeline"]:
-            pipeline = ann["pipeline"]
+            pipeline = list(ann["pipeline"])
+            if intent_obj.name not in pipeline:
+                pipeline.append(intent_obj.name)
+            pipeline = tuple(pipeline)
         else:
             security = _DEFAULT_PROCESSORS.get(intent_obj.level, ())
             pipeline = [*security, intent_obj.name]

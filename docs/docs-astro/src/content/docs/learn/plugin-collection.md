@@ -1,6 +1,6 @@
 ---
 title: 'Plugin Collection'
-description: 'Official EVOID plugins on PyPI — storage, cache, DI, auth, tasks, cluster, game, transport, scheduler, dashboard.'
+description: 'Official EVOID plugins on PyPI: storage, cache, DI, auth, tasks, cluster, game, transport, scheduler, dashboard.'
 ---
 
 # Plugin Collection
@@ -8,10 +8,10 @@ description: 'Official EVOID plugins on PyPI — storage, cache, DI, auth, tasks
 !!! tip "New here?"
     EVOID ships with built-in engines for storage, cache, DI, and more. You don't need any plugins to get started. See [Plugins and Engines](plugins.md) for what's included, or [Plugin Ecosystem](plugin-ecosystem.md) to build your own.
 
-Official EVOID plugins on PyPI. Each is an independent package — install only what you need.
+Official EVOID plugins on PyPI. Each is an independent package. Install only what you need.
 
 !!! info "IOP in every plugin"
-    Every plugin follows IOP principles: data declares what it needs, the runtime handles how. A storage plugin doesn't know about your business logic. An auth plugin doesn't know about your database. They're Lego blocks — snap them together, and the pipeline composes them.
+    Every plugin follows IOP principles: data declares what it needs, the runtime handles how. A storage plugin doesn't know about your business logic. An auth plugin doesn't know about your database. Snap them together, and the pipeline composes them.
 
 ## Quick Install
 
@@ -29,7 +29,7 @@ uv add evoid-smart-storage
 
 ## Available Plugins
 
-### evoid-base — Shared Contracts
+### evoid-base: Shared Contracts
 
 The foundation. Defines `StorageEngine`, `CacheEngine`, and `LoggerEngine` contracts that all other plugins implement.
 
@@ -43,7 +43,7 @@ from evoid_base import StorageEngine, CacheEngine, LoggerEngine
 # async def health() -> bool
 ```
 
-**Why it matters:** You can swap `evoid-sqlite` for `evoid-postgresql` without changing a single line of business code. The contract stays the same. That's IOP — the Intent says "store this," and the pipeline routes to whichever engine you installed.
+**Why it matters:** You can swap `evoid-sqlite` for `evoid-postgresql` without changing a single line of business code. The contract stays the same. That's IOP: the Intent says "store this," and the pipeline routes to whichever engine you installed.
 
 ---
 
@@ -78,7 +78,7 @@ user = await storage.read("user:1")
 
 ---
 
-### evoid-redis — Redis Cache
+### evoid-redis: Redis Cache
 
 Async Redis cache with TTL. The standard choice for ephemeral data.
 
@@ -96,7 +96,7 @@ session = await cache.get("session:abc123")
 
 !!! example "IOP: ephemeral level"
     ```python
-    # Ephemeral Intent — cache lookup, no auth, no audit
+    # Ephemeral Intent: cache lookup, no auth, no audit
     GET_SESSION = Intent(name="get_session", level=Level.EPHEMERAL)
     
     async def handle_session(ctx: Context) -> dict:
@@ -105,13 +105,13 @@ session = await cache.get("session:abc123")
         # Your code just reads and writes
         return await ctx.deps["cache"].get(f"session:{session_id}")
     
-    # Pipeline: validate (5s timeout) — that's it.
+    # Pipeline: validate (5s timeout). That's it.
     # No authorize. No audit. Fast path.
     ```
 
 ---
 
-### evoid-smart-storage — Multi-DB Routing
+### evoid-smart-storage: Multi-DB Routing
 
 Routes data to different backends automatically. The traffic controller for your storage layer.
 
@@ -136,19 +136,19 @@ standard = "sqlite"           # Profiles → SQLite (simple)
 
 !!! example "IOP: level-aware routing"
     ```python
-    # This Intent is CRITICAL — smart-storage routes to PostgreSQL
+    # This Intent is CRITICAL: smart-storage routes to PostgreSQL
     PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
     
-    # This Intent is EPHEMERAL — smart-storage routes to Redis
+    # This Intent is EPHEMERAL: smart-storage routes to Redis
     CACHE_HIT = Intent(name="cache_check", level=Level.EPHEMERAL)
     
-    # Same business code, different backends — the level decides.
+    # Same business code, different backends. The level decides.
     # No if/else in your handler. No database imports.
     ```
 
 ---
 
-### evoid-di — Dependency Injection with Fault Tolerance
+### evoid-di: Dependency Injection with Fault Tolerance
 
 Three levels of complexity plus automatic failover, health checking, and cluster integration.
 
@@ -159,15 +159,15 @@ evo install di
 ```python
 from evoid_di import di
 
-# Level 1: Simple — name in, instance out
+# Level 1: Simple. Name in, instance out.
 di.register("db", create_db)
 db = di.resolve("db")
 
-# Level 2: Scoped — singleton, transient, or per-user
+# Level 2: Scoped. Singleton, transient, or per-user.
 di.register("db", create_db, scope="singleton")
 di.register("session", create_session, scope="per_user")
 
-# Level 3: Context-aware — different impl based on Intent level
+# Level 3: Context-aware. Different impl based on Intent level.
 di = DIEngine(rules_config=rules, implementations=impls)
 instance = await di.resolve("notifier", ctx)
 ```
@@ -203,9 +203,9 @@ storage = di.resolve("storage.postgresql")
 
 ---
 
-### evoid-auth — Authentication & Authorization
+### evoid-auth: Authentication & Authorization
 
-Bring your own provider — no forced JWT, no forced OAuth. Just a function that takes a token and returns a role.
+Bring your own provider. No forced JWT, no forced OAuth. Just a function that takes a token and returns a role.
 
 ```bash
 evo install auth
@@ -239,12 +239,12 @@ before("GET:/users", "authenticate")
     
     # EPHEMERAL: validate only (no auth needed)
     HEALTH_CHECK = Intent(name="health_check", level=Level.EPHEMERAL)
-    # Pipeline: validate — that's it. Fast, no overhead.
+    # Pipeline: validate. That's it. Fast, no overhead.
     ```
 
 ---
 
-### evoid-tasks — Background Tasks
+### evoid-tasks: Background Tasks
 
 Godot-inspired task lifecycle with EVOID pipeline integration. Fire-and-forget, scheduled, or event-driven.
 
@@ -283,13 +283,13 @@ async def update_stats(ctx: TaskContext):
     )
     
     # The task runs through the same pipeline as any other Intent
-    # Same auth, same validation, same audit — because it's IOP
+    # Same auth, same validation, same audit. Because it's IOP.
     # No special "background task" logic. Just a processor.
     ```
 
 ---
 
-### evoid-scheduler — Priority-Aware Scheduling
+### evoid-scheduler: Priority-Aware Scheduling
 
 Replaces EVOID's built-in parallel execution with a system-aware priority scheduler. Auto-defers low-priority tasks when the system is overloaded.
 
@@ -332,7 +332,7 @@ scheduler.submit(sync_analytics, priority=Priority.LOW)
 
 ---
 
-### evoid-cluster — Multi-Node Clustering
+### evoid-cluster: Multi-Node Clustering
 
 Connects multiple EVOID nodes into a unified distributed system via WebSocket. Nodes share Intents, not data.
 
@@ -375,7 +375,7 @@ pattern = "chat:*"
 
 ---
 
-### evoid-godot — Game Integration
+### evoid-godot: Game Integration
 
 Server-side adapter for connecting Godot games to EVOID. Works with the GDScript client plugin.
 
@@ -401,7 +401,7 @@ setup_game_subscriptions("my-game")
         metadata={"player_id": "abc", "x": 10, "y": 20},
     )
     
-    # Pipeline: validate — that's it. Fast, no auth for movement.
+    # Pipeline: validate. That's it. Fast, no auth for movement.
     # But a "purchase_item" intent? That's CRITICAL:
     
     PURCHASE_ITEM = Intent(
@@ -414,7 +414,7 @@ setup_game_subscriptions("my-game")
 
 ---
 
-### evoid-maubot — Matrix Bot Adapter
+### evoid-maubot: Matrix Bot Adapter
 
 Maubot plugin for Matrix messaging. Converts Matrix events to Intents.
 
@@ -431,7 +431,7 @@ adapter = MaubotAdapter("my-matrix-bot")
 
 ---
 
-### evoid-transport — Low-Latency UDP
+### evoid-transport: Low-Latency UDP
 
 Binary UDP protocol for game state synchronization. ~0.5ms overhead vs ~2-5ms for WebSocket.
 
@@ -454,9 +454,9 @@ latency = await transport.measure_latency("player-123")
 
 !!! example "IOP: channels map to levels"
     ```python
-    # Channel 0 (RELIABLE) — card plays, purchases
-    # Channel 1 (UNRELIABLE) — position updates, animations
-    # Channel 2 (CHAT) — chat messages
+    # Channel 0 (RELIABLE): card plays, purchases
+    # Channel 1 (UNRELIABLE): position updates, animations
+    # Channel 2 (CHAT): chat messages
     
     # This maps directly to IOP levels:
     # RELIABLE + CRITICAL = payments, legal moves
@@ -469,7 +469,7 @@ latency = await transport.measure_latency("player-123")
 
 ---
 
-### evoid-dashboard — Monitoring Dashboard
+### evoid-dashboard: Monitoring Dashboard
 
 ASGI-based web dashboard. Service map, intent registry, message bus history, DB viewer.
 
@@ -513,7 +513,7 @@ Open `http://localhost:8001` to see:
 Plugins are Lego blocks. Snap together what you need:
 
 ```toml
-# evoid.toml — full stack
+# evoid.toml: full stack
 [engines]
 storage = "smart_storage"
 cache = "redis"

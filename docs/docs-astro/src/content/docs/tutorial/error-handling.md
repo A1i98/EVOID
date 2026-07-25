@@ -34,7 +34,7 @@ Pipeline stops → Result(success=False, error=ValueError("Item not found"))
 Adapter converts Result.error to HTTP 500 + {"detail": "Item not found"}
 ```
 
-The pipeline doesn't catch exceptions — it captures them in `Result.error` and stops. The adapter decides how to present the error to the client.
+The pipeline doesn't catch exceptions. It captures them in `Result.error` and stops. The adapter decides how to present the error to the client.
 
 ## Returning Error Dicts
 
@@ -92,15 +92,16 @@ async def validate_optional(intent: Intent, ctx: Context) -> dict:
 ## Custom Error Responses
 
 ```python
+from dataclasses import dataclass
 from evoid.adapters.asgi import get
 from evoid.web.route import Service
 
 app = Service("sandy-api")
 
+@dataclass(frozen=True)
 class AppError:
-    def __init__(self, message: str, status: int = 400):
-        self.message = message
-        self.status = status
+    message: str
+    status: int = 400
 
 @get("/orders/{order_id}")
 async def get_order(order_id: int) -> dict:
@@ -121,4 +122,4 @@ async def get_order(order_id: int) -> dict:
 
 ## Next: Dependency Injection
 
-Let's manage dependencies properly — [Dependency Injection](dependency-injection.md).
+Manage dependencies properly next: [Dependency Injection](dependency-injection.md).

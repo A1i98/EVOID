@@ -82,6 +82,7 @@ Sandy started with zero plugins. Here's what she could add as she grows:
 
 ## Where to Go Next
 
+- [Godot Games](../godot/overview.md) — Same concepts (message bus, plugins, real-time) applied to multiplayer games
 - [IOP Levels](../learn/iop-levels.md) — Deep dive into the three levels
 - [Plugin Collection](../learn/plugin-collection.md) — All 14 official plugins
 - [Configuration](../learn/configuration.md) — Full config reference

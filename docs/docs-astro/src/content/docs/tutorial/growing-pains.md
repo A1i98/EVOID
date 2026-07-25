@@ -9,11 +9,10 @@ Sandy's shop is booming. The CLI is not enough. What breaks and how to fix it.
 
 ## The Problem
 
-Sandy's sandwich shop is popular. The CLI works for her, but:
+Sandy's sandwich shop is popular. She has persistent storage ([Data Loss](data-loss.md)) and proper authorization ([Who is Ordering?](who-is-ordering.md)). But new problems are emerging:
 
 - Customers want to order online
 - Multiple employees need access
-- Orders need to be stored, not just processed
 - Data needs validation — wrong prices break everything
 - Errors need proper HTTP responses
 
@@ -111,7 +110,7 @@ Phase 2: TypedDict + @route   → Sandy's Online Shop
 Phase 3: Dataclass + Native   → Sandy's Franchise
 ```
 
-Each phase builds on the last. You don't throw away Phase 1 code — you enhance it.
+Each phase builds on the last. You don't throw away Phase 1 code. You extend it.
 
 ## Next: Going Online
 

@@ -7,7 +7,7 @@ description: 'Manage dependencies through the pipeline — data carries what it 
 
 Manage dependencies through the pipeline — data carries what it needs.
 
-In IOP, dependencies flow through the pipeline: processors inject into `ctx.deps`, handlers read from it. The Intent declares what it needs, the pipeline provides it.
+Sandy's online shop works. But every handler creates its own database connection. When 100 customers order at once, 100 connections open. The server crashes. DI fixes this: one shared connection, injected per request.
 
 !!! info "DI = kitchen supplies"
     Think of `ctx.deps` as the kitchen's supply closet. A processor stocks it (injects the database, the cache, the auth provider). The handler grabs what it needs. Each request gets its own closet — no sharing, no conflicts.
@@ -297,3 +297,48 @@ def register_handlers(config=None):
     # It just calls ctx.deps["db"].read(...)
     # The DI plugin figured out the rest based on the level.
     ```
+
+## Scaling Up: From SQLite to PostgreSQL
+
+Sandy's shop handles 10 customers with SQLite. Then 100 come. Then 1000. SQLite locks the database on every write. Orders queue up. The server slows down.
+
+Sandy needs PostgreSQL for production traffic. But she doesn't want to rewrite her handlers. IOP solves this: swap the engine in config, same code.
+
+```bash
+evo install postgresql
+```
+
+```toml
+# evoid.toml — switch from SQLite to PostgreSQL
+[engines]
+storage = "postgresql"
+
+[engines.options.postgresql]
+url = "postgres://localhost:5432/sandy_shop"
+```
+
+Her handlers still call `ctx.deps["db"].read(...)`. They don't know which database they got. The DI plugin decided based on config.
+
+### Smart Storage: Route by Level
+
+When Sandy has both SQLite (cheap, fast for simple data) and PostgreSQL (ACID for payments), she needs to route Intents to the right database. The `evoid-smart-storage` plugin does this automatically:
+
+```bash
+evo install smart-storage
+```
+
+```toml
+[engines]
+storage = "smart_storage"
+
+[engines.smart_storage.mapping]
+credentials = "postgresql"    # Sensitive data → PostgreSQL
+session = "redis"             # Temporary data → Redis
+logs = "memory"               # Debug data → Memory
+
+[engines.smart_storage.level_routing]
+critical = "postgresql"       # Payments → PostgreSQL (ACID)
+standard = "sqlite"           # Profiles → SQLite (simple)
+```
+
+Sandy's payment Intent (CRITICAL) goes to PostgreSQL. Her session check (EPHEMERAL) goes to Redis. Her profile read (STANDARD) goes to SQLite. Same handler code, different backends.

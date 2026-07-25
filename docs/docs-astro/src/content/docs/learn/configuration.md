@@ -7,10 +7,10 @@ description: 'Configure EVOID with TOML or Python. Every field explained.'
 
 EVOID supports two config formats:
 
-1. **TOML** (`evoid.toml`) — traditional, human-readable
-2. **Python** (`evoid_config.py`) — native, type-safe, IOP-native
+1. **TOML** (`evoid.toml`): traditional, human-readable
+2. **Python** (`evoid_config.py`): native, type-safe, IOP-native
 
-Both produce the same config. Change infrastructure by changing config — business logic stays untouched.
+Both produce the same config. Change infrastructure by changing config: business logic stays untouched.
 
 !!! tip "Config over code"
     Switch from SQLite to PostgreSQL? Change one line in config, run `evo install sqlite`. Zero code changes.
@@ -71,8 +71,8 @@ my-api/
 ```
 
 **Two levels of config:**
-- **Project** (`root/evoid.toml`) — defaults for all services
-- **Service** (`services/*/evoid.toml`) — overrides for one service
+- **Project** (`root/evoid.toml`): defaults for all services
+- **Service** (`services/*/evoid.toml`): overrides for one service
 
 Service config **merges into** project config. Only specify what you want to override.
 
@@ -361,6 +361,6 @@ EVOID_ADAPTER=cli
 
 ## Related
 
-- [Installation](../getting-started/installation.md) — Install EVOID
-- [Plugins](plugins.md) — Custom engines
-- [Architecture](../getting-started/architecture.md) — How config affects execution
+- [Installation](../getting-started/installation.md): Install EVOID
+- [Plugins](plugins.md): Custom engines
+- [Architecture](../getting-started/architecture.md): How config affects execution

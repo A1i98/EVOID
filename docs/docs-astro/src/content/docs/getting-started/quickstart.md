@@ -113,7 +113,11 @@ curl -X POST http://localhost:8000/users?name=Ali&email=ali@example.com
     ```
 
 !!! tip "Protection levels"
-    Each level maps to a different pipeline — `ephemeral` gets fast validation only, `critical` gets full audit and protection.
+Each level maps to a different pipeline. `ephemeral` gets fast validation only. `critical` gets full audit and protection.
+
+## Next
+
+Build a real project step by step — [Tutorial: Your First Intent](../tutorial/first-intent.md).
 
 ## Adding Protection Levels
 

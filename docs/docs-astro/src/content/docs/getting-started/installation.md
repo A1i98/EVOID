@@ -120,3 +120,7 @@ Server starts at `http://0.0.0.0:8000`. Test it:
 ```bash
 curl http://localhost:8000/
 ```
+
+## Next
+
+Your project is ready. Learn the core concepts — [Quick Start](quickstart.md).

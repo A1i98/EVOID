@@ -7,14 +7,22 @@ description: "Deploy, monitor, and scale Sandy's franchise."
 
 Deploy, monitor, and scale Sandy's franchise.
 
-## Production Config
+Sandy has 4 locations, 100+ orders per hour, and no visibility into what's happening. Which location is slowest? Which orders are failing? She needs a dashboard.
 
-!!! note "Scaling up?"
-    This example uses built-in engines. For distributed caching (Redis) or advanced monitoring (Dashboard), install plugins:
-    ```bash
-    uv add evoid-redis        # Distributed caching
-    uv add evoid-dashboard    # Monitoring UI
-    ```
+```bash
+evo install dashboard
+```
+
+```python
+from evoid_dashboard import create_dashboard
+
+# Monitoring UI at http://localhost:8001
+create_dashboard(port=8001)
+```
+
+The dashboard shows: service map, all registered Intents, message bus history, database connections, system info. Sandy can see every location's health in one place.
+
+## Production Config
 
 ```toml
 # evoid.toml

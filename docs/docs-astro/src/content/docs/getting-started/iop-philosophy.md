@@ -19,11 +19,7 @@ Each layer hid complexity from the layer below. But by 2023, something broke.
 
 ### The Problem
 
-Modern applications aren't just code — they're **systems of systems**:
-
-- A single API call touches: load balancer → auth → rate limiter → cache → database → queue → logger
-- A single user action triggers: validation → business logic → side effects → notifications → analytics
-- A single deployment requires: config → secrets → feature flags → A/B tests → monitoring
+Modern applications aren't just code. They're **systems of systems**. A single API call touches a load balancer, auth, rate limiter, cache, database, queue, and logger. A user action triggers validation, business logic, side effects, notifications, and analytics. A deployment requires config, secrets, feature flags, A/B tests, and monitoring.
 
 The abstractions we built (OOP, MVC, microservices) were designed for **code organization**, not **system coordination**. They tell you *where* code lives, not *what* it needs to happen.
 
@@ -58,25 +54,11 @@ async def get_user(user_id: int):
     # ... 20 more lines of infrastructure
 ```
 
-An AI agent looking at this code sees:
-- A function name (`get_user`) — vague
-- A database call — which database?
-- A cache call — which cache?
-- An exception — what does 404 mean in this context?
-- 20 more lines — what does any of this do?
-
-**The AI can't understand the intent.** It sees the *how*, not the *what*.
+An AI agent looking at this code sees a vague function name, database and cache calls with no context, an exception with no meaning, and 20 lines of infrastructure it can't reason about. **The AI can't understand the intent.** It sees the *how*, not the *what*.
 
 ### What AI Agents Need
 
-AI agents need a **contract** — a machine-readable description of:
-
-- **What** this operation does (name + description)
-- **What** it needs (metadata fields)
-- **What** level of protection it requires (ephemeral/standard/critical)
-- **What** happens in the pipeline (validate → authorize → audit)
-
-This is exactly what IOP provides.
+AI agents need a **contract**: a machine-readable description of what the operation does, what data it needs, what protection level it requires, and what the pipeline runs. This is exactly what IOP provides.
 
 ## The Industry Response
 
@@ -194,13 +176,7 @@ Three forces converged to make IOP necessary:
 
 ### 1. AI Agents Became Real
 
-Before 2023, AI was a chatbot. After 2023, AI agents could:
-- Browse the web
-- Write code
-- Call APIs
-- Make decisions
-
-But they needed **structured contracts** to interact with software safely. IOP provides those contracts.
+Before 2023, AI was a chatbot. After 2023, AI agents could browse the web, write code, call APIs, and make decisions. But they needed **structured contracts** to interact with software safely. IOP provides those contracts.
 
 ### 2. Infrastructure Became Invisible
 
@@ -255,21 +231,11 @@ The shift: from **imperative** (how) to **declarative** (what).
 
 ### What Stays the Same
 
-- Your business logic stays the same
-- Your data models stay the same
-- Your testing stays the same
-- Your team structure stays the same
-
-IOP doesn't replace your code. It **moves infrastructure decisions** from your code to the pipeline.
+Your business logic, data models, testing, and team structure stay the same. IOP doesn't replace your code. It **moves infrastructure decisions** from your code to the pipeline.
 
 ## The Future
 
-IOP is designed for a world where:
-
-- **AI agents** are first-class citizens that need to understand and invoke your system
-- **Infrastructure** is dynamic and changes based on context (load, compliance, cost)
-- **Systems** are distributed and need coordination without manual wiring
-- **Security** is enforced by the system, not by each developer remembering to add it
+IOP is designed for a world where AI agents are first-class citizens, infrastructure is dynamic and changes based on context, systems are distributed and need coordination without manual wiring, and security is enforced by the system rather than by each developer remembering to add it.
 
 The Intent is the contract. The pipeline is the enforcer. The runtime is the coordinator.
 
@@ -277,7 +243,7 @@ The Intent is the contract. The pipeline is the enforcer. The runtime is the coo
 
 ## Related
 
-- [What is IOP?](what-is-iop.md) — Technical introduction
-- [IOP Levels](../learn/iop-levels.md) — The three levels
-- [Why EVOID?](why-evoid.md) — The origin story
-- [Schema Export](../learn/schema-export.md) — AI agent integration
+- [What is IOP?](what-is-iop.md): technical introduction
+- [IOP Levels](../learn/iop-levels.md): the three levels
+- [Why EVOID?](why-evoid.md): the origin story
+- [Schema Export](../learn/schema-export.md): AI agent integration

@@ -1,11 +1,11 @@
 ---
 title: 'Tic-Tac-Toe: Web Deploy'
-description: 'Deploy as WebGL with instant loading. Embed in any website seamlessly.'
+description: 'Deploy as WebGL with instant loading. Embed in any website with no visible frame.'
 ---
 
 # Tic-Tac-Toe: Web Deploy
 
-Export as WebGL and host on EVOID with instant loading. Embed seamlessly in any website.
+Export as WebGL and host on EVOID with instant loading. Embed with no visible frame in any website.
 
 ## 1. Export to HTML5
 
@@ -37,7 +37,7 @@ host.register_build(
     ),
 )
 
-# OR embed mode (seamless iframe integration)
+# OR embed mode (iframe with no borders)
 host_embed = GameHost(embed_mode=True)
 host_embed.register_build(
     "tic-tac-toe",
@@ -109,7 +109,7 @@ The game runs at `/game/tic-tac-toe/`. Embed it in any HTML page:
 </html>
 ```
 
-### Seamless Embed (with postMessage API)
+### Embed Mode (with postMessage API)
 
 For deeper integration, use the embed endpoint and postMessage API:
 
@@ -317,7 +317,7 @@ server {
 |---------|-----------|
 | HTML5 export | Build WebGL game |
 | `GameHost` | Serve with instant loading |
-| `GameHost(embed_mode)` | Seamless iframe embed |
+| `GameHost(embed_mode)` | iframe embed, no borders |
 | `postMessage` API | Parent ↔ game communication |
 | `auto_connect()` | Auto-detect WebGL |
 | Share link | Direct URL to game |
@@ -333,7 +333,7 @@ You've built a complete online tic-tac-toe with:
 - WebGL deployment
 - Instant loading
 - Embeddable in any website
-- Seamless parent page integration
+- Parent page integration via postMessage
 
 ## Summary: What You Built
 

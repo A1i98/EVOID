@@ -3,16 +3,31 @@
 IOP Principle: Decorators attach metadata. Runtime reads it.
 No magic, no metaclasses — just function attributes.
 
-Usage:
-    from evoid.core.annotations import intent, requires, validates, rate_limit, body, input
+Usage with @get/@post (route decorators):
+    from evoid.adapters.asgi import get
+    from evoid.core.annotations import intent, requires, validates, rate_limit
 
-    @intent(pipeline=("validate", "authorize", "process_payment"), timeout=30)
+    @intent(pipeline=("validate", "authorize", "GET:/pay"), timeout=30)
     @requires("auth_engine", "db_connection")
     @validates({"amount": {"type": "number", "required": True}})
     @rate_limit(max_calls=100, period=60)
-    @body(fields={"amount": {"type": "number", "required": True}})
+    @get("/pay")
     async def process_payment(ctx):
         ...
+
+    NOTE: The last element in pipeline must be the intent name
+    (e.g. "GET:/pay"), NOT the Python function name ("process_payment").
+    The runtime registers handlers under the intent name.
+
+Usage with native IOP (no route decorators):
+    from evoid import Intent, Level, add_intent
+
+    @intent(pipeline=("validate", "authorize", "pay"), timeout=30)
+    async def pay(ctx):
+        ...
+
+    PAY = Intent(name="pay", level=Level.CRITICAL)
+    add_intent(PAY, pay)
 """
 
 from __future__ import annotations
@@ -232,23 +247,28 @@ def apply_annotations(fn: Callable) -> dict[str, Any]:
     }
 
 
-def validate_annotations(fn: Callable, method: str = "") -> list[str]:
+def validate_annotations(fn: Callable, method: str = "", intent_name: str = "") -> list[str]:
     """Validate annotations on a handler. Returns list of error messages.
 
     Args:
         fn: Handler function to validate.
         method: HTTP method (GET, POST, etc.) for context-aware validation.
+        intent_name: The registered intent name (e.g. "GET:/pay"). If empty,
+            falls back to fn.__name__ for validation.
     """
     errors: list[str] = []
     ann = apply_annotations(fn)
     fn_name = getattr(fn, "__name__", str(fn))
 
-    # Check pipeline includes handler name
+    # Check pipeline includes the handler's registered name.
+    # When used with @get/@post, the handler is registered under
+    # intent_name (e.g. "GET:/pay"), not fn.__name__ ("pay").
     if ann["pipeline"] is not None:
-        if fn_name not in ann["pipeline"]:
+        handler_key = intent_name if intent_name else fn_name
+        if handler_key not in ann["pipeline"]:
             errors.append(
-                f"Handler '{fn_name}' has explicit pipeline but its own name "
-                f"is not in the pipeline. Add '{fn_name}' to the pipeline tuple."
+                f"Handler '{fn_name}' has explicit pipeline but '{handler_key}' "
+                f"is not in the pipeline. Add '{handler_key}' to the pipeline tuple."
             )
 
     # Validate rate_limit params

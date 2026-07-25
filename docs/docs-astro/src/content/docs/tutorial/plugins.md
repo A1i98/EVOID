@@ -5,10 +5,10 @@ description: 'Custom engines, adapters, and processors. Extend EVOID with plugin
 
 # Plugin System
 
-Custom engines, adapters, and processors. Extend EVOID with plugins.
+Extend EVOID with engines, adapters, and processors.
 
 !!! info "The official collection"
-    EVOID ships with 14 official plugins on PyPI. See [Plugin Collection](../learn/plugin-collection.md) for the full catalog — storage, cache, DI, auth, tasks, cluster, game integration, transport, scheduler, and dashboard.
+    EVOID ships with 14 official plugins on PyPI. See [Plugin Collection](../learn/plugin-collection.md) for the full catalog: storage, cache, DI, auth, tasks, cluster, game integration, transport, scheduler, and dashboard.
 
 ## Plugin Registry
 
@@ -38,18 +38,18 @@ for p in plugins:
 
 ## Plugin Manifest
 
-Every EVOID plugin on PyPI has a manifest:
+Every EVOID plugin on PyPI has a manifest: a Python dict in `__init__.py`.
 
-```json
-{
-  "name": "evoid-redis",
-  "version": "1.0.0",
-  "type": "engine",
-  "description": "Redis cache engine for EVOID",
-  "entry_point": "evoid_redis:register_plugin",
-  "dependencies": ["redis>=4.0.0"],
-  "evoid_version": ">=0.4.0",
-  "tags": ["cache", "redis"]
+```python
+# evoid_redis/__init__.py
+MANIFEST = {
+    "name": "evoid-redis",
+    "version": "0.1.2",
+    "type": "engine",
+    "description": "Redis cache engine for EVOID",
+    "category": "cache",
+    "dependencies": ["redis>=4.0.0"],
+    "evoid_version": ">=0.4.0",
 }
 ```
 
@@ -57,13 +57,13 @@ Every EVOID plugin on PyPI has a manifest:
 
 ```bash
 # Search for plugins
-evo plugin search cache
+evo plug search cache
 
 # Install a plugin
-evo plugin install evoid-redis
+evo plug install evoid-redis
 
 # List installed
-evo plugin list
+evo plug list
 ```
 
 !!! example "Real-world: Sandy's shop gets a database"
@@ -80,21 +80,39 @@ evo plugin list
 
 ```python
 # my_plugin/__init__.py
+from typing import Any
 from evoid.engines.plugin import register
 
+class MyStorage:
+    def __init__(self, path: str = "data.db"):
+        self.path = path
+
+    async def write(self, key: str, data: dict[str, Any], **kwargs) -> bool:
+        print(f"Stored {key} in {self.path}")
+        return True
+
+    async def read(self, key: str, **kwargs) -> Any | None:
+        return None
+
+    async def delete(self, key: str, **kwargs) -> bool:
+        return True
+
+    async def health(self) -> bool:
+        return True
+
+def create_engine(path: str = "data.db") -> MyStorage:
+    """Factory: create a MyStorage instance."""
+    return MyStorage(path=path)
+
 def register_plugin():
-    """Called when the plugin is loaded."""
+    """Call when the plugin loads."""
     register(
         name="my-engine",
         type="engine",
         factory=create_engine,
-        version="1.0.0",
+        version="0.1.0",
         description="My custom engine",
     )
-
-def create_engine():
-    """Factory: create the engine instance."""
-    return {"type": "my-engine", "config": {}}
 ```
 
 !!! example "IOP: plugins are processors"
@@ -114,7 +132,7 @@ def create_engine():
     # → validate (built-in)
     # → handler (your code, which calls evoid-redis)
     
-    # Same codebase, different infrastructure — the level decides.
+    # Same codebase, different infrastructure. The level decides.
     ```
 
 ## Plugin Types
@@ -149,10 +167,10 @@ def create_engine():
 | Concept | What It Is |
 |---------|-----------|
 | Plugin registry | Register and resolve plugins by name |
-| Plugin manifest | `evoid_plugin.json` for PyPI plugins |
+| Plugin manifest | `MANIFEST` dict in `__init__.py` |
 | Plugin types | adapter, engine, language, processor |
-| Installing | `evo plugin install` |
+| Installing | `evo plug install` |
 
 ## Next: AI Analytics
 
-Let's add AI-powered analytics — [AI Analytics](ai-analytics.md).
+Add AI-powered analytics next: [AI Analytics](ai-analytics.md).

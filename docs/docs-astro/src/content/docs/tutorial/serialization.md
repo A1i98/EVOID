@@ -9,7 +9,7 @@ JSON encoding, custom serializers, schema export for AI agents.
 
 ## Default JSON Serialization
 
-EVOID returns dicts — the adapter handles JSON encoding:
+EVOID returns dicts. The adapter handles JSON encoding:
 
 ```python
 @get("/menu")
@@ -34,7 +34,7 @@ response_body = json.dumps({"menu": [{"name": "BLT", "price": 8.99}]})
 # Sets Content-Type: application/json
 ```
 
-The runtime doesn't serialize — it passes your dict to the adapter. The adapter decides the format (JSON,_msgpack, etc.).
+The runtime doesn't serialize. It passes your dict to the adapter. The adapter decides the format (JSON, msgpack, etc.).
 
 ## Pydantic Models
 
@@ -66,12 +66,13 @@ async def get_order(order_id: int) -> dict:
 For complex types, register a custom serializer:
 
 ```python
+from dataclasses import dataclass
 from evoid.engines.serializer import set_serializer
 
+@dataclass(frozen=True)
 class Money:
-    def __init__(self, amount: float, currency: str = "USD"):
-        self.amount = amount
-        self.currency = currency
+    amount: float
+    currency: str = "USD"
 
 def serialize_money(obj):
     if isinstance(obj, Money):
@@ -128,4 +129,4 @@ async def debug_endpoint() -> dict:
 
 ## Next: Shipping Online
 
-Let's deploy Sandy's online shop — [Shipping Online](shipping-online.md).
+Deploy Sandy's online shop next: [Shipping Online](shipping-online.md).
