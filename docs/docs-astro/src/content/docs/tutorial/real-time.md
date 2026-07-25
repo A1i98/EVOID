@@ -121,7 +121,7 @@ PURCHASE_ITEM = Intent(
 # Real money, full protection.
 ```
 
-!!! example "Game transport: UDP for speed"
+!!! info "Game transport: UDP for speed"
     ```python
     # WebSocket: ~2-5ms overhead (TCP, reliable, ordered)
     # UDP: ~0.5ms overhead (fast, but unreliable)

@@ -279,7 +279,7 @@ def register_handlers(config=None):
 - Health checking and auto-reconnect
 - Smart-storage integration
 
-!!! example "IOP: level-aware DI"
+!!! info "IOP: level-aware DI"
     ```python
     # Same database interface, different backends per level
     # The Intent level determines which database you get

@@ -57,7 +57,7 @@ Sandy started with zero plugins. Here's what she could add as she grows:
 | `evoid-godot` | Sandy's sandwich video game | Godot game integration |
 | `evoid-transport` | Low-latency game state | UDP transport for games |
 
-!!! example "Sandy's full stack"
+!!! info "Sandy's full stack"
     ```python
     # Phase 1: Dict + Functions (no plugins)
     # → 5 minutes to working prototype

@@ -94,7 +94,7 @@ Each level maps to a different pipeline with different infrastructure behaviors:
 
 You choose the level. The runtime chooses the infrastructure.
 
-!!! example "Three Intents, three worlds"
+!!! info "Three Intents, three worlds"
     ```python
     # EPHEMERAL: Checking the weather
     GET_CACHE = Intent(name="cache_check", level=Level.EPHEMERAL)

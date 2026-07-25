@@ -66,7 +66,7 @@ evo plug install evoid-redis
 evo plug list
 ```
 
-!!! example "Real-world: Sandy's shop gets a database"
+!!! info "Real-world: Sandy's shop gets a database"
     ```bash
     # Sandy's sandwich shop needs to save orders
     evo install sqlite
@@ -115,7 +115,7 @@ def register_plugin():
     )
 ```
 
-!!! example "IOP: plugins are processors"
+!!! info "IOP: plugins are processors"
     ```python
     # A plugin doesn't know about your business logic.
     # It implements a contract (StorageEngine, CacheEngine, etc.)

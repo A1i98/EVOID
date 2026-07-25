@@ -172,7 +172,7 @@ result = await execute(intent)
 # result.value = {"total": 25.98}
 ```
 
-!!! example "IOP in a script"
+!!! info "IOP in a script"
     ```python
     # Quick data pipeline — no classes, no imports, no ceremony
     from evoid import Intent, Level, execute
@@ -252,7 +252,7 @@ add_intent_with_pipeline(
 result = await execute(intent)
 ```
 
-!!! example "TypedDict in a CLI"
+!!! info "TypedDict in a CLI"
     ```python
     # Your IDE autocompletes ctx.state["items"]
     # Type checker catches ctx.state["iteams"] (typo)
@@ -331,7 +331,7 @@ else:
     print(f"Failed: {result.error}")
 ```
 
-!!! example "Full IOP: payment processing"
+!!! info "Full IOP: payment processing"
     ```python
     # Level 3 with Critical Intent — the full IOP experience
     from dataclasses import dataclass

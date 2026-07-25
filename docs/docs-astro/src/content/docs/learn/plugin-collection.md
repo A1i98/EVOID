@@ -63,7 +63,7 @@ await storage.write("user:1", {"name": "Alice"})
 user = await storage.read("user:1")
 ```
 
-!!! example "IOP in action"
+!!! info "IOP in action"
     ```python
     # The Intent doesn't care which database you use
     SAVE_USER = Intent(name="save_user", level=Level.STANDARD)
@@ -94,7 +94,7 @@ await cache.set("session:abc123", {"user": "Alice"}, ttl=3600)
 session = await cache.get("session:abc123")
 ```
 
-!!! example "IOP: ephemeral level"
+!!! info "IOP: ephemeral level"
     ```python
     # Ephemeral Intent: cache lookup, no auth, no audit
     GET_SESSION = Intent(name="get_session", level=Level.EPHEMERAL)
@@ -134,7 +134,7 @@ critical = "postgresql"       # Payments → PostgreSQL (ACID)
 standard = "sqlite"           # Profiles → SQLite (simple)
 ```
 
-!!! example "IOP: level-aware routing"
+!!! info "IOP: level-aware routing"
     ```python
     # This Intent is CRITICAL: smart-storage routes to PostgreSQL
     PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
@@ -225,7 +225,7 @@ from evoid.core.extend import before
 before("GET:/users", "authenticate")
 ```
 
-!!! example "IOP: standard + critical levels"
+!!! info "IOP: standard + critical levels"
     ```python
     # STANDARD: validate + authorize (your auth provider runs here)
     GET_PROFILE = Intent(name="get_profile", level=Level.STANDARD)
@@ -271,7 +271,7 @@ async def update_stats(ctx: TaskContext):
     await recalc(ctx.event_data)
 ```
 
-!!! example "IOP: tasks as processors"
+!!! info "IOP: tasks as processors"
     ```python
     from evoid_tasks import as_intent
     
@@ -309,7 +309,7 @@ scheduler.submit(process_payment, priority=Priority.CRITICAL)
 scheduler.submit(sync_analytics, priority=Priority.LOW)
 ```
 
-!!! example "IOP: priority in metadata"
+!!! info "IOP: priority in metadata"
     ```python
     # Priority declared in Intent metadata
     PAYMENT = Intent(
@@ -356,7 +356,7 @@ port = 9000
 pattern = "chat:*"
 ```
 
-!!! example "IOP: distributed intents"
+!!! info "IOP: distributed intents"
     ```python
     # Node 1 handles payments
     PROCESS_PAYMENT = Intent(name="process_payment", level=Level.CRITICAL)
@@ -390,7 +390,7 @@ from evoid_godot import setup_game_subscriptions, game_intent_handler
 setup_game_subscriptions("my-game")
 ```
 
-!!! example "IOP: game intents"
+!!! info "IOP: game intents"
     ```python
     # From Godot client: EvoidApp.send_intent("player_move", {"x": 10, "y": 20})
     # Server receives it as an Intent:
@@ -452,7 +452,7 @@ await transport.broadcast_state_sync(game_state, tick=60)
 latency = await transport.measure_latency("player-123")
 ```
 
-!!! example "IOP: channels map to levels"
+!!! info "IOP: channels map to levels"
     ```python
     # Channel 0 (RELIABLE): card plays, purchases
     # Channel 1 (UNRELIABLE): position updates, animations
@@ -492,7 +492,7 @@ Open `http://localhost:8001` to see:
 - Database connections
 - System info
 
-!!! example "IOP: see your pipeline in action"
+!!! info "IOP: see your pipeline in action"
     ```python
     # The dashboard shows every Intent with its level and pipeline:
     #
@@ -545,7 +545,7 @@ async def sync_inventory(ctx):
     await sync_all_locations()
 ```
 
-!!! example "Full IOP stack in action"
+!!! info "Full IOP stack in action"
     ```python
     # A payment comes in:
     PROCESS_PAYMENT = Intent(

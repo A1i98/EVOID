@@ -139,7 +139,7 @@ The level determines:
 - How long the pipeline can take
 - Whether auditing and protection are enabled
 
-!!! example "Plugin activation per level"
+!!! info "Plugin activation per level"
     ```python
     # When you install evoid-auth and set up a provider:
     # - STANDARD Intents get automatic authorization

@@ -215,7 +215,7 @@ Sandy's pipeline is pure IOP — no plugins yet. But the moment she installs one
 # Sandy added store_order as a processor, and the storage plugin handles persistence.
 ```
 
-!!! example "Pipeline with plugins"
+!!! info "Pipeline with plugins"
     ```python
     from evoid import Intent, Level
     

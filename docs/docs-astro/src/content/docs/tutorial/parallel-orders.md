@@ -130,7 +130,7 @@ scheduler.submit(process_normal_order, priority=Priority.NORMAL)  # 50
 scheduler.submit(sync_analytics, priority=Priority.LOW)  # 25
 ```
 
-!!! example "IOP: priority in metadata"
+!!! info "IOP: priority in metadata"
     ```python
     # Priority declared in Intent metadata
     VIP_ORDER = Intent(

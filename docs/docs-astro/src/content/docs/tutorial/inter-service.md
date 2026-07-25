@@ -184,7 +184,7 @@ evo plug install evoid-cluster
 
 Sandy publishes "update_stock" from Location A. The cluster plugin checks: is there a local subscriber? No. Forward to Location B via WebSocket. Location B processes it. Result comes back. Sandy's handler doesn't know the inventory service is on another machine.
 
-!!! example "Cluster: distributed Intents"
+!!! info "Cluster: distributed Intents"
     ```python
     # Node 1 handles orders
     CREATE_ORDER = Intent(name="create_order", level=Level.STANDARD)

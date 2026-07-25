@@ -108,7 +108,7 @@ Three levels, three behaviors:
 
 You choose the level. The runtime handles the infrastructure.
 
-!!! example "Same shop, three levels"
+!!! info "Same shop, three levels"
     ```python
     # Sandy's menu is public — anyone can view it
     # No auth, no audit, just validate the request shape
