@@ -30,7 +30,6 @@ from ..core.extend import (
 from ..core.extend import (
     replace_pipeline as _replace_pipeline,
 )
-from ..core.intent import Intent
 from ._shared import create_intent as _create_intent
 
 # Handler type
@@ -166,6 +165,7 @@ def replace_pipeline(route: str, processors: list[str]) -> None:
 async def run(app: App, host: str = "0.0.0.0", port: int = 8000) -> None:
     """Run the @controller app."""
     import asyncio
+
     from ..adapters.asgi import create_app
 
     asgi_app = create_app(name=app.name)

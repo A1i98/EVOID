@@ -22,7 +22,7 @@ from typing import Any
 from ..core import Context, register, register_processor
 from ..core.extend import replace_pipeline
 from ..core.intent import Intent, Level
-from ..core.resolver import PipelineConfig, _DEFAULT_PROCESSORS
+from ..core.resolver import _DEFAULT_PROCESSORS, PipelineConfig
 from ..core.runtime import execute
 
 # Handler type: takes Intent, returns result
@@ -333,8 +333,6 @@ def _make_processor(func: Handler, method: str) -> Callable:
 
     # Auto-detected from signature (has user params besides ctx/intent)
     if inp and inp.get("type") == "auto":
-        auto_params = inp.get("params", [])
-
         if method.upper() in ("POST", "PUT", "PATCH"):
             # POST/PUT: try body first, fallback to params
             async def auto_body_processor(ctx: Context) -> Any:
@@ -392,8 +390,8 @@ def _make_processor(func: Handler, method: str) -> Callable:
 def get(path: str, level: str = "standard") -> Callable:
     """GET route — creates Intent, registers ASGI handler."""
     def decorator(func: Handler) -> Handler:
-        from ..web._shared import create_intent as _create_intent
         from ..core.annotations import apply_annotations, validate_annotations
+        from ..web._shared import create_intent as _create_intent
 
         intent_obj = _create_intent("GET", path, level)
         register(intent_obj)
@@ -438,8 +436,8 @@ def get(path: str, level: str = "standard") -> Callable:
 def post(path: str, level: str = "standard") -> Callable:
     """POST route — creates Intent, registers ASGI handler."""
     def decorator(func: Handler) -> Handler:
-        from ..web._shared import create_intent as _create_intent
         from ..core.annotations import apply_annotations, validate_annotations
+        from ..web._shared import create_intent as _create_intent
 
         intent_obj = _create_intent("POST", path, level)
         register(intent_obj)
@@ -483,8 +481,8 @@ def post(path: str, level: str = "standard") -> Callable:
 def put(path: str, level: str = "standard") -> Callable:
     """PUT route — creates Intent, registers ASGI handler."""
     def decorator(func: Handler) -> Handler:
-        from ..web._shared import create_intent as _create_intent
         from ..core.annotations import apply_annotations, validate_annotations
+        from ..web._shared import create_intent as _create_intent
 
         intent_obj = _create_intent("PUT", path, level)
         register(intent_obj)
@@ -528,8 +526,8 @@ def put(path: str, level: str = "standard") -> Callable:
 def delete(path: str, level: str = "standard") -> Callable:
     """DELETE route — creates Intent, registers ASGI handler."""
     def decorator(func: Handler) -> Handler:
-        from ..web._shared import create_intent as _create_intent
         from ..core.annotations import apply_annotations, validate_annotations
+        from ..web._shared import create_intent as _create_intent
 
         intent_obj = _create_intent("DELETE", path, level)
         register(intent_obj)

@@ -22,7 +22,7 @@ from typing import Any
 
 from ..core import register, register_processor
 from ..core.intent import Intent, Level  # noqa: F401 — re-exported for users
-from ..core.runtime import execute as _execute
+from ..core.runtime import execute as execute  # noqa: F811 — re-exported for users
 
 # Handler type: takes Intent, returns result
 Handler = Callable[[Intent], Awaitable[Any]]

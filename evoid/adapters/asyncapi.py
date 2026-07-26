@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..core.schema import export_schemas, IntentSchema
+from ..core.schema import IntentSchema, export_schemas
 
 
 @dataclass(frozen=True)
@@ -149,15 +149,15 @@ def generate_asyncapi_markdown(title: str = "EVOID API", version: str = "1.0.0")
 
     lines = [
         f"# {title}",
-        f"",
+        "",
         f"Version: {version}",
-        f"",
-        f"Auto-generated from registered Intents.",
-        f"",
-        f"## Intents",
-        f"",
-        f"| Name | Level | Pipeline | Description |",
-        f"|------|-------|----------|-------------|",
+        "",
+        "Auto-generated from registered Intents.",
+        "",
+        "## Intents",
+        "",
+        "| Name | Level | Pipeline | Description |",
+        "|------|-------|----------|-------------|",
     ]
 
     for name, schema in sorted(schemas.items()):
@@ -178,7 +178,7 @@ def generate_asyncapi_markdown(title: str = "EVOID API", version: str = "1.0.0")
         if schema.timeout:
             lines.append(f"- **Timeout**: {schema.timeout}s")
         if schema.metadata_fields:
-            lines.append(f"- **Metadata**:")
+            lines.append("- **Metadata**:")
             for f in schema.metadata_fields:
                 desc = f" — {f.description}" if f.description else ""
                 lines.append(f"  - `{f.name}` ({f.type}){desc}")

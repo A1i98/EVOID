@@ -7,12 +7,12 @@ Installation: uv add or pip install
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
-import json
 from typing import Any
 
-from .manifest import PluginManifest, load_manifest_from_module
+from .manifest import PluginManifest
 
 
 def search_plugins(query: str = "evoid") -> list[dict[str, Any]]:

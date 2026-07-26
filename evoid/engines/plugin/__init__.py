@@ -15,10 +15,10 @@ Plugin Standard:
 - Entry point: module:function
 """
 
-from .registry import Plugin, register, resolve, list_plugins, has, unregister, clear
-from .loader import from_config, from_module, from_file
-from .manifest import PluginManifest, load_manifest, validate_manifest, create_manifest
-from .discovery import search_plugins, discover_installed, install_plugin, get_plugin_info
+from .discovery import discover_installed, get_plugin_info, install_plugin, search_plugins
+from .loader import from_config, from_file, from_module
+from .manifest import PluginManifest, create_manifest, load_manifest, validate_manifest
+from .registry import Plugin, clear, has, list_plugins, register, resolve, unregister
 
 __all__ = [
     "Plugin",

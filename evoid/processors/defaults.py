@@ -12,10 +12,10 @@ They run by default when no custom pipeline is specified.
 from __future__ import annotations
 
 from ..core.processor import register as register_processor
-from .schema_validator import process as _validate
 from .auth_checker import process as _authorize
 from .logger_processor import process as _audit
 from .rate_limiter import process as _protect
+from .schema_validator import process as _validate
 
 
 def register_defaults() -> None:

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -118,7 +118,7 @@ async def emit(event: str, ctx: Any = None, metadata: dict[str, Any] | None = No
             result = handler(event_ctx)
             if asyncio.iscoroutine(result):
                 await asyncio.wait_for(result, timeout=_HOOK_TIMEOUT)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             import logging
             logging.warning("Event '%s' hook timed out after %ss", event, _HOOK_TIMEOUT)
         except Exception as e:

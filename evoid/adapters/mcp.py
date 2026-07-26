@@ -15,8 +15,7 @@ from typing import Any
 
 from ..core.intent import Intent, Level
 from ..core.runtime import execute
-from ..core.schema import export_schemas, IntentSchema
-
+from ..core.schema import IntentSchema, export_schemas
 
 # ============================================================
 # MCP Data Structures

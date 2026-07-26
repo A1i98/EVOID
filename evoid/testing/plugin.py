@@ -47,8 +47,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     for item in items:
         if isinstance(item, pytest.Function):
             # Check if the test function returns a TestCase
-            original_runtest = item.runtest
-
             def make_wrapper(func):
                 def wrapper():
                     result = func()
@@ -81,16 +79,15 @@ def pytest_runtest_call(item: pytest.Item) -> Any:
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> None:
     """Add test case info to report."""
     if hasattr(item, "_evoid_testcase"):
-        case = item._evoid_testcase
         if call.when == "call":
             item.add_marker(pytest.mark.evoid)
 
 
 def _run_test_case(case: TestCase, config: pytest.Config) -> dict[str, Any]:
     """Run a single test case through the IOP pipeline."""
-    from ..core.runtime import execute
     from ..core.extend import add_intent_with_pipeline
     from ..core.processor import get as get_processor
+    from ..core.runtime import execute
 
     start = time.monotonic()
 

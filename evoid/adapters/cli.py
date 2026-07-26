@@ -5,8 +5,6 @@ IOP: Adapter is a function that maps data to Intent.
 
 from __future__ import annotations
 
-from typing import Any
-
 from ..core.intent import Intent, Level
 
 

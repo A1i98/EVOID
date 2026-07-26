@@ -43,7 +43,7 @@ def clear() -> None:
 def register_handlers() -> None:
     """Register memory storage as Intent handlers."""
     from ...core import register, register_processor
-    from ...core.intents import STORAGE_READ, STORAGE_WRITE, STORAGE_DELETE, STORAGE_HEALTH
+    from ...core.intents import STORAGE_DELETE, STORAGE_HEALTH, STORAGE_READ, STORAGE_WRITE
 
     async def handle_read(ctx):
         key = ctx.intent.metadata.get("key")

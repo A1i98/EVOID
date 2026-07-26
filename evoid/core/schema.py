@@ -11,8 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .intent import Intent, Level, all_intents
 from .extend import get_pipeline_config
+from .intent import Intent, all_intents
 from .resolver import resolve_pipeline
 
 
@@ -143,15 +143,15 @@ def _to_json_schema(schema: IntentSchema) -> dict[str, Any]:
     properties = {}
     required = []
 
-    for field in schema.metadata_fields:
-        prop: dict[str, Any] = {"type": field.type}
-        if field.description:
-            prop["description"] = field.description
-        if field.default is not None:
-            prop["default"] = field.default
-        properties[field.name] = prop
-        if field.required:
-            required.append(field.name)
+    for meta_field in schema.metadata_fields:
+        prop: dict[str, Any] = {"type": meta_field.type}
+        if meta_field.description:
+            prop["description"] = meta_field.description
+        if meta_field.default is not None:
+            prop["default"] = meta_field.default
+        properties[meta_field.name] = prop
+        if meta_field.required:
+            required.append(meta_field.name)
 
     return {
         "type": "object",

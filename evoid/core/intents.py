@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from .intent import Intent, Level
 
-
 # ============================================================
 # Storage Intents
 # ============================================================

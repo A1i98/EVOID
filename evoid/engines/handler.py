@@ -13,8 +13,7 @@ Features borrowed from best plugin systems:
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable
-
+from typing import Any
 
 # Global state
 _handlers: dict[str, str] = {}         # "storage" -> "storage.read" intent name

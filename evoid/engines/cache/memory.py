@@ -81,7 +81,7 @@ async def exists(key: str) -> bool:
 def register_handlers() -> None:
     """Register memory cache as Intent handlers."""
     from ...core import register, register_processor
-    from ...core.intents import CACHE_GET, CACHE_SET, CACHE_DELETE, CACHE_EXISTS, CACHE_HEALTH
+    from ...core.intents import CACHE_DELETE, CACHE_EXISTS, CACHE_GET, CACHE_HEALTH, CACHE_SET
 
     async def handle_get(ctx):
         key = ctx.intent.metadata.get("key")

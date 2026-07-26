@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from .extend import replace_pipeline
 from .intent import Intent, Level
 from .runtime import execute
-from .extend import replace_pipeline
 
 # Track if pipeline is configured
 _pipeline_configured = False

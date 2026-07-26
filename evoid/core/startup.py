@@ -13,20 +13,16 @@ Features:
 from __future__ import annotations
 
 import importlib
-from typing import Any
 
 from ..config.loader import EvoidConfig
 from ..engines.handler import (
-    set_handler,
-    get_config,
-    register_lazy_handler,
-    ensure_loaded,
-    set_profile,
     activate_profile,
+    ensure_loaded,
     init_plugin_system,
+    register_lazy_handler,
+    set_handler,
+    set_profile,
 )
-from ..engines.validator import validate_plugin
-
 
 # Built-in engine handlers (no plugin needed)
 BUILTIN_HANDLERS: dict[str, dict[str, str]] = {

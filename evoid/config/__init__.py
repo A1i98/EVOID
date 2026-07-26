@@ -5,7 +5,7 @@ Two ways to configure:
 2. Python (evoid_config.py) — native, type-safe
 """
 
-from .loader import EvoidConfig, ServiceConfig, RuntimeConfig, EnginesConfig, PipelineConfig, load
+from .loader import EnginesConfig, EvoidConfig, PipelineConfig, RuntimeConfig, ServiceConfig, load
 from .schema import config, load_config, validate_config
 
 __all__ = [

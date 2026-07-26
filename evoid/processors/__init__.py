@@ -20,13 +20,14 @@ All processors:
 
 from .auth_checker import process as auth_checker
 from .circuit_breaker import process as circuit_breaker
+
+# Register default processors under pipeline names
+from .defaults import register_defaults
 from .intent_extractor import process as intent_extractor
 from .logger_processor import process as logger_processor
 from .rate_limiter import process as rate_limiter
 from .schema_validator import process as schema_validator
 
-# Register default processors under pipeline names
-from .defaults import register_defaults
 register_defaults()
 
 __all__ = [

@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 from .deps import get_packages_for_config
@@ -24,8 +23,8 @@ def _find_uv() -> str:
 
     Checks: PATH via shutil.which → Windows common paths → raises.
     """
-    import shutil
     import platform
+    import shutil
 
     # 1. Check PATH (works on all platforms)
     uv = shutil.which("uv")
