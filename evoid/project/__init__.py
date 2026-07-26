@@ -14,6 +14,9 @@ from .manager import (
     add_service as add_service,
 )
 from .manager import (
+    find_project_root as find_project_root,
+)
+from .manager import (
     get_project_config as get_project_config,
 )
 from .manager import (

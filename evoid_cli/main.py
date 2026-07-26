@@ -69,9 +69,16 @@ def cmd_service_new(service_name: str, port: int | None = None) -> None:
 
 def cmd_service_list() -> None:
     """List services in project."""
-    from evoid.project import list_services
+    from evoid.project import find_project_root, list_services
 
-    services = list_services(".")
+    # Find project root to give better error messages
+    project_root = find_project_root(".")
+    if not project_root:
+        print("No EVOID project found in this directory or its parents.")
+        print("Run 'evo init <name>' to create a new project.")
+        return
+
+    services = list_services(project_root)
 
     if not services:
         print("No services found. Create one with: evo service new <name>")
@@ -86,16 +93,26 @@ def cmd_service_run(service_name: str) -> None:
     """Run a specific service."""
     import importlib.util
 
-    from evoid.project import list_services
+    from evoid.project import find_project_root, list_services
 
-    services = list_services(".")
+    # Find project root
+    project_root = find_project_root(".")
+    if not project_root:
+        print("No EVOID project found in this directory or its parents.")
+        print("Run 'evo init <name>' to create a new project.")
+        sys.exit(1)
+
+    services = list_services(project_root)
     service = next((s for s in services if s.name == service_name), None)
 
     if not service:
         print(f"Service '{service_name}' not found.")
-        print("Available services:")
-        for s in services:
-            print(f"  {s.name}")
+        if services:
+            print("Available services:")
+            for s in services:
+                print(f"  {s.name}")
+        else:
+            print("No services in this project. Create one with: evo service new <name>")
         sys.exit(1)
 
     # Import service main.py to register its intents/handlers
@@ -136,14 +153,21 @@ def cmd_sync(args: list[str] | None = None) -> None:
         evo sync --show             # show packages without installing
     """
     from evoid.config.sync import show_packages, sync, sync_project
+    from evoid.project import find_project_root
 
     args = args or []
+
+    # Find project root
+    project_root = find_project_root(".")
+    if not project_root:
+        print("No EVOID project found in this directory or its parents.")
+        print("Run 'evo init <name>' to create a new project.")
+        return
 
     # Parse flags
     if "--show" in args:
         # Show packages for all services
-        from pathlib import Path
-        services_dir = Path("services")
+        services_dir = project_root / "services"
         if not services_dir.exists():
             print("No services/ directory found.")
             return
@@ -158,8 +182,7 @@ def cmd_sync(args: list[str] | None = None) -> None:
         idx = args.index("--service")
         if idx + 1 < len(args):
             service_name = args[idx + 1]
-            from pathlib import Path
-            config_path = Path("services") / service_name / "evoid.toml"
+            config_path = project_root / "services" / service_name / "evoid.toml"
             if not config_path.exists():
                 print(f"Service '{service_name}' not found at {config_path}")
                 sys.exit(1)
@@ -169,19 +192,27 @@ def cmd_sync(args: list[str] | None = None) -> None:
             sys.exit(1)
     else:
         # Sync entire project
-        sync_project(".")
+        sync_project(str(project_root))
 
 
 def cmd_run() -> None:
     """Run all services in project."""
     import asyncio
 
-    from evoid.project import list_services
+    from evoid.project import find_project_root, list_services
 
-    services = list_services(".")
+    # Find project root
+    project_root = find_project_root(".")
+    if not project_root:
+        print("No EVOID project found in this directory or its parents.")
+        print("Run 'evo init <name>' to create a new project.")
+        sys.exit(1)
+
+    services = list_services(project_root)
 
     if not services:
-        print("No services found.")
+        print("No services found in this project.")
+        print("Create one with: evo service new <name>")
         sys.exit(1)
 
     print(f"Running {len(services)} services:")
@@ -237,13 +268,20 @@ def cmd_list_processors() -> None:
 def cmd_check() -> None:
     """Check all registered intents for missing processors."""
     import importlib.util
-    from pathlib import Path
 
     from evoid.core import all_intents, all_processors
     from evoid.core.extend import get_pipeline_config
+    from evoid.project import find_project_root
+
+    # Find project root
+    project_root = find_project_root()
+    if not project_root:
+        print("No EVOID project found in this directory or its parents.")
+        print("Run 'evo init <name>' to create a new project.")
+        sys.exit(1)
 
     # Import all service main.py files to register their intents
-    services_dir = Path("services")
+    services_dir = project_root / "services"
     if services_dir.exists():
         for service_dir in services_dir.iterdir():
             if service_dir.is_dir():
@@ -281,7 +319,7 @@ def cmd_check() -> None:
             for pos, proc_name in missing:
                 print(f"  FAIL  {name:<30} position {pos}: '{proc_name}' not registered")
         else:
-            print(f"  OK    {name:<30} {' → '.join(config.processors)}")
+            print(f"  OK    {name:<30} {' \u2192 '.join(config.processors)}")
 
     print()
     if errors:

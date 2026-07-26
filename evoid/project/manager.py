@@ -31,6 +31,39 @@ except ImportError:
 
 
 # ============================================================
+# Project root detection
+# ============================================================
+
+def find_project_root(start: Path | str = ".") -> Path | None:
+    """Find the EVOID project root by walking up from start directory.
+
+    Looks for a directory containing both:
+    - services/ subdirectory
+    - pyproject.toml with [tool.evoid] section (or at least pyproject.toml)
+
+    Returns the project root Path, or None if not found.
+    """
+    current = Path(start).resolve()
+
+    while True:
+        # Check for services/ directory
+        services_dir = current / "services"
+        if services_dir.exists() and services_dir.is_dir():
+            # Check for pyproject.toml (project marker)
+            pyproject = current / "pyproject.toml"
+            if pyproject.exists():
+                return current
+
+        # Stop if we've reached the filesystem root
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+
+    return None
+
+
+# ============================================================
 # Data structures
 # ============================================================
 
@@ -270,12 +303,22 @@ if __name__ == "__main__":
 
 
 def list_services(project_path: str | Path) -> list[ServiceInfo]:
-    """List all services in a project."""
+    """List all services in a project.
+
+    If project_path doesn't contain a services/ directory, attempts to
+    find the project root by walking up the directory tree.
+    """
     project = Path(project_path)
     services_dir = project / "services"
 
     if not services_dir.exists():
-        return []
+        # Try to find project root by walking up
+        project_root = find_project_root(project)
+        if project_root:
+            project = project_root
+            services_dir = project / "services"
+        else:
+            return []
 
     services = []
     for service_dir in services_dir.iterdir():
