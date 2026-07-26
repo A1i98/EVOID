@@ -24,28 +24,26 @@ This creates:
 
 ```
 my-api/
-  evoid.toml
+  pyproject.toml
   shared/
   services/
+    gateway/        # ← your entry point (port 8000)
+      evoid.toml
+      main.py
 ```
 
-## Step 2: Add a Service
+## Step 2: Add Routes to the Gateway
 
-```bash
-evo service new api
-```
-
-This creates `services/api/main.py`.
-
-## Step 3: Write Your First Endpoint
-
-Edit `services/api/main.py`:
+Edit `services/gateway/main.py`:
 
 ```python
-from evoid.adapters.asgi import get, post
-from evoid.web.route import Service
+from evoid.web.route import Service, get, post, run
 
-app = Service("my-api")
+app = Service("gateway")
+
+@get("/health")
+async def health() -> dict:
+    return {"status": "healthy"}
 
 @get("/")
 async def home() -> dict:
@@ -60,19 +58,19 @@ async def create_user(name: str, email: str) -> dict:
     return {"status": "created", "name": name}
 ```
 
-## Step 4: Run the Server
+## Step 3: Run the Gateway
 
 ```bash
-evo service run api
+evo service run gateway
 ```
 
 You should see:
 
 ```
-Starting my-api on http://0.0.0.0:8000
+Starting gateway on http://0.0.0.0:8000
 ```
 
-## Step 5: Test It
+## Step 4: Test It
 
 ```bash
 # Home

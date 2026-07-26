@@ -1,11 +1,11 @@
 ---
 title: 'Gateway Pattern'
-description: 'The gateway is your app entry point. All external requests flow through it to services via the message bus.'
+description: 'The gateway is your app entry point. Configure it, extend it, route through it.'
 ---
 
 # Gateway Pattern
 
-When you run `evo init`, a **gateway** service is created automatically. It's the entry point for all external requests. Every other service lives behind it.
+`evo init` creates a **gateway** service automatically. It's the entry point for all external requests. Every other service lives behind it.
 
 ## What Is the Gateway
 
@@ -16,92 +16,183 @@ HTTP Request → Gateway → Message Bus → Service
                      ← Response ←
 ```
 
-## Why a Gateway
-
-Without a gateway, each service exposes its own HTTP endpoint:
-
-```
-Client → Order Service (port 8001)
-Client → Payment Service (port 8002)
-Client → Inventory Service (port 8003)
-```
-
-The client must know every service's URL. Adding a service means updating the client.
-
-With a gateway:
-
-```
-Client → Gateway (port 8000) → Message Bus → any service
-```
-
-The client only knows one URL. The gateway handles routing.
-
-## Gateway Structure
-
-`evo init` creates this:
+## Project Structure
 
 ```
 my-project/
 ├── services/
 │   └── gateway/
-│       ├── evoid.toml      # port 8000
-│       └── main.py         # @get("/health"), routes to other services
+│       ├── evoid.toml      # port 8000, adapter asgi
+│       └── main.py         # routes, middleware, auth
 ├── shared/
 └── pyproject.toml
 ```
 
-The gateway starts on port 8000. New services get 8001, 8002, etc.
+Gateway starts on port 8000. New services auto-increment: 8001, 8002, 8003.
 
-## How Routing Works
+## Default Gateway
 
-The gateway uses the message bus to route Intents:
+`evo init` generates a gateway with two endpoints:
 
 ```python
-from evoid import Intent, Level, publish
+from evoid.web.route import Service, get, post, run
 
-# Gateway receives HTTP request
-# Creates Intent from the request
-# Publishes to message bus
-# The right service handles it
+app = Service("gateway")
 
-intent = Intent(
-    name="process_payment",
-    level=Level.CRITICAL,
-    metadata={"amount": 99.99},
-)
-result = await publish(intent)
+@get("/health")
+async def health() -> dict:
+    return {"status": "healthy"}
+
+@get("/")
+async def index() -> dict:
+    return {"service": "gateway", "status": "running"}
 ```
 
-Services subscribe to specific Intent names. The bus delivers to whoever is listening.
-
-## Gateway vs Direct Calls
-
-| Pattern | Coupling | Scaling | Discovery |
-|---------|----------|---------|-----------|
-| Direct HTTP | Each service knows others | Hard to add/remove | Manual URLs |
-| Gateway + Bus | Services only know bus | Add/remove freely | Intent names |
-
-## Adding Services
+Test it:
 
 ```bash
-evo service new api        # port 8001
-evo service new payments   # port 8002
-evo service new inventory  # port 8003
+evo service run gateway
+curl http://localhost:8000/health
+# {"status":"healthy","service":"gateway"}
 ```
 
-The gateway doesn't need to know about these services. When a service registers an Intent handler, the bus makes it available. The gateway routes by Intent name, not by service URL.
+## Configuring the Gateway
 
-## Gateway in Production
+### evoid.toml
 
-In production, the gateway is the only externally exposed service. Internal services communicate via the message bus. The gateway handles:
+```toml
+[service]
+name = "gateway"
 
-- HTTP → Intent conversion
-- Authentication (via pipeline)
-- Rate limiting (via pipeline)
-- Load balancing (via `evoid-cluster`)
+[runtime]
+adapter = "asgi"
+host = "0.0.0.0"
+port = 8000
+
+[pipeline]
+processors = ["validate", "authorize"]
+```
+
+### Python Config
+
+```python
+from evoid.config import config
+
+app = config(
+    service={"name": "gateway"},
+    runtime={"adapter": "asgi", "port": 8000},
+    pipeline={"processors": ["validate", "authorize"]},
+)
+```
+
+## Adding Routes
+
+The gateway is where you define your public API. Add routes as your app grows:
+
+```python
+from evoid.web.route import Service, get, post, run
+
+app = Service("gateway")
+
+@get("/health")
+async def health() -> dict:
+    return {"status": "healthy"}
+
+@get("/api/menu")
+async def list_menu() -> dict:
+    # Forward to menu service via message bus
+    from evoid import Intent, Level, publish
+    result = await publish(Intent(
+        name="list_menu",
+        level=Level.EPHEMERAL,
+    ))
+    return result.value
+
+@post("/api/orders")
+async def create_order(sandwich: str, qty: int = 1) -> dict:
+    from evoid import Intent, Level, publish
+    result = await publish(Intent(
+        name="create_order",
+        level=Level.STANDARD,
+        metadata={"sandwich": sandwich, "qty": qty},
+    ))
+    return result.value
+```
+
+## Adding Middleware
+
+Add processors that run before every request:
+
+```python
+from evoid.web.route import before
+
+# Rate limit all /api/ routes
+before("GET:/api/*", "rate_limit")
+before("POST:/api/*", "rate_limit")
+
+# Log all requests
+before("GET:/health", "log_request")
+```
+
+## Adding Authentication
+
+Protect routes with auth processors:
+
+```python
+from evoid.web.route import before
+
+# Require auth for all /api/ routes
+before("GET:/api/*", "authorize")
+before("POST:/api/*", "authorize")
+
+# Health check stays open (no auth)
+# /health has no before() — no auth needed
+```
+
+## Gateway vs Direct Service
+
+| Approach | When to Use |
+|----------|-------------|
+| Gateway only | Small app, single service, prototyping |
+| Gateway + services | Medium app, 2-5 services |
+| Gateway + cluster | Large app, multiple machines |
+
+## Scaling
+
+### Add Services
+
+```bash
+evo service new api        # port 8001 (auto)
+evo service new payments   # port 8002 (auto)
+evo service new inventory  # port 8003 (auto)
+```
+
+### Run All
+
+```bash
+evo run                    # starts all services
+```
+
+### Run One
+
+```bash
+evo service run gateway    # just the gateway
+evo service run api        # just the api service
+```
+
+## Customizing the Gateway
+
+The gateway is just a service. You can:
+
+- Add any route decorators (`@get`, `@post`, `@put`, `@delete`)
+- Add middleware via `before()` / `after()`
+- Change the pipeline in `evoid.toml`
+- Add auth, rate limiting, logging
+- Use it as a reverse proxy (forward to other services via message bus)
+- Use it as an API aggregator (combine multiple service responses)
 
 ## Related
 
 - [Message Bus](message-bus.md): how Intents flow between services
-- [Inter-Service](../tutorial/inter-service.md): tutorial walkthrough
-- [Cluster](cluster.md): connecting gateways across machines
+- [Configuration](configuration.md): full config reference
+- [Tutorial: Going Online](../tutorial/going-online.md): first web endpoint

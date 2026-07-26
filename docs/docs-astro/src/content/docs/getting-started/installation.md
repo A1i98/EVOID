@@ -111,14 +111,14 @@ evo 0.5.0
 ```bash
 evo init my-api
 cd my-api
-evo service new api
-evo service run api
+evo service run gateway
 ```
 
-Server starts at `http://0.0.0.0:8000`. Test it:
+`evo init` creates a gateway service on port 8000. Test it:
 
 ```bash
-curl http://localhost:8000/
+curl http://localhost:8000/health
+# {"status":"healthy","service":"gateway"}
 ```
 
 ## Next

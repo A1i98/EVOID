@@ -121,18 +121,43 @@ def init_project(name: str, path: str | Path = ".") -> ProjectInfo:
     )
 
 
+def _next_port(project: Path) -> int:
+    """Find the next available port (8000, 8001, 8002, ...)."""
+    used = set()
+    services_dir = project / "services"
+    if services_dir.exists():
+        for d in services_dir.iterdir():
+            if d.is_dir():
+                cfg = d / "evoid.toml"
+                if cfg.exists():
+                    try:
+                        with open(cfg, "rb") as f:
+                            data = tomli.load(f)
+                        used.add(data.get("runtime", {}).get("port", 8000))
+                    except Exception:
+                        pass
+    port = 8000
+    while port in used:
+        port += 1
+    return port
+
+
 def add_service(
     project_path: str | Path,
     service_name: str,
-    port: int = 8000,
+    port: int | None = None,
 ) -> ServiceInfo:
     """Add a new service to a project.
 
     Creates:
     - services/<service_name>/evoid.toml
     - services/<service_name>/main.py
+
+    If port is None, auto-increments from existing services.
     """
     project = Path(project_path)
+    if port is None:
+        port = _next_port(project)
     service_path = project / "services" / service_name
     service_path.mkdir(parents=True, exist_ok=True)
 
@@ -161,7 +186,36 @@ def add_service(
         tomli_w.dump(config, f)
 
     # Create service main.py
-    main_py = f'''"""Service: {service_name}"""
+    if service_name == "gateway":
+        main_py = f'''"""Gateway — entry point for all external requests.
+
+Routes HTTP requests to services via the message bus.
+Customize: add routes, middleware, auth checks here.
+"""
+
+from evoid.web.route import Service, get, post, run
+from evoid.engines.logger import loguru as log
+
+
+app = Service("gateway")
+
+
+@get("/health")
+async def health() -> dict:
+    return {{"status": "healthy"}}
+
+
+@get("/")
+async def index() -> dict:
+    return {{"service": "gateway", "status": "running"}}
+
+
+if __name__ == "__main__":
+    log.init("gateway")
+    run(app, port={port})
+'''
+    else:
+        main_py = f'''"""Service: {service_name}"""
 
 from evoid.web.route import Service, get, post, run
 from evoid.engines.logger import loguru as log
