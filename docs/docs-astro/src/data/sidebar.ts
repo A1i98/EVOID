@@ -43,6 +43,7 @@ export const sidebar: SidebarEntry[] = [
       { label: 'Message Bus', slug: 'learn/message-bus' },
       { label: 'Parallel Execution', slug: 'learn/parallel' },
       { label: 'Streaming', slug: 'learn/streaming' },
+      { label: 'Gateway Pattern', slug: 'learn/gateway-pattern' },
       { label: 'Adapters', slug: 'learn/adapters' },
       { label: 'Configuration', slug: 'learn/configuration' },
       { label: 'Python-Native Config', slug: 'learn/python-config' },

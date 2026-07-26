@@ -7,6 +7,11 @@ description: 'Sandy gets a website. First @route endpoint, what happens under th
 
 Sandy gets a website. First @route endpoint, what happens under the hood.
 
+When Sandy ran `evo init`, a **gateway** service was created on port 8000. This is her entry point. All web requests go through the gateway. Sandy adds routes to the gateway — they become Intents that the pipeline processes.
+
+!!! info "Gateway = entry point"
+    The gateway is just a service. What makes it special is its role: it receives HTTP requests and converts them to Intents. Read more: [Gateway Pattern](../learn/gateway-pattern.md).
+
 ## The First Web Endpoint
 
 ```python
