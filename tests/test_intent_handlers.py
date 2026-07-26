@@ -8,7 +8,10 @@ class TestIntents:
 
     def test_storage_intents_exist(self):
         from evoid.core.intents import (
-            STORAGE_READ, STORAGE_WRITE, STORAGE_DELETE, STORAGE_HEALTH,
+            STORAGE_DELETE,
+            STORAGE_HEALTH,
+            STORAGE_READ,
+            STORAGE_WRITE,
         )
         assert STORAGE_READ.name == "storage.read"
         assert STORAGE_WRITE.name == "storage.write"
@@ -17,7 +20,11 @@ class TestIntents:
 
     def test_cache_intents_exist(self):
         from evoid.core.intents import (
-            CACHE_GET, CACHE_SET, CACHE_DELETE, CACHE_EXISTS, CACHE_HEALTH,
+            CACHE_DELETE,
+            CACHE_EXISTS,
+            CACHE_GET,
+            CACHE_HEALTH,
+            CACHE_SET,
         )
         assert CACHE_GET.name == "cache.get"
         assert CACHE_SET.name == "cache.set"
@@ -26,8 +33,9 @@ class TestIntents:
         assert CACHE_HEALTH.name == "cache.health"
 
     def test_all_intent_names_are_dotted(self):
-        from evoid.core import intents
         import inspect
+
+        from evoid.core import intents
         for name, obj in inspect.getmembers(intents):
             if hasattr(obj, 'name') and isinstance(obj.name, str):
                 assert '.' in obj.name, f"{name} should use dotted notation"
@@ -37,14 +45,14 @@ class TestHandlerRegistry:
     """Test handler registry operations."""
 
     def test_set_and_get_handler(self):
-        from evoid.engines.handler import set_handler, get_handler, clear_handlers
+        from evoid.engines.handler import clear_handlers, get_handler, set_handler
         clear_handlers()
         set_handler("storage", "storage.read", {"db_path": "test.db"})
         assert get_handler("storage") == "storage.read"
         clear_handlers()
 
     def test_get_config(self):
-        from evoid.engines.handler import set_handler, get_config, clear_handlers
+        from evoid.engines.handler import clear_handlers, get_config, set_handler
         clear_handlers()
         set_handler("cache", "cache.get", {"url": "redis://localhost"})
         config = get_config("cache.get")
@@ -52,7 +60,7 @@ class TestHandlerRegistry:
         clear_handlers()
 
     def test_get_all_handlers(self):
-        from evoid.engines.handler import set_handler, get_all_handlers, clear_handlers
+        from evoid.engines.handler import clear_handlers, get_all_handlers, set_handler
         clear_handlers()
         set_handler("storage", "storage.read")
         set_handler("cache", "cache.get")
@@ -170,7 +178,7 @@ class TestConflictDetection:
     """Test conflict detection when registering handlers."""
 
     def test_conflict_raises_error(self):
-        from evoid.engines.handler import set_handler, clear_handlers
+        from evoid.engines.handler import clear_handlers, set_handler
         clear_handlers()
         set_handler("storage", "storage.read")
         with pytest.raises(ValueError, match="Conflict"):
@@ -178,7 +186,7 @@ class TestConflictDetection:
         clear_handlers()
 
     def test_same_handler_no_conflict(self):
-        from evoid.engines.handler import set_handler, clear_handlers
+        from evoid.engines.handler import clear_handlers, set_handler
         clear_handlers()
         set_handler("storage", "storage.read")
         set_handler("storage", "storage.read")  # Same handler — no conflict
@@ -189,14 +197,14 @@ class TestLazyLoading:
     """Test lazy handler loading."""
 
     def test_register_lazy_handler(self):
-        from evoid.engines.handler import register_lazy_handler, _lazy_handlers, clear_handlers
+        from evoid.engines.handler import _lazy_handlers, clear_handlers, register_lazy_handler
         clear_handlers()
         register_lazy_handler("test_category", "some.module:register_handlers")
         assert "test_category" in _lazy_handlers
         clear_handlers()
 
     def test_ensure_loaded_skips_if_not_registered(self):
-        from evoid.engines.handler import ensure_loaded, _loaded
+        from evoid.engines.handler import ensure_loaded
         # Should not raise for unknown category
         ensure_loaded("nonexistent_category")
 
@@ -206,8 +214,11 @@ class TestProfileSystem:
 
     def test_set_and_activate_profile(self):
         from evoid.engines.handler import (
-            set_profile, activate_profile, get_active_profile,
-            list_profiles, clear_handlers,
+            activate_profile,
+            clear_handlers,
+            get_active_profile,
+            list_profiles,
+            set_profile,
         )
         clear_handlers()
         set_profile("production", {

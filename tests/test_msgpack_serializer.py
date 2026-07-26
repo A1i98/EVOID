@@ -1,7 +1,6 @@
 """Tests for Msgpack serializer engine."""
 
-import pytest
-from datetime import datetime, date, time
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -159,6 +158,7 @@ def test_large_payload():
 def test_binary_smaller_than_json():
     """Test that msgpack is smaller than JSON."""
     import json
+
     from evoid.engines.serializer.msgpack_engine import MsgpackSerializer
 
     s = MsgpackSerializer()
@@ -181,6 +181,7 @@ def test_binary_faster_than_json():
     """Test that msgpack is faster than JSON."""
     import json
     import time
+
     from evoid.engines.serializer.msgpack_engine import MsgpackSerializer
 
     s = MsgpackSerializer()

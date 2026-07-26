@@ -83,24 +83,25 @@ def create_app(
         # Convert to Intent
         intent = _intent_from_request(method, path, body, headers, query=query)
 
-        # Find handler — exact match first, then pattern match
-        intent_name, path_params = _match_intent(method, path, _handlers)
+        # Find handler — exact match first, then pattern match against handlers + registered intents
+        from ..core.intent import all_intents as _all_intents
+        registered = _all_intents()
+        intent_name, path_params = _match_intent(method, path, _handlers, registered)
 
         # Rebuild intent if pattern matched (with extracted params)
-        if path_params:
+        if path_params or (intent_name and intent_name != intent.name):
             intent = _intent_from_request(method, path, body, headers, query=query, path_params=path_params)
-            # Override intent name with the matched pattern
-            intent = Intent(
-                name=intent_name,
-                level=intent.level,
-                metadata={**intent.metadata, "params": path_params},
-            )
+            if intent_name:
+                intent = Intent(
+                    name=intent_name,
+                    level=intent.level,
+                    metadata=intent.metadata,
+                )
 
         handler = _handlers.get(intent_name) if intent_name else None
 
         # 404: no handler and no registered intent for this path
-        from ..core.intent import all_intents as _all_intents
-        if not handler and intent_name not in _all_intents():
+        if not handler and intent_name not in registered:
             return JSONResponse(
                 {"error": f"Not found: {method} {path}", "status": "not_found"},
                 status_code=404,
@@ -233,19 +234,26 @@ def _match_path(template: str, path: str) -> dict[str, str] | None:
 def _match_intent(
     method: str,
     path: str,
-    handlers: dict[str, Handler],
+    handlers: dict[str, Handler] | None = None,
+    registered_intents: dict[str, Any] | None = None,
 ) -> tuple[str | None, dict[str, str]]:
-    """Match request against handler keys with path template support.
+    """Match request against handler keys and registered intents with path template support.
 
     Returns (intent_name, extracted_params) or (None, {}).
     """
+    candidates: list[str] = []
+    if handlers:
+        candidates.extend(handlers.keys())
+    if registered_intents:
+        candidates.extend(registered_intents.keys())
+
     # 1. Exact match (fast path)
     exact = f"{method.upper()}:{path}"
-    if exact in handlers:
+    if exact in candidates:
         return exact, {}
 
-    # 2. Pattern match against handler keys
-    for pattern in handlers:
+    # 2. Pattern match against candidate keys
+    for pattern in candidates:
         if ":" not in pattern:
             continue
         pattern_method, pattern_path = pattern.split(":", 1)

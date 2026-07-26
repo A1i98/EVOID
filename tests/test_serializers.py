@@ -1,36 +1,36 @@
 """Tests for all serializer engines — IOP compliance + functionality."""
 
-import pytest
 import json
-from datetime import datetime, date, time
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
+import pytest
 
 # ── JSON Engine Tests ───────────────────────────────────────────────────────
 
 class TestJsonEngine:
     def test_basic_types(self):
-        from evoid.engines.serializer.json_engine import encode, decode
+        from evoid.engines.serializer.json_engine import decode, encode
         for data in ["hello", 42, 3.14, True, None, [1, 2], {"a": 1}]:
             assert decode(encode(data)) == data
 
     def test_datetime(self):
-        from evoid.engines.serializer.json_engine import encode, decode
+        from evoid.engines.serializer.json_engine import decode, encode
         now = datetime.now()
         assert decode(encode({"ts": now}))["ts"] == now.isoformat()
 
     def test_uuid(self):
-        from evoid.engines.serializer.json_engine import encode, decode
+        from evoid.engines.serializer.json_engine import decode, encode
         uid = UUID("12345678-1234-5678-1234-567812345678")
         assert decode(encode({"id": uid}))["id"] == str(uid)
 
     def test_decimal(self):
-        from evoid.engines.serializer.json_engine import encode, decode
+        from evoid.engines.serializer.json_engine import decode, encode
         assert decode(encode({"amt": Decimal("99.99")}))["amt"] == "99.99"
 
     def test_nested(self):
-        from evoid.engines.serializer.json_engine import encode, decode
+        from evoid.engines.serializer.json_engine import decode, encode
         data = {"users": [{"id": 1}, {"id": 2}]}
         assert decode(encode(data)) == data
 
@@ -44,36 +44,35 @@ class TestJsonEngine:
 
 class TestMsgpackEngine:
     def test_basic_types(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         for data in ["hello", 42, 3.14, True, None, [1, 2], {"a": 1}]:
             assert decode(encode(data)) == data
 
     def test_datetime(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         now = datetime.now()
         result = decode(encode({"ts": now}))
         assert result["ts"].year == now.year
 
     def test_uuid(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         uid = UUID("12345678-1234-5678-1234-567812345678")
         assert decode(encode({"id": uid}))["id"] == uid
 
     def test_decimal(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         assert decode(encode({"amt": Decimal("99.99")}))["amt"] == Decimal("99.99")
 
     def test_bytes_native(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         assert decode(encode({"bin": b"data"}))["bin"] == b"data"
 
     def test_set(self):
-        from evoid.engines.serializer.msgpack_engine import encode, decode
+        from evoid.engines.serializer.msgpack_engine import decode, encode
         result = decode(encode({"tags": {"a", "b"}}))
         assert set(result["tags"]) == {"a", "b"}
 
     def test_smaller_than_json(self):
-        import json
         from evoid.engines.serializer.msgpack_engine import encode as mp_encode
         data = {"items": list(range(100))}
         assert len(mp_encode(data)) < len(json.dumps(data).encode())
@@ -89,13 +88,13 @@ class TestMsgpackEngine:
 class TestMsgspecEngine:
     def test_basic_types(self):
         pytest.importorskip("msgspec")
-        from evoid.engines.serializer.msgspec_engine import encode, decode
+        from evoid.engines.serializer.msgspec_engine import decode, encode
         for data in ["hello", 42, 3.14, True, None, [1, 2], {"a": 1}]:
             assert decode(encode(data)) == data
 
     def test_nested(self):
         pytest.importorskip("msgspec")
-        from evoid.engines.serializer.msgspec_engine import encode, decode
+        from evoid.engines.serializer.msgspec_engine import decode, encode
         data = {"users": [{"id": 1}, {"id": 2}]}
         assert decode(encode(data)) == data
 
@@ -110,14 +109,15 @@ class TestMsgspecEngine:
 
 class TestPydanticEngine:
     def test_basic_types(self):
-        from evoid.engines.serializer.pydantic_engine import encode, decode
+        from evoid.engines.serializer.pydantic_engine import decode, encode
         for data in ["hello", 42, 3.14, True, None, [1, 2], {"a": 1}]:
             assert decode(encode(data)) == data
 
     def test_with_schema(self):
         try:
             from pydantic import BaseModel
-            from evoid.engines.serializer.pydantic_engine import encode, decode
+
+            from evoid.engines.serializer.pydantic_engine import decode, encode
 
             class User(BaseModel):
                 id: int
@@ -147,7 +147,7 @@ class TestSerializerRegistry:
         assert hasattr(s, "decode")
 
     def test_set_serializer(self):
-        from evoid.engines.serializer import set_serializer, get_serializer, reset_serializer
+        from evoid.engines.serializer import get_serializer, reset_serializer, set_serializer
 
         class Dummy:
             def encode(self, data): return b"dummy"
@@ -168,8 +168,10 @@ class TestSerializerRegistry:
 
 class TestCrossEngine:
     def test_all_engines_handle_same_data(self):
-        from evoid.engines.serializer.json_engine import encode as json_encode, decode as json_decode
-        from evoid.engines.serializer.msgpack_engine import encode as mp_encode, decode as mp_decode
+        from evoid.engines.serializer.json_engine import decode as json_decode
+        from evoid.engines.serializer.json_engine import encode as json_encode
+        from evoid.engines.serializer.msgpack_engine import decode as mp_decode
+        from evoid.engines.serializer.msgpack_engine import encode as mp_encode
 
         data = {"users": [{"id": i, "name": f"user_{i}"} for i in range(10)]}
 

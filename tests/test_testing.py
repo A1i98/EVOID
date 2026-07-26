@@ -1,10 +1,10 @@
 """Tests for the testing system."""
 
 import asyncio
-import pytest
-from evoid import Intent, Level, Context, register, register_processor, clear_registry
-from evoid.testing import tc, TestCase, check_result
+
+from evoid import Context, Intent, Level, clear_registry
 from evoid.core.pipeline import Result
+from evoid.testing import TestCase, check_result, tc
 
 
 class TestTestCase:

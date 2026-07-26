@@ -1,22 +1,31 @@
 """Core tests — Verify IOP runtime works correctly."""
 
 import asyncio
+
 import pytest
 
 from evoid.core import (
-    Intent, Level, Context, Result,
-    register, resolve, all_intents, clear_registry,
-    register_processor, all_processors,
-    execute, execute_by_name,
-    PipelineConfig, resolve_pipeline,
+    Context,
+    Intent,
+    Level,
+    PipelineConfig,
+    all_intents,
+    clear_registry,
+    execute,
+    register,
+    resolve,
+    resolve_pipeline,
 )
 from evoid.core.extend import (
-    add_intent, add_intent_with_pipeline,
-    before, after, before_processor, after_processor,
-    get_pipeline_config, list_overrides, clear_overrides,
+    add_intent,
+    add_intent_with_pipeline,
+    after,
+    before,
+    clear_overrides,
+    get_pipeline_config,
+    list_overrides,
 )
-from evoid.core.parallel import gather, gather_with_priority, IntentQueue
-
+from evoid.core.parallel import gather
 
 # ============================================================
 # Intent tests

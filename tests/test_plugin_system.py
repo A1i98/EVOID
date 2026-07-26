@@ -1,11 +1,12 @@
 """Tests for plugin system and config."""
 
-import pytest
+from evoid.config import config, validate_config
 from evoid.engines.plugin.manifest import (
-    PluginManifest, load_manifest, validate_manifest, create_manifest,
+    PluginManifest,
+    create_manifest,
+    validate_manifest,
 )
-from evoid.engines.plugin.registry import register, resolve, list_plugins, clear, has, unregister
-from evoid.config import config, validate_config, EvoidConfig
+from evoid.engines.plugin.registry import clear, has, list_plugins, register, resolve, unregister
 
 
 class TestManifest:
