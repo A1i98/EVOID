@@ -193,8 +193,12 @@ Routes HTTP requests to services via the message bus.
 Customize: add routes, middleware, auth checks here.
 """
 
+import json
 from evoid.web.route import Service, get, post, run
 from evoid.engines.logger import loguru as log
+from evoid.adapters.mcp import create_mcp_server, handle_mcp_request
+from evoid.adapters.asyncapi import generate_asyncapi, generate_asyncapi_markdown
+from evoid.core.annotations import body
 
 
 app = Service("gateway")
@@ -208,6 +212,29 @@ async def health() -> dict:
 @get("/")
 async def index() -> dict:
     return {{"service": "gateway", "status": "running"}}
+
+
+@get("/docs")
+async def docs() -> str:
+    """AsyncAPI documentation as Markdown."""
+    return generate_asyncapi_markdown(title="{service_name}")
+
+
+@get("/docs/openapi")
+async def docs_openapi() -> dict:
+    """AsyncAPI spec as JSON."""
+    return generate_asyncapi(title="{service_name}")
+
+
+# MCP server — created once, reused across requests
+_mcp_server = create_mcp_server("{service_name}")
+
+
+@post("/mcp")
+@body()
+async def mcp_endpoint(body: dict) -> dict:
+    """MCP JSON-RPC endpoint for AI agents."""
+    return await handle_mcp_request(_mcp_server, body)
 
 
 if __name__ == "__main__":

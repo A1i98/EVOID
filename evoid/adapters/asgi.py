@@ -287,10 +287,16 @@ def _make_processor(func: Handler, method: str) -> Callable:
     if inp and inp.get("type") == "body":
         optional = inp.get("optional", False)
 
+        # Check if function has a 'body' parameter (receives dict as single arg)
+        has_body_param = "body" in sig.parameters
+
         async def body_processor(ctx: Context) -> Any:
             body = ctx.metadata.get("body", {})
             if body:
-                return await func(**body)
+                if has_body_param:
+                    return await func(body)    # Pass dict as single argument
+                else:
+                    return await func(**body)  # Unpack dict as kwargs
             elif optional:
                 return await func()
             else:

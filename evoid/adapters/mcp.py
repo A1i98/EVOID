@@ -2,6 +2,10 @@
 
 IOP: MCP adapter converts Intents to MCP tool format.
 AI agents can discover, understand, and invoke Intents.
+
+Supports MCP protocol via JSON-RPC 2.0:
+- tools/list → list all available tools
+- tools/call → execute an Intent
 """
 
 from __future__ import annotations
@@ -9,10 +13,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..core.intent import Intent
+from ..core.intent import Intent, Level
 from ..core.runtime import execute
 from ..core.schema import export_schemas, IntentSchema
 
+
+# ============================================================
+# MCP Data Structures
+# ============================================================
 
 @dataclass(frozen=True)
 class MCPTool:
@@ -31,18 +39,21 @@ class MCPServer:
     tools: dict[str, MCPTool] = field(default_factory=dict)
 
 
+# ============================================================
+# Server Creation
+# ============================================================
+
 def create_mcp_server(name: str = "evoid", visible_only: bool = True) -> MCPServer:
     """Create an MCP server from registered Intents.
 
     Args:
         name: Server name
-        visible_only: If True, only expose Intents with mcp_visible=True in metadata
+        visible_only: If True, only expose Intents with mcp_visible=True
     """
     server = MCPServer(name=name)
     schemas = export_schemas()
 
     for intent_name, schema in schemas.items():
-        # Check visibility
         if visible_only:
             from ..core.intent import resolve
             intent = resolve(intent_name)
@@ -57,19 +68,18 @@ def create_mcp_server(name: str = "evoid", visible_only: bool = True) -> MCPServ
 
 def _schema_to_tool(schema: IntentSchema) -> MCPTool:
     """Convert IntentSchema to MCPTool."""
-    # Build input schema from metadata fields
     properties = {}
     required = []
 
-    for field in schema.metadata_fields:
-        prop: dict[str, Any] = {"type": field.type}
-        if field.description:
-            prop["description"] = field.description
-        if field.default is not None:
-            prop["default"] = field.default
-        properties[field.name] = prop
-        if field.required:
-            required.append(field.name)
+    for f in schema.metadata_fields:
+        prop: dict[str, Any] = {"type": f.type}
+        if f.description:
+            prop["description"] = f.description
+        if f.default is not None:
+            prop["default"] = f.default
+        properties[f.name] = prop
+        if f.required:
+            required.append(f.name)
 
     input_schema = {
         "type": "object",
@@ -86,14 +96,75 @@ def _schema_to_tool(schema: IntentSchema) -> MCPTool:
     )
 
 
+# ============================================================
+# MCP Protocol (JSON-RPC 2.0)
+# ============================================================
+
+async def handle_mcp_request(server: MCPServer, request: dict[str, Any]) -> dict[str, Any]:
+    """Handle a JSON-RPC 2.0 MCP request.
+
+    Supported methods:
+    - tools/list: list all tools
+    - tools/call: execute an Intent
+    - initialize: handshake
+    - ping: health check
+    """
+    method = request.get("method", "")
+    params = request.get("params", {})
+    request_id = request.get("id")
+
+    # Build response envelope
+    response: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id}
+
+    try:
+        if method == "initialize":
+            result = {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {"tools": {"listChanged": False}},
+                "serverInfo": {"name": server.name, "version": "1.0.0"},
+            }
+            response["result"] = result
+
+        elif method == "ping":
+            response["result"] = {}
+
+        elif method == "tools/list":
+            tools = list_tools(server)
+            response["result"] = {"tools": tools}
+
+        elif method == "tools/call":
+            tool_name = params.get("name", "")
+            arguments = params.get("arguments", {})
+            result = await handle_tool_call(server, tool_name, arguments)
+            response["result"] = {
+                "content": [{"type": "text", "text": str(result)}],
+                "isError": False,
+            }
+
+        else:
+            response["error"] = {
+                "code": -32601,
+                "message": f"Method not found: {method}",
+            }
+
+    except Exception as e:
+        response["error"] = {
+            "code": -32603,
+            "message": str(e),
+        }
+
+    return response
+
+
+# ============================================================
+# Tool Operations
+# ============================================================
+
 async def handle_tool_call(server: MCPServer, tool_name: str, arguments: dict[str, Any]) -> Any:
     """Handle an MCP tool call by executing the corresponding Intent."""
     tool = server.tools.get(tool_name)
     if tool is None:
         raise ValueError(f"Unknown tool: {tool_name}")
-
-    # Build Intent from arguments
-    from ..core.intent import Intent, Level
 
     intent = Intent(
         name=tool.intent_name,
@@ -101,7 +172,6 @@ async def handle_tool_call(server: MCPServer, tool_name: str, arguments: dict[st
         metadata=arguments,
     )
 
-    # Execute
     result = await execute(intent)
 
     if result.success:
