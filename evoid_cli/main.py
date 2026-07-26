@@ -219,6 +219,44 @@ def cmd_list_processors() -> None:
         print(f"  {name}")
 
 
+def cmd_check() -> None:
+    """Check all registered intents for missing processors."""
+    from evoid.core import all_intents, all_processors
+    from evoid.core.extend import get_pipeline_config
+
+    intents = all_intents()
+    processors = all_processors()
+
+    if not intents:
+        print("No intents registered. Nothing to check.")
+        return
+
+    print(f"Checking {len(intents)} intents against {len(processors)} processors...")
+    print()
+
+    errors = 0
+    for name, intent in sorted(intents.items()):
+        config = get_pipeline_config(intent)
+        missing = []
+        for i, proc_name in enumerate(config.processors):
+            if proc_name not in processors:
+                missing.append((i, proc_name))
+
+        if missing:
+            errors += 1
+            for pos, proc_name in missing:
+                print(f"  FAIL  {name:<30} position {pos}: '{proc_name}' not registered")
+        else:
+            print(f"  OK    {name:<30} {' → '.join(config.processors)}")
+
+    print()
+    if errors:
+        print(f"FAILED: {errors} intent(s) have missing processors")
+        sys.exit(1)
+    else:
+        print("ALL OK: all processors found")
+
+
 def cmd_exec(intent_name: str) -> None:
     """Execute an intent by name."""
     from evoid.core import execute_by_name
@@ -452,7 +490,7 @@ def main() -> None:
         "i": "init", "s": "service", "ls": "service list",
         "r": "run", "sv": "serve", "v": "version",
         "li": "list-intents", "lp": "list-processors",
-        "e": "exec", "ins": "install", "pl": "plug",
+        "ck": "check", "e": "exec", "ins": "install", "pl": "plug",
     }
 
     if not args or args[0] in ("-h", "--help"):
@@ -554,6 +592,8 @@ def main() -> None:
         cmd_list_intents()
     elif cmd == "list-processors" or cmd == "lp":
         cmd_list_processors()
+    elif cmd == "check" or cmd == "ck":
+        cmd_check()
     elif cmd == "exec" or cmd == "e":
         if len(args) < 2:
             print("Usage: evo exec <intent>")

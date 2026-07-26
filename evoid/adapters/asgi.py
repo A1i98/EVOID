@@ -120,13 +120,23 @@ def create_app(
 
             duration = time.monotonic() - start
 
-            return JSONResponse({
+            response = {
                 "status": "success",
                 "intent": intent.name,
                 "level": intent.level.value,
                 "result": result,
                 "duration": round(duration, 3),
-            })
+            }
+
+            # Surface warnings when present
+            if pipeline_result.warnings:
+                response["warnings"] = list(pipeline_result.warnings)
+                import logging
+                logging.warning("Intent %s: %d warning(s): %s",
+                    intent.name, len(pipeline_result.warnings),
+                    "; ".join(pipeline_result.warnings))
+
+            return JSONResponse(response)
 
         except Exception as e:
             return JSONResponse(

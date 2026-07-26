@@ -25,6 +25,7 @@ class Config:
     adapter: str = "asgi"
     engines: dict[str, str] = field(default_factory=dict)
     inspect: bool = False  # capture per-processor state
+    strict: bool = False   # raise on missing processors
 
 
 async def execute(intent: Intent, config: Config | None = None) -> Result:
@@ -48,6 +49,7 @@ async def execute(intent: Intent, config: Config | None = None) -> Result:
         registry=_processors,
         timeout=pipeline_config.timeout,
         inspect=config.inspect if config else False,
+        strict=config.strict if config else False,
     )
 
 

@@ -8,6 +8,9 @@ IOP: Data carries its own intent.
 
 __version__ = "0.5.0"
 
+# Processors (registers validate, authorize, audit, protect)
+from . import processors as _processors  # noqa: F401
+
 # Core
 from .core import (
     Config,

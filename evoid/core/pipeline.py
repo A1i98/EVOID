@@ -121,10 +121,22 @@ async def execute(
                 input_state = context.state.copy()
 
                 try:
+                    # Emit pre_process event (zero cost when no hooks)
+                    if ev._has_hooks("pre_process"):
+                        await ev.emit("pre_process", context, {"processor": name})
+
                     result = await asyncio.wait_for(
                         processor(context),
                         timeout=timeout,
                     )
+
+                    # Emit post_process event
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name,
+                            "success": True,
+                            "duration": time.monotonic() - step_start,
+                        })
 
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
@@ -211,10 +223,18 @@ async def execute(
                     continue
 
                 try:
+                    if ev._has_hooks("pre_process"):
+                        await ev.emit("pre_process", context, {"processor": name})
+
                     result = await asyncio.wait_for(
                         processor(context),
                         timeout=timeout,
                     )
+
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": True,
+                        })
 
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
@@ -264,7 +284,15 @@ async def execute(
                     continue
 
                 try:
+                    if ev._has_hooks("pre_process"):
+                        await ev.emit("pre_process", context, {"processor": name})
+
                     result = await processor(context)
+
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": True,
+                        })
 
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
