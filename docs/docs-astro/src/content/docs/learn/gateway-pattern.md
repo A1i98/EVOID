@@ -32,7 +32,7 @@ Gateway starts on port 8000. New services auto-increment: 8001, 8002, 8003.
 
 ## Default Gateway
 
-`evo init` generates a gateway with two endpoints:
+`evo init` generates a gateway with health check only:
 
 ```python
 from evoid.web.route import Service, get, post, run
@@ -42,19 +42,42 @@ app = Service("gateway")
 @get("/health")
 async def health() -> dict:
     return {"status": "healthy"}
-
-@get("/")
-async def index() -> dict:
-    return {"service": "gateway", "status": "running"}
 ```
 
-Test it:
+The gateway doesn't contain business logic. It routes requests to services via the message bus. Each route converts HTTP to an Intent and publishes it.
 
-```bash
-evo service run gateway
-curl http://localhost:8000/health
-# {"status":"healthy","service":"gateway"}
+## How Routing Works
+
+The gateway converts HTTP requests to Intents:
+
+```python
+from evoid import Intent, Level, publish
+
+@get("/users/{user_id}")
+async def get_user(user_id: int) -> dict:
+    result = await publish(Intent(
+        name="get_user",          # ← Intent name
+        level=Level.STANDARD,
+        metadata={"user_id": user_id},
+    ))
+    return result.value
 ```
+
+The service subscribes to "get_user" and handles it:
+
+```python
+from evoid import register, register_processor
+
+register(Intent(name="get_user", level=Level.STANDARD))
+
+async def handle_get_user(ctx) -> dict:
+    user_id = ctx.intent.metadata.get("user_id")
+    return {"id": user_id, "name": f"User {user_id}"}
+
+register_processor("get_user", handle_get_user)
+```
+
+Gateway and service don't know about each other. They only share the Intent name.
 
 ## Configuring the Gateway
 
@@ -87,21 +110,14 @@ app = config(
 
 ## Adding Routes
 
-The gateway is where you define your public API. Add routes as your app grows:
+Each gateway route converts HTTP to an Intent. The route is thin — it just extracts parameters and publishes:
 
 ```python
-from evoid.web.route import Service, get, post, run
-
-app = Service("gateway")
-
-@get("/health")
-async def health() -> dict:
-    return {"status": "healthy"}
+from evoid import Intent, Level, publish
+from evoid.web.route import get, post
 
 @get("/api/menu")
 async def list_menu() -> dict:
-    # Forward to menu service via message bus
-    from evoid import Intent, Level, publish
     result = await publish(Intent(
         name="list_menu",
         level=Level.EPHEMERAL,
@@ -110,7 +126,6 @@ async def list_menu() -> dict:
 
 @post("/api/orders")
 async def create_order(sandwich: str, qty: int = 1) -> dict:
-    from evoid import Intent, Level, publish
     result = await publish(Intent(
         name="create_order",
         level=Level.STANDARD,
@@ -118,6 +133,8 @@ async def create_order(sandwich: str, qty: int = 1) -> dict:
     ))
     return result.value
 ```
+
+Business logic lives in services. The gateway only routes.
 
 ## Adding Middleware
 

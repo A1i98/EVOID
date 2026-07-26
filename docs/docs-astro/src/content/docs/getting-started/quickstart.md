@@ -32,12 +32,43 @@ my-api/
       main.py
 ```
 
-## Step 2: Add Routes to the Gateway
+## Step 2: Create a Service
 
-Edit `services/gateway/main.py`:
+Each service handles one domain. Services subscribe to Intents via the message bus.
+
+```bash
+evo service new users
+```
+
+Edit `services/users/main.py`:
+
+```python
+from evoid import Intent, Level, register, register_processor
+
+register(Intent(name="get_user", level=Level.STANDARD))
+register(Intent(name="create_user", level=Level.STANDARD))
+
+async def handle_get_user(ctx) -> dict:
+    user_id = ctx.intent.metadata.get("user_id", 0)
+    return {"id": user_id, "name": f"User {user_id}"}
+
+async def handle_create_user(ctx) -> dict:
+    name = ctx.intent.metadata.get("name", "unknown")
+    return {"status": "created", "name": name}
+
+register_processor("get_user", handle_get_user)
+register_processor("create_user", handle_create_user)
+```
+
+The service doesn't know about HTTP, URLs, or the gateway. It only knows Intents.
+
+## Step 3: Connect Gateway to Service
+
+The gateway receives HTTP and converts it to Intents. Edit `services/gateway/main.py`:
 
 ```python
 from evoid.web.route import Service, get, post, run
+from evoid import Intent, Level, publish
 
 app = Service("gateway")
 
@@ -45,70 +76,67 @@ app = Service("gateway")
 async def health() -> dict:
     return {"status": "healthy"}
 
-@get("/")
-async def home() -> dict:
-    return {"message": "Hello from EVOID!"}
-
 @get("/users/{user_id}")
 async def get_user(user_id: int) -> dict:
-    return {"id": user_id, "name": f"User {user_id}"}
+    result = await publish(Intent(
+        name="get_user",
+        level=Level.STANDARD,
+        metadata={"user_id": user_id},
+    ))
+    return result.value
+
+@post("/users")
+async def create_user(name: str) -> dict:
+    result = await publish(Intent(
+        name="create_user",
+        level=Level.STANDARD,
+        metadata={"name": name},
+    ))
+    return result.value
+```
+
+The gateway converts HTTP to Intent. The service handles the Intent. Neither knows about the other.
 
 @post("/users")
 async def create_user(name: str, email: str) -> dict:
     return {"status": "created", "name": name}
 ```
 
-## Step 3: Run the Gateway
+## Step 3: Run Everything
 
 ```bash
-evo service run gateway
+evo run
 ```
 
-You should see:
+This starts both services. You should see:
 
 ```
 Starting gateway on http://0.0.0.0:8000
+Starting users on http://0.0.0.0:8001
 ```
 
 ## Step 4: Test It
 
 ```bash
-# Home
-curl http://localhost:8000/
-# {"message": "Hello from EVOID!"}
-
-# Get user
+# Get user — gateway routes to users service via message bus
 curl http://localhost:8000/users/123
 # {"id": 123, "name": "User 123"}
 
 # Create user
-curl -X POST http://localhost:8000/users?name=Ali&email=ali@example.com
+curl -X POST http://localhost:8000/users?name=Ali
 # {"status": "created", "name": "Ali"}
 ```
 
 !!! info "What just happened?"
-    Behind the scenes, EVOID:
+    The request flowed through three layers:
 
-    1. **Created Intents** — Each decorator (`@get`, `@post`) created an Intent automatically. `@get("/users/{user_id}")` became `Intent(name="GET:/users/{user_id}", level=Level.STANDARD)`
-    2. **Registered Processors** — Your functions were wrapped as processors and registered by intent name
-    3. **Set Up ASGI** — An ASGI server was started to handle HTTP requests
-    4. **Configured Routing** — URLs were mapped to Intents. When a request arrives, EVOID resolves the intent, builds a pipeline, and executes it
+    1. **Gateway received HTTP** — `GET /users/123` hit the gateway on port 8000
+    2. **Gateway created Intent** — Converted HTTP to `Intent(name="get_user", metadata={"user_id": 123})`
+    3. **Message bus routed** — Intent went to the users service (subscribed to "get_user")
+    4. **Service handled Intent** — `handle_get_user()` ran, returned `{"id": 123, "name": "User 123"}`
+    5. **Gateway returned response** — Result sent back as HTTP JSON
 
-    Three decorators handled all of that. That's IOP — you declare what you want, EVOID handles how.
-
-    ```python
-    # What @get("/users/{user_id}") actually creates:
-    GET_USER = Intent(
-        name="GET:/users/{user_id}",
-        level=Level.STANDARD,
-        metadata={"method": "GET", "path": "/users/{user_id}"},
-    )
-
-    # Your handler is wrapped as a processor:
-    async def processor(ctx: Context) -> dict:
-        params = ctx.intent.metadata.get("params", {})
-        return await get_user(**params)  # Your original function
-    ```
+    The gateway doesn't know what "get_user" does. The users service doesn't know about HTTP. They only share Intent names. That's IOP — data declares intent, the system routes it.
 
 !!! tip "Protection levels"
 Each level maps to a different pipeline. `ephemeral` gets fast validation only. `critical` gets full audit and protection.
