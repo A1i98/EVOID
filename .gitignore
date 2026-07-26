@@ -132,3 +132,6 @@ skills-lock.json
 
 # Other Repo
 wiki/
+
+# OpenCode plugins
+.opencode/

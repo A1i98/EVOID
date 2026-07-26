@@ -170,6 +170,11 @@ async def execute(
                         success=True,
                     ))
                 except TimeoutError:
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": False,
+                            "error": str(TimeoutError(f"Processor '{name}' timed out after {timeout}s")),
+                        })
                     steps.append(ProcessorResult(
                         name=name,
                         duration=time.monotonic() - step_start,
@@ -185,6 +190,11 @@ async def execute(
                         duration=time.monotonic() - start,
                     )
                 except Exception as e:
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": False,
+                            "error": str(e),
+                        })
                     steps.append(ProcessorResult(
                         name=name,
                         duration=time.monotonic() - step_start,
@@ -261,7 +271,7 @@ async def execute(
                     if ev._has_hooks("post_process"):
                         await ev.emit("post_process", context, {
                             "processor": name, "success": False,
-                            "error": "timeout",
+                            "error": str(TimeoutError(f"Processor '{name}' timed out after {timeout}s")),
                         })
                     return Result(
                         success=False,
@@ -308,14 +318,14 @@ async def execute(
 
                     result = await processor(context)
 
-                    if ev._has_hooks("post_process"):
-                        await ev.emit("post_process", context, {
-                            "processor": name, "success": True,
-                        })
-
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
                     if rejection:
+                        if ev._has_hooks("post_process"):
+                            await ev.emit("post_process", context, {
+                                "processor": name, "success": False,
+                                "error": str(rejection),
+                            })
                         return Result(
                             success=False,
                             error=rejection,
@@ -324,8 +334,18 @@ async def execute(
                             duration=time.monotonic() - start,
                         )
 
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": True,
+                        })
+
                     ran.append(name)
                 except Exception as e:
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": False,
+                            "error": str(e),
+                        })
                     return Result(
                         success=False,
                         error=e,
