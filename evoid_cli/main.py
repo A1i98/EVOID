@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from typing import Any
 
 from evoid.config.loader import load as load_config
 
@@ -39,7 +38,7 @@ def cmd_init(name: str) -> None:
     """Create new project."""
     from evoid.project import init_project
 
-    project = init_project(name)
+    init_project(name)
 
     print(f"Created project: {name}/")
     print(f"  {name}/pyproject.toml")
@@ -47,8 +46,8 @@ def cmd_init(name: str) -> None:
     print(f"  {name}/shared/")
     print()
     print(f"  cd {name}")
-    print(f"  evo service run gateway    # Start the gateway (port 8000)")
-    print(f"  evo service new api        # Add another service (port 8001)")
+    print("  evo service run gateway    # Start the gateway (port 8000)")
+    print("  evo service new api        # Add another service (port 8001)")
 
 
 # ============================================================
@@ -59,7 +58,7 @@ def cmd_service_new(service_name: str, port: int | None = None) -> None:
     """Add new service to project."""
     from evoid.project import add_service
 
-    service = add_service(".", service_name, port)
+    add_service(".", service_name, port)
 
     print(f"Created service: {service_name}/")
     print(f"  services/{service_name}/evoid.toml")
@@ -85,6 +84,8 @@ def cmd_service_list() -> None:
 
 def cmd_service_run(service_name: str) -> None:
     """Run a specific service."""
+    import importlib.util
+
     from evoid.project import list_services
 
     services = list_services(".")
@@ -96,6 +97,18 @@ def cmd_service_run(service_name: str) -> None:
         for s in services:
             print(f"  {s.name}")
         sys.exit(1)
+
+    # Import service main.py to register its intents/handlers
+    main_py = service.path / "main.py"
+    if main_py.exists():
+        try:
+            spec = importlib.util.spec_from_file_location(
+                f"services.{service.name}.main", str(main_py)
+            )
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception as e:
+            print(f"  WARN  Failed to import {main_py}: {e}")
 
     # Load and run service config
     config = load_config(str(service.path / "evoid.toml"))
@@ -122,7 +135,7 @@ def cmd_sync(args: list[str] | None = None) -> None:
         evo sync --service <name>   # sync single service
         evo sync --show             # show packages without installing
     """
-    from evoid.config.sync import sync, sync_project, show_packages
+    from evoid.config.sync import show_packages, sync, sync_project
 
     args = args or []
 
@@ -162,6 +175,7 @@ def cmd_sync(args: list[str] | None = None) -> None:
 def cmd_run() -> None:
     """Run all services in project."""
     import asyncio
+
     from evoid.project import list_services
 
     services = list_services(".")
@@ -176,6 +190,7 @@ def cmd_run() -> None:
 
     async def _run_all():
         import uvicorn
+
         from evoid.adapters.asgi import create_app
 
         servers = []
@@ -223,6 +238,7 @@ def cmd_check() -> None:
     """Check all registered intents for missing processors."""
     import importlib.util
     from pathlib import Path
+
     from evoid.core import all_intents, all_processors
     from evoid.core.extend import get_pipeline_config
 
@@ -291,8 +307,8 @@ def cmd_exec(intent_name: str) -> None:
 
 def cmd_install(packages: list[str]) -> None:
     """Install optional dependencies or plugins."""
-    import subprocess
     import shutil
+    import subprocess
 
     if not packages:
         print("Usage: evo install <package> [package...]")
@@ -361,7 +377,7 @@ def cmd_install(packages: list[str]) -> None:
             cmd = [sys.executable, "-m", "pip", "install", spec]
         result = subprocess.run(cmd, capture_output=False)
         if result.returncode != 0:
-            print(f"Failed to install extras")
+            print("Failed to install extras")
             sys.exit(1)
 
     # Install plugins
@@ -380,8 +396,6 @@ def cmd_install(packages: list[str]) -> None:
 
 def cmd_plug(args: list[str]) -> None:
     """Install EVOID plugins from PyPI or git."""
-    import subprocess
-    import shutil
 
     if not args:
         print("Usage: evo plug install <name|url>")
@@ -410,8 +424,8 @@ def cmd_plug(args: list[str]) -> None:
 
 def _plug_install(args: list[str]) -> None:
     """Install a plugin."""
-    import subprocess
     import shutil
+    import subprocess
 
     if not args:
         print("Usage: evo plug install <name|url>")
