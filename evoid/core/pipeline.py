@@ -130,17 +130,15 @@ async def execute(
                         timeout=timeout,
                     )
 
-                    # Emit post_process event
-                    if ev._has_hooks("post_process"):
-                        await ev.emit("post_process", context, {
-                            "processor": name,
-                            "success": True,
-                            "duration": time.monotonic() - step_start,
-                        })
-
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
                     if rejection:
+                        if ev._has_hooks("post_process"):
+                            await ev.emit("post_process", context, {
+                                "processor": name, "success": False,
+                                "error": str(rejection),
+                                "duration": time.monotonic() - step_start,
+                            })
                         steps.append(ProcessorResult(
                             name=name,
                             duration=time.monotonic() - step_start,
@@ -156,6 +154,12 @@ async def execute(
                             warnings=tuple(warnings),
                             duration=time.monotonic() - start,
                         )
+
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": True,
+                            "duration": time.monotonic() - step_start,
+                        })
 
                     ran.append(name)
                     steps.append(ProcessorResult(
@@ -231,14 +235,14 @@ async def execute(
                         timeout=timeout,
                     )
 
-                    if ev._has_hooks("post_process"):
-                        await ev.emit("post_process", context, {
-                            "processor": name, "success": True,
-                        })
-
                     # Check if processor signals rejection
                     rejection = _check_rejection(result, name)
                     if rejection:
+                        if ev._has_hooks("post_process"):
+                            await ev.emit("post_process", context, {
+                                "processor": name, "success": False,
+                                "error": str(rejection),
+                            })
                         return Result(
                             success=False,
                             error=rejection,
@@ -247,8 +251,18 @@ async def execute(
                             duration=time.monotonic() - start,
                         )
 
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": True,
+                        })
+
                     ran.append(name)
                 except TimeoutError:
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": False,
+                            "error": "timeout",
+                        })
                     return Result(
                         success=False,
                         error=TimeoutError(f"Processor '{name}' timed out after {timeout}s"),
@@ -257,6 +271,11 @@ async def execute(
                         duration=time.monotonic() - start,
                     )
                 except Exception as e:
+                    if ev._has_hooks("post_process"):
+                        await ev.emit("post_process", context, {
+                            "processor": name, "success": False,
+                            "error": str(e),
+                        })
                     return Result(
                         success=False,
                         error=e,

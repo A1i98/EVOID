@@ -6,7 +6,7 @@ IOP: Data carries its own intent.
      Services communicate through Intents, not HTTP.
 """
 
-__version__ = "0.5.0"
+__version__ = "0.6.6"
 
 # Processors (registers validate, authorize, audit, protect)
 from . import processors as _processors  # noqa: F401

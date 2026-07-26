@@ -5,6 +5,31 @@ All notable changes to EVOID will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.6] - 2026-07-26
+
+### Added
+- **Gateway auto-created on `evo init`** — entry point for all external requests (port 8000)
+- **Auto-increment ports** — gateway=8000, api=8001, worker=8002 (no collisions)
+- **AsyncAPI adapter** — Intent schemas → AsyncAPI 3.0 spec (`/docs`, `/docs/openapi`)
+- **MCP JSON-RPC endpoint** — `/mcp` for AI agent discovery (initialize, tools/list, tools/call)
+- **`evo check` command** — validates all registered intents have their processors
+- **Default processors** — validate, authorize, audit, protect registered on import
+- **PRE_PROCESS / POST_PROCESS events** — per-processor observability hooks
+- **Result.warnings** surfaced in JSON response when non-empty
+- **404 handling** — unknown paths return 404 instead of silent success
+- **Annotation `@body(body: dict)`** — passes body as single dict, not unpacked kwargs
+
+### Changed
+- `run()` is now sync (was async) — uvicorn.run() is blocking, no asyncio.run() needed
+- Template: `@app.get()` → `@get()` (Service is dataclass, no methods)
+- Template: no more `asyncio.run()` wrapper
+- Strict mode: `Config.strict` field threaded through runtime → pipeline
+
+### Fixed
+- Annotation bug: `validate_annotations` uses `intent_name`, not `fn.__name__`
+- Auto-append intent name to custom pipeline (handler always runs)
+- Scaffold crash: `@app.get` → `@get` (Service is dataclass, not app)
+
 ## [0.5.0] - 2026-07-24
 
 ### Changed

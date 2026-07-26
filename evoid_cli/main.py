@@ -221,8 +221,26 @@ def cmd_list_processors() -> None:
 
 def cmd_check() -> None:
     """Check all registered intents for missing processors."""
+    import importlib.util
+    from pathlib import Path
     from evoid.core import all_intents, all_processors
     from evoid.core.extend import get_pipeline_config
+
+    # Import all service main.py files to register their intents
+    services_dir = Path("services")
+    if services_dir.exists():
+        for service_dir in services_dir.iterdir():
+            if service_dir.is_dir():
+                main_py = service_dir / "main.py"
+                if main_py.exists():
+                    try:
+                        spec = importlib.util.spec_from_file_location(
+                            f"services.{service_dir.name}.main", str(main_py)
+                        )
+                        mod = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(mod)
+                    except Exception as e:
+                        print(f"  WARN  Failed to import {main_py}: {e}")
 
     intents = all_intents()
     processors = all_processors()

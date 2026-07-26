@@ -98,6 +98,14 @@ def create_app(
 
         handler = _handlers.get(intent_name) if intent_name else None
 
+        # 404: no handler and no registered intent for this path
+        from ..core.intent import all_intents as _all_intents
+        if not handler and intent_name not in _all_intents():
+            return JSONResponse(
+                {"error": f"Not found: {method} {path}", "status": "not_found"},
+                status_code=404,
+            )
+
         try:
             if handler:
                 # Register handler as processor and compose pipeline
