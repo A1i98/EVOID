@@ -50,8 +50,8 @@ GET_USER = Intent(
 )
 
 # Your handler focuses on business logic only
-async def handle_get_user(intent: Intent) -> dict:
-    user_id = intent.metadata.get("id")
+async def handle_get_user(ctx) -> dict:
+    user_id = ctx.intent.metadata.get("user_id")
     # No database choice here — the pipeline handles it
     # No caching logic here — the pipeline handles it
     # No encryption here — the pipeline handles it
@@ -141,8 +141,8 @@ You choose the level. The runtime chooses the infrastructure.
         level=Level.STANDARD,
     )
 
-    async def handle_get_user(intent: Intent) -> dict:
-        user_id = intent.metadata.get("id")
+    async def handle_get_user(ctx) -> dict:
+        user_id = ctx.intent.metadata.get("user_id")
         # Just business logic — no infrastructure decisions
         return {"id": user_id, "name": "Alice"}
 

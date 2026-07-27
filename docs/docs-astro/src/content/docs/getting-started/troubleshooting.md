@@ -49,12 +49,11 @@ from evoid import Intent, Level, register, register_processor, execute
 GET_USER = Intent(name="get_user", level=Level.STANDARD)
 
 # 2. Define handler
-async def handle_get_user(intent: Intent) -> dict:
+async def handle_get_user(ctx) -> dict:
     return {"id": 1}
 
-# 3. Register BOTH — Intent AND processor
-register(GET_USER)  # ← Don't forget this
-register_processor("get_user", handle_get_user)  # ← Don't forget this
+# 3. Register — add_intent handles both
+add_intent(GET_USER, handle_get_user)
 
 # 4. Execute
 result = await execute(GET_USER)
@@ -103,11 +102,11 @@ The last processor's return value becomes `Result.value`. Make sure your handler
 
 ```python
 # ❌ Returns None
-async def handle_order(intent: Intent) -> None:
+async def handle_order(ctx) -> None:
     print("order processed")
 
 # ✅ Returns data
-async def handle_order(intent: Intent) -> dict:
+async def handle_order(ctx) -> dict:
     print("order processed")
     return {"status": "confirmed"}
 ```
@@ -165,8 +164,8 @@ async def get_user(user_id: int) -> dict:
     return {"id": user_id}
 
 # Native style — full control with ctx
-async def handle_get_user(intent: Intent, ctx: Context) -> dict:
-    user_id = intent.metadata.get("user_id")
+async def handle_get_user(ctx: Context) -> dict:
+    user_id = ctx.intent.metadata.get("user_id")
     return {"id": user_id}
 ```
 
@@ -194,11 +193,11 @@ Your handler is not async:
 
 ```python
 # ❌ Wrong — sync function
-def handle_order(intent: Intent) -> dict:
+async def handle_order(ctx) -> dict:
     return {"status": "ok"}
 
 # ✅ Correct — async function
-async def handle_order(intent: Intent) -> dict:
+async def handle_order(ctx) -> dict:
     return {"status": "ok"}
 ```
 

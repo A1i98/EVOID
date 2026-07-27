@@ -66,15 +66,14 @@ async def get_user(user_id: int) -> dict:
 The service subscribes to "get_user" and handles it:
 
 ```python
-from evoid import register, register_processor
-
-register(Intent(name="get_user", level=Level.STANDARD))
+from evoid import Intent, Level
+from evoid.core.extend import add_intent
 
 async def handle_get_user(ctx) -> dict:
     user_id = ctx.intent.metadata.get("user_id")
     return {"id": user_id, "name": f"User {user_id}"}
 
-register_processor("get_user", handle_get_user)
+add_intent(Intent(name="get_user", level=Level.STANDARD), handle_get_user)
 ```
 
 Gateway and service don't know about each other. They only share the Intent name.

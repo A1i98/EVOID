@@ -63,6 +63,7 @@ EVOID complements FastAPI. Use both:
 ```python
 # External: FastAPI handles HTTP
 from fastapi import FastAPI
+from evoid import Intent
 from evoid.core.service import call
 
 app = FastAPI()
@@ -108,7 +109,7 @@ from evoid import Intent, Level, add_intent
 
 PROCESS_ORDER = Intent(name="process_order", level=Level.CRITICAL)
 
-async def handle_order(intent: Intent) -> dict:
+async def handle_order(ctx) -> dict:
     # Your business logic
     return {"status": "processed"}
 

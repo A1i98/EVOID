@@ -43,21 +43,19 @@ evo service new users
 Edit `services/users/main.py`:
 
 ```python
-from evoid import Intent, Level, register, register_processor
+from evoid import subscribe
+from evoid.core import Context
 
-register(Intent(name="get_user", level=Level.STANDARD))
-register(Intent(name="create_user", level=Level.STANDARD))
-
-async def handle_get_user(ctx) -> dict:
+async def handle_get_user(ctx: Context) -> dict:
     user_id = ctx.intent.metadata.get("user_id", 0)
     return {"id": user_id, "name": f"User {user_id}"}
 
-async def handle_create_user(ctx) -> dict:
+async def handle_create_user(ctx: Context) -> dict:
     name = ctx.intent.metadata.get("name", "unknown")
     return {"status": "created", "name": name}
 
-register_processor("get_user", handle_get_user)
-register_processor("create_user", handle_create_user)
+subscribe("get_user", handle_get_user)
+subscribe("create_user", handle_create_user)
 ```
 
 The service doesn't know about HTTP, URLs, or the gateway. It only knows Intents.
@@ -83,7 +81,7 @@ async def get_user(user_id: int) -> dict:
         level=Level.STANDARD,
         metadata={"user_id": user_id},
     ))
-    return result[0].value if result else {"error": "no handler"}
+    return result[0] if result else {"error": "no handler"}
 
 @post("/users")
 async def create_user(name: str) -> dict:
@@ -92,7 +90,7 @@ async def create_user(name: str) -> dict:
         level=Level.STANDARD,
         metadata={"name": name},
     ))
-    return result[0].value if result else {"error": "no handler"}
+    return result[0] if result else {"error": "no handler"}
 ```
 
 The gateway converts HTTP to Intent. The service handles the Intent. Neither knows about the other.
