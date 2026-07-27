@@ -1,24 +1,24 @@
 ---
 title: 'Configuration'
-description: 'Configure your EVOID app — engines, pipelines, environments.'
+description: 'Configure your EVOID app — engines, pipelines, environments. See [Configuration Reference](../learn/configuration.md) for full details.'
 ---
 
 # Configuration
 
 Configure your EVOID app — engines, pipelines, environments.
 
-## evoid.toml
+> **Full reference:** [Configuration Reference](../learn/configuration.md) — complete field reference, examples, and engine map.
 
-The main configuration file:
+## Quick Start
 
 ```toml
-[project]
-name = "sandy-shop"
+# evoid.toml
+[service]
+name = "my-api"
 version = "1.0.0"
 
 [runtime]
 adapter = "asgi"
-host = "0.0.0.0"
 port = 8000
 
 [engines]
@@ -26,74 +26,33 @@ schema = "native"
 storage = "memory"
 cache = "memory"
 logger = "loguru"
-
-[pipeline]
-timeout = 10.0
-processors = ["validate", "authorize"]
 ```
 
-## Python Config (Recommended)
-
-Python files give you type safety and IDE autocomplete:
-
 ```python
-# evoid_config.py
-from evoid.core.runtime import Config
+# evoid_config.py (recommended)
+from evoid.config import config
 
-config = Config(
-    name="sandy-shop",
-    adapter="asgi",
-    engines={
-        "schema": "native",
-        "storage": "sqlite",
-        "cache": "memory",
-        "logger": "loguru",
-    },
+app = config(
+    service={"name": "my-api", "version": "1.0.0"},
+    runtime={"adapter": "asgi", "port": 8000},
+    engines={"storage": "memory", "cache": "memory"},
 )
 ```
 
-## Engine Selection
-
-Each engine is a plugin — swap implementations without changing code:
-
-| Engine | Purpose | Options |
-|--------|---------|---------|
-| `schema` | Validation | `native` (stdlib) |
-| `storage` | Persistence | `memory`, `sqlite` |
-| `cache` | Caching | `memory`, `redis` |
-| `logger` | Logging | `loguru`, `stdlib` |
-
-## Environment Config
-
-Different configs for different environments:
+## Environment Configs
 
 ```python
 # config/development.py
-config = Config(
-    name="sandy-dev",
-    adapter="asgi",
+config = config(
+    name="my-dev",
     engines={"storage": "memory", "cache": "memory"},
 )
 
 # config/production.py
-config = Config(
-    name="sandy-prod",
-    adapter="asgi",
+config = config(
+    name="my-prod",
     engines={"storage": "sqlite", "cache": "redis"},
 )
-```
-
-## Pipeline Defaults
-
-Set default pipeline behavior per level:
-
-```python
-from evoid.core.extend import replace_pipeline
-
-# Override pipeline for specific intents
-replace_pipeline("cache_check", ["validate"])
-replace_pipeline("get_user", ["validate", "authorize"])
-replace_pipeline("process_payment", ["validate", "authorize", "audit"])
 ```
 
 ## What You Learned

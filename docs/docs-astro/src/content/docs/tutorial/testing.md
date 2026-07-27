@@ -1,92 +1,37 @@
 ---
 title: 'Testing'
-description: 'Test Intents directly, mock processors, inspect pipelines.'
+description: 'Test Intents directly, mock processors, inspect pipelines. See [Testing Reference](../learn/testing.md) for full details.'
 ---
 
 # Testing
 
 Test Intents directly, mock processors, inspect pipelines.
 
-## Testing Intents Directly
+> **Full reference:** [Testing Reference](../learn/testing.md) — `tc()` helper, TestCase, pytest integration, native & @route styles.
 
-No HTTP needed — test the pipeline directly:
-
-```python
-import asyncio
-from evoid import execute, Intent, Level
-
-async def test_create_order():
-    result = await execute(
-        Intent(name="create_order", level=Level.STANDARD),
-        sandwich="BLT",
-        qty=2,
-    )
-
-    assert result.success
-    assert result.value["status"] == "confirmed"
-    assert result.value["total"] == 17.98
-
-asyncio.run(test_create_order())
-```
-
-## Mocking Processors
-
-Replace processors for isolated testing:
+## Quick Start
 
 ```python
-from unittest.mock import AsyncMock, patch
+# tests/test_api.py
+from evoid.testing import tc
+from myapp import GET_USER
 
-async def test_order_without_db():
-    # Mock the database processor
-    mock_db = AsyncMock(return_value={"checked": True})
-
-    with patch("my_app.processors.check_inventory", mock_db):
-        result = await execute(ORDER, sandwich="BLT", qty=1)
-        assert result.success
-        mock_db.assert_called_once()
+def test_get_user():
+    return tc(GET_USER, expect={"id": 1})
 ```
 
-## Pipeline Inspection
-
-See what processors run and how long they take:
-
-```python
-from evoid import execute, Intent, Level
-from evoid.core.runtime import Config
-
-async def test_with_inspection():
-    config = Config(inspect=True)
-    result = await execute(ORDER, config=config, sandwich="BLT", qty=1)
-
-    # Per-processor timing
-    for step in result.steps:
-        print(f"{step.name}: {step.duration:.4f}s {'OK' if step.success else 'FAIL'}")
+```bash
+pytest tests/ -v
 ```
 
-## Testing with pytest
+## Testing Patterns
 
-```python
-import pytest
-from evoid import execute, Intent, Level
-
-@pytest.mark.asyncio
-async def test_menu():
-    result = await execute(VIEW_MENU)
-    assert result.success
-    assert len(result.value["menu"]) > 0
-
-@pytest.mark.asyncio
-async def test_order():
-    result = await execute(ORDER, sandwich="BLT", qty=1)
-    assert result.success
-    assert result.value["status"] == "confirmed"
-
-@pytest.mark.asyncio
-async def test_invalid_sandwich():
-    result = await execute(ORDER, sandwich="INVALID", qty=1)
-    assert not result.success
-    assert "not on menu" in str(result.error)
-```
+| Pattern | Code |
+|---------|------|
+| Direct execution | `await execute(intent)` — test pipelines without HTTP |
+| Mocking | `unittest.mock.AsyncMock` — replace processors for isolation |
+| Pipeline inspection | `Config(inspect=True)` — per-processor timing and state |
+| Error testing | `tc(intent, expect_error=ValueError)` |
 
 ## What You Learned
 
