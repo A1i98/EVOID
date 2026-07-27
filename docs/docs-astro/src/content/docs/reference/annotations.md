@@ -124,6 +124,6 @@ async def get_user(ctx): ...
 
 ## Related
 
-- [Intent](intent.md): the data that annotations configure
-- [Pipeline](pipeline.md): how annotations affect execution
-- [IOP Levels](iop-levels.md): level determines default pipeline
+- [Intent](../learn/intent.md): the data that annotations configure
+- [Pipeline](../learn/pipeline.md): how annotations affect execution
+- [IOP Levels](../learn/iop-levels.md): level determines default pipeline

@@ -93,9 +93,10 @@ from starlette.routing import Route, WebSocketRoute, Mount
 from starlette.responses import JSONResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from evoid import Intent, Level, register, register_processor
+from evoid import Intent, Level
 from evoid.core import Context
-from evoid_godot import GameHost, setup_game_subscriptions
+from evoid.core.extend import add_intent
+from evoid_godot import GameHost, setup_game_hosting
 from game import GameRoom, ENEMIES, spawn_enemy, tick_difficulty
 
 # ── State ──────────────────────────────────────────────────────────────
@@ -191,20 +192,12 @@ async def handle_player_hit(ctx: Context) -> dict:
 
 # ── Register Intents ───────────────────────────────────────────────────
 
-for name, level in [
-    ("player_move", Level.EPHEMERAL),
-    ("player_shot", Level.STANDARD),
-    ("enemy_hit", Level.STANDARD),
-    ("player_hit", Level.CRITICAL),
-]:
-    register(Intent(name=name, level=level))
+add_intent(Intent(name="player_move", level=Level.EPHEMERAL), handle_player_move)
+add_intent(Intent(name="player_shot", level=Level.STANDARD), handle_player_shot)
+add_intent(Intent(name="enemy_hit", level=Level.STANDARD), handle_enemy_hit)
+add_intent(Intent(name="player_hit", level=Level.CRITICAL), handle_player_hit)
 
-register_processor("player_move", handle_player_move)
-register_processor("player_shot", handle_player_shot)
-register_processor("enemy_hit", handle_enemy_hit)
-register_processor("player_hit", handle_player_hit)
-
-setup_game_subscriptions(GAME_ID)
+setup_game_hosting(GAME_ID)
 
 
 # ── WebSocket + Broadcast ──────────────────────────────────────────────

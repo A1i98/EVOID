@@ -30,8 +30,9 @@ evo service run orders
 Edit `services/orders/main.py`:
 
 ```python
-from evoid import Intent, Level, register, register_processor
-from evoid.core import Context, execute
+from evoid import Intent, Level
+from evoid.core import Context
+from evoid.core.extend import add_intent
 
 # Menu data
 MENU = [
@@ -53,9 +54,9 @@ VIEW_MENU = Intent(
 )
 
 # Processors
-async def handle_order(intent: Intent, ctx: Context) -> dict:
-    sandwich = intent.metadata.get("sandwich", "BLT")
-    qty = intent.metadata.get("qty", 1)
+async def handle_order(ctx: Context) -> dict:
+    sandwich = ctx.intent.metadata.get("sandwich", "BLT")
+    qty = ctx.intent.metadata.get("qty", 1)
 
     # Find in menu
     item = next((m for m in MENU if m["name"] == sandwich), None)
@@ -73,14 +74,12 @@ async def handle_order(intent: Intent, ctx: Context) -> dict:
         "total": total,
     }
 
-async def handle_menu(intent: Intent) -> dict:
+async def handle_menu(ctx: Context) -> dict:
     return {"menu": MENU}
 
 # Register
-register(ORDER_SANDWICH)
-register(VIEW_MENU)
-register_processor("order_sandwich", handle_order)
-register_processor("view_menu", handle_menu)
+add_intent(ORDER_SANDWICH, handle_order)
+add_intent(VIEW_MENU, handle_menu)
 ```
 
 ## Running as a Service
@@ -136,11 +135,11 @@ If the processor takes longer, the pipeline returns a failed Result with `Timeou
 Sandy wants inventory checking before order confirmation:
 
 ```python
-from evoid import register_processor
+from evoid.core import Context
 
-async def check_inventory(intent: Intent, ctx: Context) -> dict:
+async def check_inventory(ctx: Context) -> dict:
     """Verify sandwich is available."""
-    sandwich = intent.metadata.get("sandwich", "BLT")
+    sandwich = ctx.intent.metadata.get("sandwich", "BLT")
     # Simplified — in real app, check database
     available = sandwich in ["BLT", "Club", "Veggie"]
     ctx.state["available"] = available
@@ -148,14 +147,11 @@ async def check_inventory(intent: Intent, ctx: Context) -> dict:
         return {"error": f"'{sandwich}' unavailable"}
     return {"checked": True}
 
-async def handle_order(intent: Intent, ctx: Context) -> dict:
+async def handle_order(ctx: Context) -> dict:
     if not ctx.state.get("available", False):
         return {"error": "Item unavailable"}
     # ... process order
     return {"status": "confirmed"}
-
-register_processor("check_inventory", check_inventory)
-register_processor("order_sandwich", handle_order)
 ```
 
 Wire them into a pipeline:
@@ -165,8 +161,7 @@ from evoid.core.extend import add_intent_with_pipeline
 
 add_intent_with_pipeline(
     ORDER_SANDWICH,
-    processors=["check_inventory", "order_sandwich"],
-    handler=handle_order,
+    processors=[check_inventory, handle_order],
 )
 ```
 

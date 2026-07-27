@@ -36,9 +36,10 @@ export const sidebar: SidebarEntry[] = [
     label: 'Learn',
     items: [
       { label: 'Intent', slug: 'learn/intent' },
+      { label: 'Gateway Pattern', slug: 'learn/gateway-pattern' },
       { label: 'IOP Levels', slug: 'learn/iop-levels' },
       { label: 'Pipeline', slug: 'learn/pipeline' },
-      { label: 'Gateway Pattern', slug: 'learn/gateway-pattern' },
+      { label: 'Context', slug: 'learn/context' },
       { label: 'Processors', slug: 'learn/processors' },
       { label: 'Error Handling', slug: 'learn/error-handling' },
       { label: 'Message Bus', slug: 'learn/message-bus' },

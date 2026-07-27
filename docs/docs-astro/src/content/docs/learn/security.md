@@ -182,7 +182,15 @@ PAYMENT = Intent(
 
 ### The `authorize` Processor
 
-With `evoid-auth` installed, the `authorize` processor checks roles:
+The built-in `authorize` processor checks roles **only if an auth engine is registered**. If no auth engine is configured, the check is **silently skipped** — the Intent proceeds as if authorized.
+
+!!! warning "Security gap: no auth engine = no authorization"
+    With no auth provider registered, `auth_checker` returns `{"authorized": True, "skipped": True}`. This means:
+    - **STANDARD** Intents run without permission checks
+    - **CRITICAL** Intents run the full pipeline (audit + protect) but still skip authorization
+    - **EPHEMERAL** Intents never check auth (by design)
+
+    If you need enforcement, register an auth provider. Without one, `authorize` is a no-op.
 
 ```python
 from evoid_auth import register_provider

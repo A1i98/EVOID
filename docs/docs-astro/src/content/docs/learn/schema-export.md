@@ -139,6 +139,6 @@ Intent(name="internal_hook", metadata={})
 
 ## Related
 
-- [MCP Adapter](../tutorial/ai-agent.md) — AI agent interface
+- [MCP Adapter](../tutorial/ai-analytics.md) — AI agent interface
 - [Plugin Hooks](plugin-hooks.md) — Lifecycle events
 - [Intent](intent.md) — Intent structure

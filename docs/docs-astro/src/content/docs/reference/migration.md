@@ -92,6 +92,45 @@ on_event(Event.POST_EXECUTE, log)
 
 Pipeline now emits `pre_execute` and `post_execute` events. If you had custom processors that depended on the old single-event flow, update them.
 
+## 0.6.6 → 0.6.7
+
+### `execute()` now accepts keyword arguments
+
+```python
+# Before (0.6.6)
+result = await execute(intent)  # kwargs raised TypeError
+
+# After (0.6.7)
+result = await execute(intent, sandwich="BLT", qty=2)
+# kwargs merge into intent.metadata automatically
+```
+
+### CLI commands work from any project subdirectory
+
+```bash
+# Before (0.6.6)
+cd my-app/services/api
+evo list-intents  # Error: not in project root
+
+# After (0.6.7)
+cd my-app/services/api
+evo list-intents  # Walks up to find project root, works
+```
+
+### Processor signatures: single Context parameter
+
+```python
+# Before (0.6.6)
+async def my_processor(intent: Intent, ctx: Context) -> dict:
+    name = intent.name  # Worked in some paths, failed in others
+
+# After (0.6.7)
+async def my_processor(ctx: Context) -> dict:
+    name = ctx.intent.name  # Consistent: pipeline always passes Context
+```
+
+This is a clarification, not a breaking change — the pipeline always called `processor(context)` with one argument. Code using dual-param signatures would have failed at runtime.
+
 ## 0.3.3 → 0.4.0
 
 ### Context IDs

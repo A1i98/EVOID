@@ -55,6 +55,21 @@ uvicorn my_app:app --host 0.0.0.0 --port 8000 --workers 4
 evo service run sandy-franchise --host 0.0.0.0 --port 8000
 ```
 
+## Strict Mode
+
+Enable strict mode to catch missing processors before they silently fail in production:
+
+```python
+from evoid.core.runtime import Config
+
+config = Config(
+    name="sandy-prod",
+    strict=True,  # Raises LookupError if a processor is not registered
+)
+```
+
+Without strict mode, missing processors are silently skipped. In production, you want to know immediately.
+
 ## Docker
 
 ```dockerfile

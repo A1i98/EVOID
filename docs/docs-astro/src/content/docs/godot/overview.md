@@ -31,7 +31,7 @@ graph TB
     subgraph Server["EVOID Server (Python)"]
         GH[GameHost<br/>Game Hosting]
         Handler[game_intent_handler<br/>Intent Processing]
-        Subs[setup_game_subscriptions<br/>Default Handlers]
+        Subs[setup_game_hosting<br/>Default Handlers]
         Topics[Topics<br/>Event Constants]
     end
 
@@ -207,8 +207,8 @@ func _on_game_event(payload: Dictionary):
 
 ```python
 # 1. Setup game
-from evoid_godot import setup_game_subscriptions, setup_game_hosting
-setup_game_subscriptions("my-game")
+from evoid_godot import setup_game_hosting
+setup_game_hosting("my-game")
 
 # 2. Serve the game (with embed mode)
 from evoid_godot import GameHost, SplashConfig

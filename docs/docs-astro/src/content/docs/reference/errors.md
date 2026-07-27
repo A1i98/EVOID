@@ -9,16 +9,22 @@ EVOID captures exceptions in `Result.error` and stops the pipeline. The adapter 
 
 ## Exceptions
 
-### `ValueError` — Intent Not Registered
+### `ValueError` — Intent Not Registered / Validation Failed
 
-Raised when executing an Intent that hasn't been registered.
+Raised when executing an Intent that hasn't been registered, or when a processor returns `{"validated": False}`.
 
 ```python
+# Intent not found
 result = await execute(Intent(name="nonexistent", level=Level.STANDARD))
 # Result: success=False, error=ValueError("Intent 'nonexistent' not registered")
+
+# Validation rejection
+async def validate(ctx):
+    return {"validated": False, "error": "name is required"}
+# Pipeline stops. Result: success=False, error=ValueError("Validation failed in validate: name is required")
 ```
 
-**Fix**: register the Intent before executing it.
+**Fix**: register the Intent, or check validation return value.
 
 ### `PermissionError` — Rejected by Processor
 
@@ -50,9 +56,11 @@ PAYMENT = Intent(name="pay", level=Level.CRITICAL, timeout=5.0)
 Raised in strict mode when a processor name in the pipeline doesn't match any registered processor.
 
 ```python
-from evoid.core.pipeline import resolve_pipeline
-pipeline = resolve_pipeline(intent, strict=True)
-# If "unknown_processor" is in the pipeline: LookupError
+from evoid.core.runtime import Config
+
+config = Config(strict=True)
+result = await execute(intent, config=config)
+# If pipeline references "unknown_processor": LookupError
 ```
 
 **Fix**: check processor names against `evo list-processors`.

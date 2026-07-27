@@ -15,17 +15,17 @@ Sandy's kitchen has a workflow: receive order → check ingredients → prepare 
 ## The Kitchen Flow
 
 ```python
-from evoid import Intent, Level, register, register_processor
+from evoid import Intent, Level
 from evoid.core import Context
 from evoid.core.extend import add_intent_with_pipeline
 
 ORDER = Intent(name="order", level=Level.STANDARD)
 
 # Each step is a processor — one responsibility, pure function
-async def receive(intent: Intent, ctx: Context) -> dict:
+async def receive(ctx: Context) -> dict:
     """Step 1: Receive and validate the order."""
-    sandwich = intent.metadata.get("sandwich")
-    qty = intent.metadata.get("qty", 1)
+    sandwich = ctx.intent.metadata.get("sandwich")
+    qty = ctx.intent.metadata.get("qty", 1)
     if not sandwich:
         return {"error": "No sandwich specified"}
     ctx.state["sandwich"] = sandwich
@@ -33,7 +33,7 @@ async def receive(intent: Intent, ctx: Context) -> dict:
     ctx.state["step"] = "received"
     return {"received": True}
 
-async def check_ingredients(intent: Intent, ctx: Context) -> dict:
+async def check_ingredients(ctx: Context) -> dict:
     """Step 2: Verify we have ingredients."""
     sandwich = ctx.state["sandwich"]
     # Simplified inventory check
@@ -44,21 +44,21 @@ async def check_ingredients(intent: Intent, ctx: Context) -> dict:
     ctx.state["step"] = "ingredients_checked"
     return {"ingredients_available": True}
 
-async def prepare(intent: Intent, ctx: Context) -> dict:
+async def prepare(ctx: Context) -> dict:
     """Step 3: Prepare the sandwich."""
     sandwich = ctx.state["sandwich"]
     ctx.state["step"] = "preparing"
     # In real app: track preparation time, assign chef
     return {"preparing": sandwich}
 
-async def package(intent: Intent, ctx: Context) -> dict:
+async def package(ctx: Context) -> dict:
     """Step 4: Package for serving."""
     sandwich = ctx.state["sandwich"]
     qty = ctx.state["qty"]
     ctx.state["step"] = "packaged"
     return {"packaged": True, "items": qty}
 
-async def serve(intent: Intent, ctx: Context) -> dict:
+async def serve(ctx: Context) -> dict:
     """Step 5: Mark as ready for pickup."""
     sandwich = ctx.state["sandwich"]
     qty = ctx.state["qty"]
@@ -70,17 +70,9 @@ async def serve(intent: Intent, ctx: Context) -> dict:
     }
 
 # Wire the full pipeline
-register(ORDER)
-register_processor("receive", receive)
-register_processor("check_ingredients", check_ingredients)
-register_processor("prepare", prepare)
-register_processor("package", package)
-register_processor("serve", serve)
-
 add_intent_with_pipeline(
     ORDER,
-    processors=["receive", "check_ingredients", "prepare", "package", "serve"],
-    handler=serve,
+    processors=[receive, check_ingredients, prepare, package, serve],
 )
 ```
 
@@ -119,12 +111,12 @@ from evoid import register_processor
 from evoid.core.extend import before, after
 
 # Add timing
-async def timing(intent: Intent, ctx: Context) -> dict:
+async def timing(ctx) -> dict:
     import time
     ctx.state["start_time"] = time.monotonic()
     return {"timed": True}
 
-async def report_timing(intent: Intent, ctx: Context) -> dict:
+async def report_timing(ctx) -> dict:
     import time
     start = ctx.state.get("start_time", 0)
     elapsed = time.monotonic() - start
@@ -148,7 +140,7 @@ Now the pipeline is: `timing` → `receive` → `check_ingredients` → `prepare
 ```python
 from evoid.core.extend import before_processor
 
-async def allergy_check(intent: Intent, ctx: Context) -> dict:
+async def allergy_check(ctx: Context) -> dict:
     """Check for allergies before preparation."""
     sandwich = ctx.state["sandwich"]
     # In real app: check customer allergy profile

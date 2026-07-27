@@ -116,9 +116,10 @@ from starlette.routing import Route, WebSocketRoute
 from starlette.responses import JSONResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from evoid import Intent, Level, subscribe, publish, register, register_processor
+from evoid import Intent, Level, subscribe, publish
 from evoid.core import Context
-from evoid_godot import Topics, setup_game_subscriptions
+from evoid.core.extend import add_intent
+from evoid_godot import Topics, setup_game_hosting
 from game import Game
 
 # ── Game State ──────────────────────────────────────────────────────────
@@ -254,15 +255,11 @@ async def broadcast_to_room(room_id: str, message: dict):
 
 # ── Register Intents ────────────────────────────────────────────────────
 
-register(Intent(name="player_join", level=Level.STANDARD))
-register(Intent(name="make_move", level=Level.STANDARD))
-register(Intent(name="leave_game", level=Level.STANDARD))
+add_intent(Intent(name="player_join", level=Level.STANDARD), handle_player_join)
+add_intent(Intent(name="make_move", level=Level.STANDARD), handle_make_move)
+add_intent(Intent(name="leave_game", level=Level.STANDARD), handle_leave_game)
 
-register_processor("player_join", handle_player_join)
-register_processor("make_move", handle_make_move)
-register_processor("leave_game", handle_leave_game)
-
-setup_game_subscriptions("tic-tac-toe")
+setup_game_hosting("tic-tac-toe")
 
 
 # ── WebSocket ───────────────────────────────────────────────────────────

@@ -17,15 +17,13 @@ Sandy's customers want live order tracking: "Your BLT is being prepared..."
 ## WebSocket Adapter
 
 ```python
-from evoid.adapters.websocket import create_ws_app
+from evoid.adapters.websocket import create_ws_app, on
 
 ws_app = create_ws_app(name="sandy-ws")
 
-@ws_app.on("connect")
 async def handle_connect(ctx):
     return {"status": "connected"}
 
-@ws_app.on("message")
 async def handle_message(ctx):
     data = ctx.intent.metadata.get("data", {})
     if data.get("type") == "track_order":
@@ -34,9 +32,12 @@ async def handle_message(ctx):
         return {"order_id": order_id, "status": "preparing"}
     return {"error": "unknown message type"}
 
-@ws_app.on("disconnect")
 async def handle_disconnect(ctx):
     return {"status": "disconnected"}
+
+on(ws_app, "connect", handle_connect)
+on(ws_app, "message", handle_message)
+on(ws_app, "disconnect", handle_disconnect)
 ```
 
 ## Server-Sent Events (SSE)
@@ -51,7 +52,7 @@ STREAM_ORDERS = Intent(
     level=Level.STANDARD,
 )
 
-async def handle_stream(intent: Intent) -> list[dict]:
+async def handle_stream(ctx) -> list[dict]:
     """Return a list of events — adapter streams them."""
     return [
         {"event": "order_update", "data": {"id": 1, "status": "preparing"}},

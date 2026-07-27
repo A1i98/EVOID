@@ -8,7 +8,7 @@ description: 'Official EVOID plugins on PyPI: storage, cache, DI, auth, tasks, c
 !!! tip "New here?"
     EVOID ships with built-in engines for storage, cache, DI, and more. You don't need any plugins to get started. See [Plugins and Engines](plugins.md) for what's included, or [Plugin Ecosystem](plugin-ecosystem.md) to build your own.
 
-Official EVOID plugins on PyPI. Each is an independent package. Install only what you need.
+Official EVOID plugins on PyPI. Each is an independent package. Install only what you need. Anyone can build and publish plugins following the [Plugin Standard](plugin-standard.md).
 
 !!! info "IOP in every plugin"
     Every plugin follows IOP principles: data declares what it needs, the runtime handles how. A storage plugin doesn't know about your business logic. An auth plugin doesn't know about your database. Snap them together, and the pipeline composes them.
@@ -29,7 +29,7 @@ uv add evoid-smart-storage
 
 ## Available Plugins
 
-### evoid-base: Shared Contracts
+### evoid-base (v0.1.2): Shared Contracts
 
 The foundation. Defines `StorageEngine`, `CacheEngine`, and `LoggerEngine` contracts that all other plugins implement.
 
@@ -78,7 +78,7 @@ user = await storage.read("user:1")
 
 ---
 
-### evoid-redis: Redis Cache
+### evoid-redis (v0.1.2): Redis Cache
 
 Async Redis cache with TTL. The standard choice for ephemeral data.
 
@@ -111,7 +111,7 @@ session = await cache.get("session:abc123")
 
 ---
 
-### evoid-smart-storage: Multi-DB Routing
+### evoid-smart-storage (v0.1.2): Multi-DB Routing
 
 Routes data to different backends automatically. The traffic controller for your storage layer.
 
@@ -148,7 +148,7 @@ standard = "sqlite"           # Profiles → SQLite (simple)
 
 ---
 
-### evoid-di: Dependency Injection with Fault Tolerance
+### evoid-di (v0.1.2): Dependency Injection with Fault Tolerance
 
 Three levels of complexity plus automatic failover, health checking, and cluster integration.
 
@@ -203,7 +203,7 @@ storage = di.resolve("storage.postgresql")
 
 ---
 
-### evoid-auth: Authentication & Authorization
+### evoid-auth (v0.1.2): Authentication & Authorization
 
 Bring your own provider. No forced JWT, no forced OAuth. Just a function that takes a token and returns a role.
 
@@ -244,7 +244,7 @@ before("GET:/users", "authenticate")
 
 ---
 
-### evoid-tasks: Background Tasks
+### evoid-tasks (v0.1.2): Background Tasks
 
 Godot-inspired task lifecycle with EVOID pipeline integration. Fire-and-forget, scheduled, or event-driven.
 
@@ -289,7 +289,7 @@ async def update_stats(ctx: TaskContext):
 
 ---
 
-### evoid-scheduler: Priority-Aware Scheduling
+### evoid-scheduler (v0.1.3): Priority-Aware Scheduling
 
 Replaces EVOID's built-in parallel execution with a system-aware priority scheduler. Auto-defers low-priority tasks when the system is overloaded.
 
@@ -332,7 +332,7 @@ scheduler.submit(sync_analytics, priority=Priority.LOW)
 
 ---
 
-### evoid-cluster: Multi-Node Clustering
+### evoid-cluster (v0.1.2): Multi-Node Clustering
 
 Connects multiple EVOID nodes into a unified distributed system via WebSocket. Nodes share Intents, not data.
 
@@ -375,7 +375,7 @@ pattern = "chat:*"
 
 ---
 
-### evoid-godot: Game Integration
+### evoid-godot (v0.1.3): Game Integration
 
 Server-side adapter for connecting Godot games to EVOID. Works with the GDScript client plugin.
 
@@ -384,10 +384,10 @@ evo plug install evoid-godot
 ```
 
 ```python
-from evoid_godot import setup_game_subscriptions, game_intent_handler
+from evoid_godot import setup_game_hosting, game_intent_handler
 
 # Setup default handlers for game events
-setup_game_subscriptions("my-game")
+setup_game_hosting("my-game")
 ```
 
 !!! info "IOP: game intents"
@@ -414,7 +414,7 @@ setup_game_subscriptions("my-game")
 
 ---
 
-### evoid-maubot: Matrix Bot Adapter
+### evoid-maubot (v0.2.0): Matrix Bot Adapter
 
 Maubot plugin for Matrix messaging. Converts Matrix events to Intents.
 
@@ -423,15 +423,15 @@ evo plug install evoid-maubot
 ```
 
 ```python
-from evoid_maubot import MaubotAdapter
+from evoid_maubot import EvoidMaubot
 
-adapter = MaubotAdapter("my-matrix-bot")
+adapter = EvoidMaubot("my-matrix-bot")
 # Matrix messages become Intents, routed through the pipeline
 ```
 
 ---
 
-### evoid-transport: Low-Latency UDP
+### evoid-transport (v0.1.2): Low-Latency UDP
 
 Binary UDP protocol for game state synchronization. ~0.5ms overhead vs ~2-5ms for WebSocket.
 
@@ -469,7 +469,7 @@ latency = await transport.measure_latency("player-123")
 
 ---
 
-### evoid-dashboard: Monitoring Dashboard
+### evoid-dashboard (v0.1.2): Monitoring Dashboard
 
 ASGI-based web dashboard. Service map, intent registry, message bus history, DB viewer.
 

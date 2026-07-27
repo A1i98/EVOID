@@ -12,7 +12,8 @@ Sandy's shop is growing. She needs a menu system that handles browsing, adding i
 ## Defining the Menu
 
 ```python
-from evoid import Intent, Level, register, register_processor
+from evoid import Intent, Level
+from evoid.core.extend import add_intent
 from evoid.core import Context
 
 # Menu data — just a dict, no classes needed
@@ -41,30 +42,26 @@ ADD_ITEM = Intent(
 )
 
 # Processors
-async def handle_view_menu(intent: Intent) -> dict:
+async def handle_view_menu(ctx) -> dict:
     return {"menu": MENU}
 
-async def handle_search(intent: Intent) -> dict:
-    query = intent.metadata.get("query", "").lower()
+async def handle_search(ctx) -> dict:
+    query = ctx.intent.metadata.get("query", "").lower()
     results = [item for item in MENU if query in item["name"].lower()]
     return {"results": results, "count": len(results)}
 
-async def handle_add_item(intent: Intent) -> dict:
-    name = intent.metadata.get("name")
-    price = intent.metadata.get("price", 0.0)
-    category = intent.metadata.get("category", "custom")
+async def handle_add_item(ctx) -> dict:
+    name = ctx.intent.metadata.get("name")
+    price = ctx.intent.metadata.get("price", 0.0)
+    category = ctx.intent.metadata.get("category", "custom")
     new_item = {"id": len(MENU) + 1, "name": name, "price": price, "category": category}
     MENU.append(new_item)
     return {"status": "added", "item": new_item}
 
 # Register
-register(VIEW_MENU)
-register(SEARCH_MENU)
-register(ADD_ITEM)
-
-register_processor("view_menu", handle_view_menu)
-register_processor("search_menu", handle_search)
-register_processor("add_item", handle_add_item)
+add_intent(VIEW_MENU, handle_view_menu)
+add_intent(SEARCH_MENU, handle_search)
+add_intent(ADD_ITEM, handle_add_item)
 ```
 
 ## Pipeline Composition
@@ -72,14 +69,29 @@ register_processor("add_item", handle_add_item)
 Each Intent gets a pipeline. The default pipeline depends on the level:
 
 ```python
-from evoid.core.extend import resolve_pipeline
+# Ephemeral — fast path, just validate
+VIEW_MENU = Intent(name="view_menu", level=Level.EPHEMERAL)
+# Default pipeline: ("validate",) — 5s timeout
 
-# See what pipeline each intent gets
-config = resolve_pipeline(VIEW_MENU)
-print(config.processors)  # ("validate",) — ephemeral gets fast path
+# Standard — balanced, auth check
+ADD_ITEM = Intent(name="add_item", level=Level.STANDARD)
+# Default pipeline: ("validate", "authorize") — 10s timeout
 
-config = resolve_pipeline(ADD_ITEM)
-print(config.processors)  # ("validate", "authorize") — standard gets auth
+# Critical — full protection
+DELETE_ITEM = Intent(name="delete_item", level=Level.CRITICAL)
+# Default pipeline: ("validate", "authorize", "audit", "protect") — 30s timeout
+```
+
+When you use `add_intent()`, it overrides the default with just your handler. You can compose a custom pipeline with `add_intent_with_pipeline()` instead:
+
+```python
+from evoid.core.extend import add_intent_with_pipeline
+
+add_intent_with_pipeline(
+    ADD_ITEM,
+    processors=["validate", "authorize", handle_add_item],
+)
+# Pipeline: validate → authorize → handle_add_item
 ```
 
 ## Adding Custom Processors
@@ -87,14 +99,12 @@ print(config.processors)  # ("validate", "authorize") — standard gets auth
 Sandy wants logging on every menu action:
 
 ```python
-async def log_action(intent: Intent, ctx: Context) -> dict:
+async def log_action(ctx) -> dict:
     """Log every intent execution."""
-    action = intent.name
+    action = ctx.intent.name
     print(f"[LOG] Action: {action}")
     ctx.state["logged"] = True
     return {"logged": True}
-
-register_processor("log_action", log_action)
 ```
 
 Wire it to specific intents using the extend system:
@@ -158,11 +168,11 @@ The level determines:
 When a processor fails, the pipeline stops:
 
 ```python
-async def handle_add_item(intent: Intent) -> dict:
-    name = intent.metadata.get("name")
+async def handle_add_item(ctx) -> dict:
+    name = ctx.intent.metadata.get("name")
     if not name:
         raise ValueError("Item name is required")
-    price = intent.metadata.get("price", 0)
+    price = ctx.intent.metadata.get("price", 0)
     if price <= 0:
         raise ValueError("Price must be positive")
     # ... add item

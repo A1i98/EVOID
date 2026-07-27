@@ -60,7 +60,7 @@ async def get_user(user_id: int) -> dict:
         level=Level.STANDARD,
         metadata={"user_id": user_id},
     ))
-    return result.value
+    return result[0].value if result else {"error": "no handler"}
 ```
 
 The service subscribes to "get_user" and handles it:
@@ -122,7 +122,7 @@ async def list_menu() -> dict:
         name="list_menu",
         level=Level.EPHEMERAL,
     ))
-    return result.value
+    return result[0].value if result else {"error": "no handler"}
 
 @post("/api/orders")
 async def create_order(sandwich: str, qty: int = 1) -> dict:
@@ -131,7 +131,7 @@ async def create_order(sandwich: str, qty: int = 1) -> dict:
         level=Level.STANDARD,
         metadata={"sandwich": sandwich, "qty": qty},
     ))
-    return result.value
+    return result[0].value if result else {"error": "no handler"}
 ```
 
 Business logic lives in services. The gateway only routes.

@@ -5,7 +5,7 @@ description: 'How to publish EVOID plugins to PyPI and make them discoverable.'
 
 # Plugin Standard
 
-Standard for publishing EVOID plugins to PyPI.
+Standard for publishing EVOID plugins to PyPI. Anyone can build and publish plugins — you don't need to be part of the core team.
 
 ## Naming Convention
 
@@ -13,8 +13,10 @@ Plugins must follow this naming:
 
 | Pattern | Example | Use Case |
 |---------|---------|----------|
-| `evoid-*` | `evoid-redis` | Official plugins |
-| `evoid-plugin-*` | `evoid-plugin-discord` | Community plugins |
+| `evoid-*` | `evoid-redis` | Official or community plugins |
+| `evoid-plugin-*` | `evoid-plugin-discord` | Community plugins (alternative) |
+
+Both patterns are discoverable via `evo plug search`.
 
 ## Manifest
 

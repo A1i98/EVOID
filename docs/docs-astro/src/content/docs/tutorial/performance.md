@@ -102,22 +102,22 @@ import time
 from evoid import Intent, Level, register_processor
 from evoid.core import Context
 
-async def monitor_pipeline(intent: Intent, ctx: Context) -> dict:
+async def monitor_pipeline(ctx: Context) -> dict:
     """Track execution metrics."""
     start = time.monotonic()
     ctx.state["monitor_start"] = start
     return {"monitoring": True}
 
-async def report_metrics(intent: Intent, ctx: Context) -> dict:
+async def report_metrics(ctx: Context) -> dict:
     """Report execution metrics after pipeline completes."""
     start = ctx.state.get("monitor_start", 0)
     duration = time.monotonic() - start
 
     # Send to your metrics system (Prometheus, Datadog, etc.)
-    print(f"[METRICS] {intent.name}: {duration:.4f}s")
+    print(f"[METRICS] {ctx.intent.name}: {duration:.4f}s")
 
     # Track by level
-    level = intent.level.value
+    level = ctx.intent.level.value
     print(f"[METRICS] level={level} duration={duration:.4f}")
 
     return {"duration": duration}

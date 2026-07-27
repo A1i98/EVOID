@@ -59,10 +59,11 @@ async def handle_cancel_match(ctx: Context) -> dict:
     return await cancel_match(player_id)
 
 
-register(Intent(name="quick_match", level=Level.STANDARD))
-register(Intent(name="cancel_match", level=Level.STANDARD))
-register_processor("quick_match", handle_quick_match)
-register_processor("cancel_match", handle_cancel_match)
+from evoid import Intent, Level
+from evoid.core.extend import add_intent
+
+add_intent(Intent(name="quick_match", level=Level.STANDARD), handle_quick_match)
+add_intent(Intent(name="cancel_match", level=Level.STANDARD), handle_cancel_match)
 ```
 
 ## 3. Client: Quick Match Button

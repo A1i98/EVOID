@@ -28,10 +28,23 @@ class Config:
     strict: bool = False   # raise on missing processors
 
 
-async def execute(intent: Intent, config: Config | None = None) -> Result:
-    """Execute an intent through the pipeline."""
+async def execute(intent: Intent, config: Config | None = None, **kwargs: Any) -> Result:
+    """Execute an intent through the pipeline.
+
+    Keyword arguments are merged into the intent's metadata.
+    """
     from .extend import get_pipeline_config
     from .routing import apply_routing
+
+    # Merge kwargs into metadata
+    if kwargs:
+        intent = Intent(
+            name=intent.name,
+            level=intent.level,
+            metadata={**intent.metadata, **kwargs},
+            timeout=intent.timeout,
+            priority=intent.priority,
+        )
 
     # 1. Resolve pipeline config (with overrides)
     pipeline_config = get_pipeline_config(intent)

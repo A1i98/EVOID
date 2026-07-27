@@ -153,6 +153,11 @@ async def create_order(sandwich: str) -> dict:
 `@route` handlers don't receive `ctx`. The framework extracts params automatically:
 
 ```python
+from evoid.adapters.asgi import get
+from evoid.web.route import Service
+from evoid import Intent
+from evoid.core import Context
+
 # @route style — no ctx, params extracted
 @get("/users/{user_id}")
 async def get_user(user_id: int) -> dict:
@@ -170,12 +175,14 @@ async def handle_get_user(intent: Intent, ctx: Context) -> dict:
 Dependencies are injected by processors. Make sure a processor writes to `ctx.deps`:
 
 ```python
+from evoid.core import Context
+from evoid.core.extend import before
+
 async def inject_db(ctx: Context) -> dict:
     ctx.deps["db"] = create_session()
     return {"db_ready": True}
 
 # Wire it to the pipeline
-from evoid.core.extend import before
 before("GET:/users/{id}", "inject_db")
 ```
 

@@ -285,8 +285,8 @@ app = config(
 - [Schema Export](../learn/schema-export.md): export Intent schemas
 - [Plugin Hooks](../learn/plugin-hooks.md): lifecycle events
 - [Plugin Standard](../learn/plugin-standard.md): plugin packaging
-- [Python Config](../learn/python-config.md): Python-native config
+- [Python Config](../learn/configuration.md#python-config-recommended): Python-native config
 
 ## Next
 
-See it in action — [Tutorial: Your First Intent](../tutorial/first-intent.md).
+See it in action — [Tutorial: Your First Intent](/EVOID/docs/tutorial/first-intent/).

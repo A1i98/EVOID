@@ -113,4 +113,4 @@ cache = "memory"
 ## Related
 
 - [Configuration](../learn/configuration.md): conceptual overview
-- [Python-Native Config](../learn/python-config.md): Python config guide
+- [Python Config](../learn/configuration.md#python-config-recommended): Python config guide

@@ -47,7 +47,7 @@ For validation that depends on external data, use processors:
 from evoid import register_processor
 from evoid.core import Context
 
-async def validate_inventory(intent: Intent, ctx: Context) -> dict:
+async def validate_inventory(ctx: Context) -> dict:
     """Check if sandwich is in stock."""
     body = ctx.intent.metadata.get("body", {})
     sandwich = body.get("sandwich")
@@ -118,7 +118,7 @@ class OrderResponse(BaseModel):
     status: str
     total: float
 
-async def validate_response(intent: Intent, ctx: Context) -> dict:
+async def validate_response(ctx: Context) -> dict:
     """Validate the handler's output."""
     result = ctx.state.get("handler_result", {})
     OrderResponse(**result)  # Raises if invalid

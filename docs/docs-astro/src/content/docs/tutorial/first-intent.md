@@ -16,8 +16,8 @@ Sandy runs a small sandwich shop. Paper orders get lost. Let's fix that with a s
 
 ```python
 import asyncio
-from evoid import Intent, Level, execute, register_processor
-from evoid.core import Context
+from evoid import Intent, Level, execute
+from evoid.core.extend import add_intent
 
 # 1. Define what you want
 ORDER_SANDWICH = Intent(
@@ -27,9 +27,9 @@ ORDER_SANDWICH = Intent(
 )
 
 # 2. Define how to do it
-async def handle_order(intent: Intent) -> dict:
-    sandwich = intent.metadata.get("sandwich", "unknown")
-    qty = intent.metadata.get("qty", 1)
+async def handle_order(ctx) -> dict:
+    sandwich = ctx.intent.metadata.get("sandwich", "unknown")
+    qty = ctx.intent.metadata.get("qty", 1)
     return {
         "status": "confirmed",
         "order": sandwich,
@@ -38,7 +38,7 @@ async def handle_order(intent: Intent) -> dict:
     }
 
 # 3. Wire it together
-register_processor("order_sandwich", handle_order)
+add_intent(ORDER_SANDWICH, handle_order)
 
 # 4. Execute
 async def main():
@@ -131,7 +131,8 @@ You choose the level. The runtime handles the infrastructure.
 Sandy needs to manage the menu too:
 
 ```python
-from evoid import Intent, Level, register, register_processor
+from evoid import Intent, Level, execute
+from evoid.core.extend import add_intent
 
 # Define intents
 ORDER_SANDWICH = Intent(
@@ -147,12 +148,12 @@ VIEW_MENU = Intent(
 )
 
 # Define processors
-async def handle_order(intent: Intent) -> dict:
-    sandwich = intent.metadata.get("sandwich", "BLT")
-    qty = intent.metadata.get("qty", 1)
+async def handle_order(ctx) -> dict:
+    sandwich = ctx.intent.metadata.get("sandwich", "BLT")
+    qty = ctx.intent.metadata.get("qty", 1)
     return {"status": "confirmed", "order": sandwich, "quantity": qty}
 
-async def handle_menu(intent: Intent) -> dict:
+async def handle_menu(ctx) -> dict:
     return {
         "menu": [
             {"name": "BLT", "price": 8.99},
@@ -162,10 +163,8 @@ async def handle_menu(intent: Intent) -> dict:
     }
 
 # Register everything
-register(ORDER_SANDWICH)
-register(VIEW_MENU)
-register_processor("order_sandwich", handle_order)
-register_processor("view_menu", handle_menu)
+add_intent(ORDER_SANDWICH, handle_order)
+add_intent(VIEW_MENU, handle_menu)
 ```
 
 ```python
@@ -174,25 +173,43 @@ result = await execute(ORDER_SANDWICH, sandwich="Club", qty=3)
 # {'status': 'confirmed', 'order': 'Club', 'quantity': 3}
 ```
 
+!!! warning "What `add_intent()` actually does"
+    `add_intent()` creates a pipeline with **only your handler**. The level's default processors (validate, authorize, etc.) are skipped. Good for learning, not for production.
+
+    For the full level pipeline, use `add_intent_with_pipeline()`:
+
+    ```python
+    from evoid.core.extend import add_intent_with_pipeline
+
+    add_intent_with_pipeline(
+        ORDER_SANDWICH,
+        processors=["validate", "authorize", handle_order],
+    )
+    # Pipeline: validate → authorize → handle_order
+    ```
+
+    Processors can be strings (registered names) or callables (functions). The level determines the default pipeline — see [IOP Levels](../learn/iop-levels.md).
+
 ## Using Context
 
 Processors share data through a `Context` object. One processor writes, the next reads. Think of it as a conveyor belt in Sandy's kitchen:
 
 ```python
-from evoid import Intent, Level, execute, register, register_processor
+from evoid import Intent, Level, execute
 from evoid.core import Context
+from evoid.core.extend import add_intent
 
 CHECK_INVENTORY = Intent(name="check_inventory", level=Level.STANDARD)
 PREPARE_ORDER = Intent(name="prepare_order", level=Level.STANDARD)
 
-async def check_inventory(intent: Intent, ctx: Context) -> dict:
+async def check_inventory(ctx: Context) -> dict:
     """Step 1: Check if we have ingredients."""
-    sandwich = intent.metadata.get("sandwich", "BLT")
+    sandwich = ctx.intent.metadata.get("sandwich", "BLT")
     ctx.state["sandwich"] = sandwich
     ctx.state["in_stock"] = True  # Simplified check
     return {"checked": True}
 
-async def prepare_order(intent: Intent, ctx: Context) -> dict:
+async def prepare_order(ctx: Context) -> dict:
     """Step 2: Prepare the sandwich."""
     sandwich = ctx.state.get("sandwich")  # Reads what check_inventory wrote
     in_stock = ctx.state.get("in_stock", False)
@@ -200,10 +217,8 @@ async def prepare_order(intent: Intent, ctx: Context) -> dict:
         return {"error": "Out of stock"}
     return {"status": "preparing", "sandwich": sandwich}
 
-register(CHECK_INVENTORY)
-register(PREPARE_ORDER)
-register_processor("check_inventory", check_inventory)
-register_processor("prepare_order", prepare_order)
+add_intent(CHECK_INVENTORY, check_inventory)
+add_intent(PREPARE_ORDER, prepare_order)
 ```
 
 `ctx.state` is shared between processors — data flows from one step to the next. `ctx.intent` is the current Intent (immutable). `ctx.deps` is for injected dependencies like databases and caches (covered later).

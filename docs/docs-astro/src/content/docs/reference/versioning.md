@@ -46,9 +46,9 @@ These can ship in MINOR or PATCH:
 
 | Version | Supported |
 |---------|-----------|
+| 0.6.x | Yes |
 | 0.5.x | Yes |
-| 0.4.x | Yes |
-| < 0.4 | No |
+| < 0.5 | No |
 
 ## Deprecation Window
 
@@ -65,7 +65,7 @@ Check `evoid/__init__.py` or run `evo version`.
 
 ```bash
 evo version
-# EVOID 0.5.0
+# EVOID 0.6.6
 ```
 
 ## Related

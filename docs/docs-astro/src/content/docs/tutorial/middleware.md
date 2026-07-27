@@ -21,8 +21,8 @@ from evoid.core.extend import before, after
 # Rate limiter
 _calls: dict[str, list] = {}
 
-async def rate_limit(intent: Intent, ctx: Context) -> dict:
-    name = intent.name
+async def rate_limit(ctx: Context) -> dict:
+    name = ctx.intent.name
     import time
     now = time.time()
     window = 60
@@ -38,15 +38,15 @@ async def rate_limit(intent: Intent, ctx: Context) -> dict:
     return {"rate_limited": False}
 
 # Logger
-async def log_request(intent: Intent, ctx: Context) -> dict:
-    print(f"[{intent.name}] started")
+async def log_request(ctx: Context) -> dict:
+    print(f"[{ctx.intent.name}] started")
     ctx.state["log_start"] = __import__("time").monotonic()
     return {"logged": True}
 
-async def log_response(intent: Intent, ctx: Context) -> dict:
+async def log_response(ctx: Context) -> dict:
     start = ctx.state.get("log_start", 0)
     elapsed = __import__("time").monotonic() - start
-    print(f"[{intent.name}] completed in {elapsed:.3f}s")
+    print(f"[{ctx.intent.name}] completed in {elapsed:.3f}s")
     return {"elapsed": elapsed}
 
 register_processor("rate_limit", rate_limit)

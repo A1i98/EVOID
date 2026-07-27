@@ -103,7 +103,7 @@ evo version
 Expected output:
 
 ```
-evo 0.5.0
+evo 0.6.6
 ```
 
 ## Create Your First Project

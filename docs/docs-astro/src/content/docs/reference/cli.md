@@ -45,8 +45,11 @@ Show EVOID version.
 
 ```bash
 evo version
-# EVOID 0.5.0
+# EVOID 0.6.6
 ```
+
+!!! info "cwd-independence"
+    All `evo` commands work from any directory inside the project tree. The CLI walks up from `cwd` to find the project root (the directory containing `pyproject.toml`). You don't need to be in the project root — just somewhere inside it.
 
 ## Service
 

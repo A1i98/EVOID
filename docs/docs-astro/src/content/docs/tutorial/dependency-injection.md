@@ -26,8 +26,8 @@ async def inject_db(ctx: Context) -> dict:
     return {"db_ready": True}
 
 # Handler: reads injected dependency
-async def handle_get_user(intent: Intent, ctx: Context) -> dict:
-    user_id = intent.metadata.get("user_id")
+async def handle_get_user(ctx: Context) -> dict:
+    user_id = ctx.intent.metadata.get("user_id")
     db = ctx.deps["db"]
     user = await db.get_user(user_id)
     return {"id": user.id, "name": user.name}
@@ -92,13 +92,13 @@ GET_ORDER = Intent(
 Use `ctx.state` for data flow between processors. Use `ctx.deps` for service instances:
 
 ```python
-async def fetch_user(intent: Intent, ctx: Context) -> dict:
+async def fetch_user(ctx: Context) -> dict:
     """Processor 1: fetch user, store in state."""
-    user_id = intent.metadata.get("user_id")
+    user_id = ctx.intent.metadata.get("user_id")
     ctx.state["user"] = await ctx.deps["db"].get_user(user_id)
     return {"fetched": True}
 
-async def check_permissions(intent: Intent, ctx: Context) -> dict:
+async def check_permissions(ctx: Context) -> dict:
     """Processor 2: read state, enforce access."""
     user = ctx.state["user"]
     if user.role != "admin":
@@ -141,15 +141,20 @@ register_processor("inject_cache", inject_cache)
 `@route` decorators auto-create Intents. Use `ctx` for injected dependencies:
 
 ```python
+from evoid import register_processor
 from evoid.adapters.asgi import get, post
 from evoid.web.route import Service
+from evoid.core import Context
+from evoid.core.extend import before
 
 app = Service("api")
 
-@app.on("inject_db")
 async def inject_db(ctx: Context) -> dict:
     ctx.deps["db"] = create_session()
     return {"db_injected": True}
+
+register_processor("inject_db", inject_db)
+before("GET:/orders/{id}", "inject_db")
 
 @get("/orders/{id}")
 async def get_order(id: int, ctx: Context) -> dict:

@@ -32,7 +32,7 @@ EVOID is overkill for:
 
 ### Is EVOID production-ready?
 
-EVOID is in beta (v0.5.x). The core is stable, minimal dependencies, all tests passing. APIs may change before v1.0. Pin your version in production.
+EVOID is in beta (v0.6.x). The core is stable, minimal dependencies, all tests passing. APIs may change before v1.0. Pin your version in production.
 
 ## Technical
 
@@ -118,18 +118,20 @@ ctx.errors.append(ValidationError("optional check failed"))
 
 ```python
 import asyncio
-from evoid.core import Context, Intent, Level
+from evoid.core import Context, Intent, Level, register_processor
 
-async def test_validate():
+async def my_processor(ctx: Context) -> dict:
+    return {"valid": True}
+
+async def test_my_processor():
     intent = Intent(name="test", level=Level.STANDARD)
     ctx = Context(intent=intent, state={"data": "hello"})
 
-    result = await validate(ctx)
+    result = await my_processor(ctx)
 
     assert result["valid"] is True
-    assert ctx.state["validated"] is True
 
-asyncio.run(test_validate())
+asyncio.run(test_my_processor())
 ```
 
 ## CLI

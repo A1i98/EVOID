@@ -83,7 +83,7 @@ async def get_user(user_id: int) -> dict:
         level=Level.STANDARD,
         metadata={"user_id": user_id},
     ))
-    return result.value
+    return result[0].value if result else {"error": "no handler"}
 
 @post("/users")
 async def create_user(name: str) -> dict:
@@ -92,17 +92,12 @@ async def create_user(name: str) -> dict:
         level=Level.STANDARD,
         metadata={"name": name},
     ))
-    return result.value
+    return result[0].value if result else {"error": "no handler"}
 ```
 
 The gateway converts HTTP to Intent. The service handles the Intent. Neither knows about the other.
 
-@post("/users")
-async def create_user(name: str, email: str) -> dict:
-    return {"status": "created", "name": name}
-```
-
-## Step 3: Run Everything
+## Step 4: Run Everything
 
 ```bash
 evo run
@@ -115,7 +110,7 @@ Starting gateway on http://0.0.0.0:8000
 Starting users on http://0.0.0.0:8001
 ```
 
-## Step 4: Test It
+## Step 5: Test It
 
 ```bash
 # Get user — gateway routes to users service via message bus
@@ -138,13 +133,6 @@ curl -X POST http://localhost:8000/users?name=Ali
 
     The gateway doesn't know what "get_user" does. The users service doesn't know about HTTP. They only share Intent names. That's IOP — data declares intent, the system routes it.
 
-!!! tip "Protection levels"
-Each level maps to a different pipeline. `ephemeral` gets fast validation only. `critical` gets full audit and protection.
-
-## Next
-
-Build a real project step by step — [Tutorial: Your First Intent](../tutorial/first-intent.md).
-
 ## Adding Protection Levels
 
 Change the protection level per route:
@@ -164,3 +152,7 @@ async def process_payment(amount: float) -> dict:
 ```
 
 Each level maps to a different pipeline — `ephemeral` gets fast validation only, `critical` gets full audit and protection.
+
+## Next
+
+Build a real project step by step — [Tutorial: Your First Intent](/EVOID/docs/tutorial/first-intent/).
