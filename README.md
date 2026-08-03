@@ -356,7 +356,7 @@ evoid/
 
 **Full docs:** [https://evolvebeyond.github.io/EVOID/](https://evolvebeyond.github.io/EVOID/)
 
-**Architecture:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID)
+**Architecture:** [https://deepwiki.com/EvolveBeyond/EVOID](https://deepwiki.com/EvolveBeyond/EVOID) *(architecture documentation that updates faster, great for contributors)*
 
 ---
 
