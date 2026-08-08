@@ -26,7 +26,11 @@ from .resolver import _DEFAULT_PROCESSORS, PipelineConfig, resolve_pipeline
 def add_intent(intent: Intent, handler: Callable) -> None:
     """Add a new Intent with its handler.
 
-    Automatically composes pipeline: [intent.name].
+    Pipeline default comes from the intent's declared security level (see
+    resolver._DEFAULT_PROCESSORS): EPHEMERAL -> ("validate",), STANDARD ->
+    ("validate", "authorize"), CRITICAL -> ("validate", "authorize",
+    "audit", "protect"). The intent-level pipeline is used by default, so
+    the intent's declared level is never silently dropped.
     Override with replace_pipeline() after calling this.
 
     Usage:
@@ -46,9 +50,10 @@ def add_intent(intent: Intent, handler: Callable) -> None:
     """
     register_intent(intent)
     register_processor(intent.name, handler)
-    # Auto-compose pipeline so handler actually runs
+    # Auto-compose pipeline so handler actually runs — level-derived
+    # security processors first, then the intent's handler.
     _pipeline_overrides[intent.name] = PipelineConfig(
-        processors=(intent.name,),
+        processors=(*_DEFAULT_PROCESSORS.get(intent.level, ("validate",)), intent.name),
         priority=intent.priority,
     )
 

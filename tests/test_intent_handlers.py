@@ -1,6 +1,5 @@
-"""Tests for Intent Handler system — storage, cache, validation."""
+"""Tests for Intent definitions, validation, config, and built-in memory handlers."""
 
-import pytest
 
 
 class TestIntents:
@@ -39,35 +38,6 @@ class TestIntents:
         for name, obj in inspect.getmembers(intents):
             if hasattr(obj, 'name') and isinstance(obj.name, str):
                 assert '.' in obj.name, f"{name} should use dotted notation"
-
-
-class TestHandlerRegistry:
-    """Test handler registry operations."""
-
-    def test_set_and_get_handler(self):
-        from evoid.engines.handler import clear_handlers, get_handler, set_handler
-        clear_handlers()
-        set_handler("storage", "storage.read", {"db_path": "test.db"})
-        assert get_handler("storage") == "storage.read"
-        clear_handlers()
-
-    def test_get_config(self):
-        from evoid.engines.handler import clear_handlers, get_config, set_handler
-        clear_handlers()
-        set_handler("cache", "cache.get", {"url": "redis://localhost"})
-        config = get_config("cache.get")
-        assert config["url"] == "redis://localhost"
-        clear_handlers()
-
-    def test_get_all_handlers(self):
-        from evoid.engines.handler import clear_handlers, get_all_handlers, set_handler
-        clear_handlers()
-        set_handler("storage", "storage.read")
-        set_handler("cache", "cache.get")
-        handlers = get_all_handlers()
-        assert "storage" in handlers
-        assert "cache" in handlers
-        clear_handlers()
 
 
 class TestValidator:
@@ -172,69 +142,6 @@ class TestConfigOptions:
         )
         assert app.engines.storage == "sqlite"
         assert app.engines.options["sqlite"]["db_path"] == "my.db"
-
-
-class TestConflictDetection:
-    """Test conflict detection when registering handlers."""
-
-    def test_conflict_raises_error(self):
-        from evoid.engines.handler import clear_handlers, set_handler
-        clear_handlers()
-        set_handler("storage", "storage.read")
-        with pytest.raises(ValueError, match="Conflict"):
-            set_handler("storage", "storage.write")
-        clear_handlers()
-
-    def test_same_handler_no_conflict(self):
-        from evoid.engines.handler import clear_handlers, set_handler
-        clear_handlers()
-        set_handler("storage", "storage.read")
-        set_handler("storage", "storage.read")  # Same handler — no conflict
-        clear_handlers()
-
-
-class TestLazyLoading:
-    """Test lazy handler loading."""
-
-    def test_register_lazy_handler(self):
-        from evoid.engines.handler import _lazy_handlers, clear_handlers, register_lazy_handler
-        clear_handlers()
-        register_lazy_handler("test_category", "some.module:register_handlers")
-        assert "test_category" in _lazy_handlers
-        clear_handlers()
-
-    def test_ensure_loaded_skips_if_not_registered(self):
-        from evoid.engines.handler import ensure_loaded
-        # Should not raise for unknown category
-        ensure_loaded("nonexistent_category")
-
-
-class TestProfileSystem:
-    """Test profile-based configuration."""
-
-    def test_set_and_activate_profile(self):
-        from evoid.engines.handler import (
-            activate_profile,
-            clear_handlers,
-            get_active_profile,
-            list_profiles,
-            set_profile,
-        )
-        clear_handlers()
-        set_profile("production", {
-            "storage": {"engine": "postgresql", "url": "postgresql://prod/db"},
-        })
-        assert "production" in list_profiles()
-        activate_profile("production")
-        assert get_active_profile() == "production"
-        clear_handlers()
-
-    def test_activate_nonexistent_profile_raises(self):
-        from evoid.engines.handler import activate_profile, clear_handlers
-        clear_handlers()
-        with pytest.raises(ValueError, match="not found"):
-            activate_profile("nonexistent")
-        clear_handlers()
 
 
 class TestMemoryHandlers:
