@@ -9,9 +9,17 @@ import asyncio
 
 import pytest
 
-from evoid.core import Context, Intent, Level, clear_registry
-from evoid.core.extend import add_intent, add_intent_with_pipeline, clear_overrides, replace_pipeline
+from evoid.core import Context, Intent, Level, clear_registry, resolve_pipeline
+from evoid.core.extend import (
+    add_intent,
+    add_intent_with_pipeline,
+    clear_overrides,
+    get_pipeline_config,
+    replace_pipeline,
+)
+from evoid.core.processor import clear_processors
 from evoid.core.runtime import execute
+from evoid.processors.defaults import register_defaults
 
 
 @pytest.fixture(autouse=True)
@@ -19,6 +27,8 @@ def _clean_state():
     """Reset registries before each test — real defaults are re-registered on import."""
     clear_registry()
     clear_overrides()
+    clear_processors()
+    register_defaults()
 
 
 async def _handler(ctx: Context) -> dict:
@@ -117,6 +127,33 @@ class TestAddIntentWithPipelineUnchanged:
         assert result.success is True
         # Only the explicitly provided processors + handler
         assert result.processors == ("custom_only", "explicit_op")
+
+
+class TestAddIntentUsesResolver:
+    """add_intent() must delegate to resolve_pipeline(), not duplicate _DEFAULT_PROCESSORS."""
+
+    def test_add_intent_matches_resolve_pipeline_plus_handler(self):
+        """The override produced by add_intent() equals resolve_pipeline(intent)
+        with the handler name appended — proving no duplicated level mapping."""
+        intent = Intent(name="derive_op", level=Level.CRITICAL)
+        add_intent(intent, _handler)
+
+        cfg = get_pipeline_config(intent)
+        resolved = resolve_pipeline(intent)
+
+        assert cfg.processors == (*resolved.processors, intent.name)
+
+    def test_add_intent_does_not_directly_access_default_processors(self):
+        """Source-level guard: add_intent does not reference _DEFAULT_PROCESSORS."""
+        import inspect
+
+        from evoid.core import extend
+
+        src = inspect.getsource(extend.add_intent)
+        assert "_DEFAULT_PROCESSORS" not in src, (
+            "add_intent() must not directly access _DEFAULT_PROCESSORS — "
+            "it should delegate to resolve_pipeline()"
+        )
 
 
 class TestExplicitPipelineOverride:
@@ -264,6 +301,86 @@ class TestSecurityNotBypassed:
 
         assert result.success is False
         assert ran == []  # handler never executed
+
+
+class TestEdgeCases:
+    """Edge cases: unknown level, duplicates, repeated registration, metadata."""
+
+    def test_unknown_level_uses_resolver_fallback(self):
+        """Levels not in _DEFAULT_PROCESSORS → resolve_pipeline returns
+        empty processors. add_intent() inherits this via delegation."""
+        from evoid.core.resolver import _DEFAULT_PROCESSORS
+
+        # Verify the resolver's fallback contract: known level → processors
+        assert _DEFAULT_PROCESSORS[Level.EPHEMERAL] == ("validate",)
+
+        # add_intent() delegates to resolve_pipeline() for all levels
+        intent = Intent(name="eph_op2", level=Level.EPHEMERAL)
+        add_intent(intent, _handler)
+
+        result = asyncio.run(execute(intent))
+        assert result.success is True
+        assert result.processors == ("validate", "eph_op2")
+
+    def test_handler_executes_exactly_once(self):
+        """Handler must run exactly once per execution."""
+        calls = []
+
+        async def counting_handler(ctx: Context) -> dict:
+            calls.append("call")
+            return {"handled": True}
+
+        intent = Intent(name="count_op2", level=Level.STANDARD)
+        add_intent(intent, counting_handler)
+
+        asyncio.run(execute(intent))
+
+        assert calls == ["call"]
+
+    def test_repeated_add_intent_does_not_accumulate(self):
+        """Calling add_intent() twice for same intent must not duplicate processors."""
+        intent = Intent(name="repeat_op", level=Level.STANDARD)
+        add_intent(intent, _handler)
+        add_intent(intent, _handler)  # re-registration overwrites
+
+        cfg = get_pipeline_config(intent)
+
+        assert cfg.processors == ("validate", "authorize", "repeat_op")
+        assert cfg.processors.count("repeat_op") == 1
+
+    def test_handler_already_in_resolved_chain_no_duplicate(self):
+        """If handler name already appears in resolved chain, do not append a duplicate."""
+        intent = Intent(name="chain_op", level=Level.STANDARD)
+        # Intent metadata processors include the handler name itself
+        intent = Intent(
+            name="chain_op",
+            level=Level.STANDARD,
+            metadata={"processors": ["validate", "chain_op"]},
+        )
+        add_intent(intent, _handler)
+
+        cfg = get_pipeline_config(intent)
+
+        # resolve_pipeline() uses metadata processors → handler already there
+        assert cfg.processors == ("validate", "chain_op")
+        assert cfg.processors.count("chain_op") == 1
+
+    def test_priority_and_timeout_preserved(self):
+        """add_intent() must preserve priority and timeout from intent metadata."""
+        intent = Intent(
+            name="meta_op2",
+            level=Level.STANDARD,
+            priority=5,
+            timeout=7.5,
+            metadata={"timeout": 7.5},
+        )
+        add_intent(intent, _handler)
+
+        cfg = get_pipeline_config(intent)
+
+        assert cfg.processors == ("validate", "authorize", "meta_op2")
+        assert cfg.priority == 5
+        assert cfg.timeout == 7.5
 
 
 if __name__ == "__main__":

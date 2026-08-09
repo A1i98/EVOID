@@ -26,12 +26,12 @@ from .resolver import _DEFAULT_PROCESSORS, PipelineConfig, resolve_pipeline
 def add_intent(intent: Intent, handler: Callable) -> None:
     """Add a new Intent with its handler.
 
-    Pipeline default comes from the intent's declared security level (see
-    resolver._DEFAULT_PROCESSORS): EPHEMERAL -> ("validate",), STANDARD ->
-    ("validate", "authorize"), CRITICAL -> ("validate", "authorize",
-    "audit", "protect"). The intent-level pipeline is used by default, so
-    the intent's declared level is never silently dropped.
-    Override with replace_pipeline() after calling this.
+    Automatically composes the intent's normal level-based default pipeline
+    using resolve_pipeline(), then appends the intent's handler as the final
+    processor. The intent's declared level is never silently dropped.
+
+    Override with replace_pipeline() or add_intent_with_pipeline() after
+    calling this.
 
     Usage:
         from evoid.core import Intent, Level
@@ -50,11 +50,22 @@ def add_intent(intent: Intent, handler: Callable) -> None:
     """
     register_intent(intent)
     register_processor(intent.name, handler)
-    # Auto-compose pipeline so handler actually runs — level-derived
-    # security processors first, then the intent's handler.
+
+    # Resolve the level-based default pipeline through the authoritative
+    # resolver, then append the handler as the final processor. If the
+    # handler name already appears in the resolved chain (unusual), do not
+    # append a duplicate — mirroring add_intent_with_pipeline().
+    base = resolve_pipeline(intent)
+    if intent.name in base.processors:
+        final_processors = base.processors
+    else:
+        final_processors = (*base.processors, intent.name)
+
     _pipeline_overrides[intent.name] = PipelineConfig(
-        processors=(*_DEFAULT_PROCESSORS.get(intent.level, ("validate",)), intent.name),
-        priority=intent.priority,
+        processors=final_processors,
+        priority=base.priority,
+        timeout=base.timeout,
+        metadata=base.metadata,
     )
 
 
