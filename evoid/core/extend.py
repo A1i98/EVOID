@@ -26,8 +26,12 @@ from .resolver import _DEFAULT_PROCESSORS, PipelineConfig, resolve_pipeline
 def add_intent(intent: Intent, handler: Callable) -> None:
     """Add a new Intent with its handler.
 
-    Automatically composes pipeline: [intent.name].
-    Override with replace_pipeline() after calling this.
+    Automatically composes the intent's normal level-based default pipeline
+    using resolve_pipeline(), then appends the intent's handler as the final
+    processor. The intent's declared level is never silently dropped.
+
+    Override with replace_pipeline() or add_intent_with_pipeline() after
+    calling this.
 
     Usage:
         from evoid.core import Intent, Level
@@ -46,10 +50,22 @@ def add_intent(intent: Intent, handler: Callable) -> None:
     """
     register_intent(intent)
     register_processor(intent.name, handler)
-    # Auto-compose pipeline so handler actually runs
+
+    # Resolve the level-based default pipeline through the authoritative
+    # resolver, then append the handler as the final processor. If the
+    # handler name already appears in the resolved chain (unusual), do not
+    # append a duplicate — mirroring add_intent_with_pipeline().
+    base = resolve_pipeline(intent)
+    if intent.name in base.processors:
+        final_processors = base.processors
+    else:
+        final_processors = (*base.processors, intent.name)
+
     _pipeline_overrides[intent.name] = PipelineConfig(
-        processors=(intent.name,),
-        priority=intent.priority,
+        processors=final_processors,
+        priority=base.priority,
+        timeout=base.timeout,
+        metadata=base.metadata,
     )
 
 

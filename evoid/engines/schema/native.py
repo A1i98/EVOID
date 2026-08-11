@@ -56,9 +56,9 @@ def schema_of(schema: type) -> dict[str, Any]:
 
 
 def register_handlers() -> None:
-    """Register native schema engine."""
-    from ..handler import set_handler
-    set_handler("schema", "schema.validate", {})
-    set_handler("schema", "schema.serialize", {})
-    set_handler("schema", "schema.deserialize", {})
-    set_handler("schema", "schema.schema_of", {})
+    """Register native schema engine.
+
+    Schema validation/serialization/deserialization are wired through
+    evoid.engines.schema (get_validator), not the handler registry.
+    This function exists for backward-compatible engine registration.
+    """
