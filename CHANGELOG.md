@@ -5,6 +5,41 @@ All notable changes to EVOID will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.10] - 2026-08-12
+
+### Fixed
+- **PyPI publish** — bump version to 0.6.10 (0.6.9 already exists on PyPI with different hash)
+- CI: msgpack dependency resolved, all serializer tests pass
+
+## [0.6.9] - 2026-08-12
+
+### Security
+- **Pipeline security fix** — `add_intent()` now delegates to `resolve_pipeline()` for all intent levels
+  - Previously `add_intent()` with `level=CRITICAL` bypassed security processors (returned `(intent.name,)`)
+  - Now all levels (EPHEMERAL, STANDARD, CRITICAL) use `resolve_pipeline()` → single source of truth
+  - CRITICAL: `validate → authorize → audit → protect → handler`
+  - STANDARD: `validate → authorize → handler`
+  - EPHEMERAL: `validate → handler`
+  - Default processors (`validate`, `authorize`, `audit`, `protect`) are fail-open (return `skipped: True` when no engine configured)
+
+### Removed
+- **Dead handler system** — `evoid/engines/handler.py` and `evoid/core/startup.py` removed
+  - These modules were never called by `execute()` — actual path: `extend.add_intent_with_pipeline` → `_pipeline_overrides` + `_processors`
+  - Removed unused `HandlerRegistry`, `set_handler()`, `get_handler()`, `clear_handler()`
+  - Removed dead `_register_handlers()` call from `startup.py`
+
+### Changed
+- `add_intent()` → `resolve_pipeline()` delegation (no direct `_DEFAULT_PROCESSORS` access)
+- `msgpack` promoted from optional extra to **required dependency** (needed for serializer engine tests)
+
+### Fixed
+- CI: msgpack serializer tests now pass (msgpack always available)
+
+### Tests
+- Added 18 regression tests in `test_intent_pipeline_security.py` covering real runtime path
+  - `execute()` → `get_pipeline_config()` → `execute_pipeline()` → processor registry
+- Tests verify: pipeline composition, processor registry, level-based resolution, override behavior, `add_intent` delegation
+
 ## [0.6.6] - 2026-07-26
 
 ### Added
