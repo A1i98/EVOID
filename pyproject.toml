@@ -1,6 +1,6 @@
 [project]
 name = "evoid"
-version = "0.6.7"
+version = "0.6.9"
 description = "EVOID — Reference Runtime for Intent-Oriented Programming"
 authors = [
     { name = "EvolveBeyond", email = "pakrohk@gmail.com" }
@@ -33,6 +33,7 @@ dev = [
     "pytest>=7.0.0,<8.0.0",
     "pytest-asyncio>=0.21.0,<0.22.0",
     "ruff>=0.4.0",
+    "msgpack>=1.0.0,<2.0.0",
 ]
 
 [tool.hatch.metadata]
