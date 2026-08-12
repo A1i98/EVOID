@@ -45,6 +45,25 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Documentation coherence and tutorial ordering improved
 - Quick Start corrected to match actual `evo init` behavior + version badge updated to 0.6.7
 
+## [0.6.7] - 2026-07-31
+
+### Bug Fixes
+- **Pipeline event consistency** — fixed `post_process` event to emit across all execution paths (inspect, timeout, fast); was only emitted in one path
+- **Lint cleanup** — resolved 60 lint errors: unused imports, unsorted imports, f-string formatting, shadowed variables
+
+### Features
+- **Security improvements** — enhanced pipeline security with fail-open validators
+- **Strict mode** — enforce mandatory security processors at CRITICAL level
+- **Check system** — intent-level validation before registration
+- **Event system expansion** — 5 new lifecycle events (pre_execute, post_execute, pre_process, post_process, intent_registered)
+- **Warnings system** — deprecation and configuration warnings
+- **AsyncAPI + MCP integration** — gateway exposes intents as AsyncAPI events and MCP tools
+- **Gateway configuration** — auto-increment ports, dynamic service discovery, gateway pattern docs
+
+### Docs
+- **Documentation overhaul** — comprehensive rewrite of all docs (96 pages)
+- **Gateway pattern** — documented as core architectural concept
+
 ## [0.4.1] - 2026-07-18
 
 ### Changed
